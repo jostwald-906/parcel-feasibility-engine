@@ -19,10 +19,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY app/ ./app/
 COPY data/ ./data/
 COPY scripts/ ./scripts/
-COPY start.sh .
-
-# Make start script executable
-RUN chmod +x start.sh
 
 # Create cache directory
 RUN mkdir -p .cache/rent_control
@@ -30,5 +26,5 @@ RUN mkdir -p .cache/rent_control
 # Expose port (Railway will set $PORT dynamically)
 EXPOSE 8000
 
-# Run via start.sh script which handles PORT environment variable
-CMD ["./start.sh"]
+# Run uvicorn with shell to expand PORT variable
+CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
