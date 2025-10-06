@@ -91,9 +91,11 @@ class Settings(BaseSettings):
     # ============================================
     ENVIRONMENT: str = "development"
 
-    class Config:
-        env_file = ".env"
-        case_sensitive = True
+    model_config = {
+        "env_file": ".env",
+        "case_sensitive": True,
+        "extra": "ignore"
+    }
 
     def is_feature_enabled(self, feature: str) -> bool:
         """Check if a specific feature flag is enabled."""
