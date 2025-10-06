@@ -11,7 +11,7 @@ from datetime import datetime
 import time
 import logging
 
-from app.api import analyze, rules, metadata
+from app.api import analyze, rules, metadata, autocomplete
 from app.core.config import settings
 from app.utils.logging import setup_logging, get_logger
 
@@ -78,6 +78,7 @@ async def log_requests(request: Request, call_next):
 app.include_router(analyze.router, prefix=settings.API_V1_STR, tags=["Analysis"])
 app.include_router(rules.router, prefix=settings.API_V1_STR, tags=["Rules"])
 app.include_router(metadata.router, prefix=settings.API_V1_STR, tags=["Metadata"])
+app.include_router(autocomplete.router)
 
 # Rent control endpoint - TEMPORARILY DISABLED due to cloudscraper timeout issues
 # from app.services.rent_control_api import lookup_mar, get_mar_summary, RentControlLookupError

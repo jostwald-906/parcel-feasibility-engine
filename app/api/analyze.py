@@ -19,6 +19,7 @@ from app.core.config import settings
 from app.services.rent_control_api import get_mar_summary
 from app.services.cnel_analyzer import classify_cnel, format_cnel_for_display, check_santa_monica_compliance
 from app.services.community_benefits import get_available_benefits, format_benefits_for_display
+from app.rules.proposed_validation import validate_proposed_vs_allowed, format_warnings_for_response
 from datetime import datetime
 import re
 
@@ -463,6 +464,16 @@ async def analyze_parcel(request: AnalysisRequest) -> AnalysisResponse:
         if rent_control_data and rent_control_data.get('is_rent_controlled') is None:
             rent_control_data['is_rent_controlled'] = False
 
+        # Validate proposed project against recommended scenario (if provided)
+        proposed_validation = None
+        if request.proposed_project:
+            validation_warnings = validate_proposed_vs_allowed(
+                request.proposed_project,
+                recommended_scenario,
+                parcel.lot_size_sqft
+            )
+            proposed_validation = format_warnings_for_response(validation_warnings)
+
         # Build response
         response = AnalysisResponse(
             parcel_apn=parcel.apn,
@@ -477,6 +488,7 @@ async def analyze_parcel(request: AnalysisRequest) -> AnalysisResponse:
             rent_control=rent_control_data,
             cnel_analysis=cnel_analysis,
             community_benefits=benefits_analysis,
+            proposed_validation=proposed_validation,
             debug=debug_info
         )
 

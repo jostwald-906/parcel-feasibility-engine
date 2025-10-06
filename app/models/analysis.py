@@ -5,6 +5,7 @@ from pydantic import BaseModel, Field
 from typing import Optional, List, Dict, Any
 from datetime import datetime
 from app.models.parcel import ParcelBase
+from app.models.proposed_project import ProposedProject
 
 
 class RentControlUnit(BaseModel):
@@ -30,6 +31,12 @@ class AnalysisRequest(BaseModel):
     """Request model for parcel feasibility analysis."""
 
     parcel: ParcelBase = Field(..., description="Parcel information")
+
+    # Proposed project details (optional - for validation against allowed scenarios)
+    proposed_project: Optional[ProposedProject] = Field(
+        None,
+        description="Proposed project details for validation against allowed development"
+    )
 
     # Analysis options
     include_sb9: bool = Field(True, description="Include SB9 lot split analysis")
@@ -116,6 +123,12 @@ class AnalysisResponse(BaseModel):
 
     # Community benefits analysis
     community_benefits: Optional[Dict[str, Any]] = Field(None, description="Available community benefits for tier upgrades")
+
+    # Proposed project validation (if proposed_project was provided in request)
+    proposed_validation: Optional[Dict[str, Any]] = Field(
+        None,
+        description="Validation results comparing proposed project against allowed scenarios"
+    )
 
     # Debug information (only included when debug=True)
     debug: Optional[Dict[str, Any]] = Field(None, description="Debug information with decision trace")
