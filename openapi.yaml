@@ -1,0 +1,991 @@
+openapi: 3.1.0
+info:
+  title: Santa Monica Parcel Feasibility Engine API
+  version: 0.1.0
+  description: |
+    AI-powered parcel evaluation and feasibility analysis tool for California housing development.
+
+    This API analyzes parcels for development feasibility under California state housing laws including:
+    - Base zoning regulations
+    - SB9 lot split and duplex provisions
+    - SB35 streamlined ministerial approval
+    - AB2011 office-to-residential conversion
+    - State Density Bonus Law
+    - AB2097 parking reductions near transit
+
+    The engine evaluates multiple development scenarios and recommends the optimal approach
+    to maximize housing units while maintaining compliance with all applicable regulations.
+
+    ## Authentication
+    Currently no authentication required. Future versions will include API key authentication.
+
+    ## Rate Limiting
+    No rate limiting currently applied. Production deployment will implement rate limits.
+
+    ## Errors
+    The API uses standard HTTP status codes:
+    - 200: Success
+    - 400: Bad request (invalid parameters)
+    - 404: Resource not found
+    - 500: Server error
+  contact:
+    name: API Support
+    email: support@example.com
+  license:
+    name: Proprietary
+
+servers:
+  - url: http://localhost:8000/api/v1
+    description: Development server
+  - url: https://api.parcelfeasibility.com/api/v1
+    description: Production server
+
+tags:
+  - name: Analysis
+    description: Parcel feasibility analysis endpoints
+  - name: Rules
+    description: California housing law information
+  - name: Health
+    description: System health monitoring
+
+paths:
+  /analyze:
+    post:
+      tags:
+        - Analysis
+      summary: Analyze parcel for development feasibility
+      description: |
+        Performs comprehensive parcel analysis evaluating all applicable California housing laws.
+
+        This endpoint:
+        1. Analyzes base zoning regulations
+        2. Checks SB9 eligibility (lot splits and duplexes)
+        3. Evaluates SB35 streamlining opportunities
+        4. Assesses AB2011 office conversion potential
+        5. Calculates density bonus scenarios
+        6. Applies AB2097 parking reductions
+
+        Returns multiple development scenarios with detailed metrics and recommendations.
+      operationId: analyzeParcel
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AnalysisRequest'
+            examples:
+              sb9-residential:
+                summary: SB9 single-family lot split scenario
+                description: Typical R1-zoned parcel eligible for SB9 lot split
+                value:
+                  parcel:
+                    apn: "4293-015-023"
+                    address: "1234 Main Street"
+                    city: "Santa Monica"
+                    county: "Los Angeles"
+                    zip_code: "90405"
+                    lot_size_sqft: 6000
+                    lot_width_ft: 50
+                    lot_depth_ft: 120
+                    zoning_code: "R1"
+                    general_plan: "Low Density Residential"
+                    existing_units: 1
+                    existing_building_sqft: 1800
+                    year_built: 1955
+                    latitude: 34.0195
+                    longitude: -118.4912
+                  include_sb9: true
+                  include_sb35: false
+                  include_ab2011: false
+                  include_density_bonus: false
+                  target_affordability_pct: null
+                  prefer_max_density: true
+
+              density-bonus:
+                summary: Density bonus multifamily scenario
+                description: R3-zoned parcel with 15% affordable units for density bonus
+                value:
+                  parcel:
+                    apn: "4293-020-045"
+                    address: "5678 Ocean Avenue"
+                    city: "Santa Monica"
+                    county: "Los Angeles"
+                    zip_code: "90401"
+                    lot_size_sqft: 15000
+                    lot_width_ft: 75
+                    lot_depth_ft: 200
+                    zoning_code: "R3"
+                    general_plan: "Medium Density Residential"
+                    existing_units: 0
+                    existing_building_sqft: 0
+                    year_built: null
+                    latitude: 34.0194
+                    longitude: -118.4911
+                  include_sb9: false
+                  include_sb35: true
+                  include_ab2011: false
+                  include_density_bonus: true
+                  target_affordability_pct: 15.0
+                  prefer_max_density: true
+
+              sb35-streamlined:
+                summary: SB35 streamlined approval scenario
+                description: Multifamily project in jurisdiction behind on RHNA
+                value:
+                  parcel:
+                    apn: "4293-025-067"
+                    address: "910 Broadway"
+                    city: "Santa Monica"
+                    county: "Los Angeles"
+                    zip_code: "90401"
+                    lot_size_sqft: 20000
+                    lot_width_ft: 100
+                    lot_depth_ft: 200
+                    zoning_code: "R4"
+                    general_plan: "High Density Residential"
+                    existing_units: 0
+                    existing_building_sqft: 0
+                    year_built: null
+                    latitude: 34.0195
+                    longitude: -118.4910
+                  include_sb9: false
+                  include_sb35: true
+                  include_ab2011: false
+                  include_density_bonus: true
+                  target_affordability_pct: 10.0
+                  prefer_max_density: true
+
+              ab2011-conversion:
+                summary: AB2011 office conversion scenario
+                description: Existing office building conversion to residential
+                value:
+                  parcel:
+                    apn: "4293-030-089"
+                    address: "1500 Colorado Avenue"
+                    city: "Santa Monica"
+                    county: "Los Angeles"
+                    zip_code: "90404"
+                    lot_size_sqft: 25000
+                    lot_width_ft: 125
+                    lot_depth_ft: 200
+                    zoning_code: "C3"
+                    general_plan: "Commercial"
+                    existing_units: 0
+                    existing_building_sqft: 45000
+                    year_built: 1985
+                    latitude: 34.0194
+                    longitude: -118.4913
+                  include_sb9: false
+                  include_sb35: false
+                  include_ab2011: true
+                  include_density_bonus: true
+                  target_affordability_pct: 20.0
+                  prefer_max_density: true
+
+      responses:
+        '200':
+          description: Successful analysis
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalysisResponse'
+              examples:
+                sb9-result:
+                  summary: SB9 analysis result
+                  value:
+                    parcel_apn: "4293-015-023"
+                    analysis_date: "2025-10-05T10:30:00Z"
+                    base_scenario:
+                      scenario_name: "Base Zoning (R1)"
+                      legal_basis: "Santa Monica Municipal Code - R1 Zone"
+                      max_units: 1
+                      max_building_sqft: 3600
+                      max_height_ft: 28
+                      max_stories: 2
+                      parking_spaces_required: 2
+                      affordable_units_required: 0
+                      setbacks:
+                        front: 15
+                        rear: 15
+                        side: 5
+                      lot_coverage_pct: 60
+                      estimated_buildable_sqft: 3600
+                      notes:
+                        - "Standard single-family zoning"
+                        - "Two-story height limit"
+                    alternative_scenarios:
+                      - scenario_name: "SB9 Duplex"
+                        legal_basis: "SB9 (2021) - Two-Unit Development"
+                        max_units: 2
+                        max_building_sqft: 4800
+                        max_height_ft: 28
+                        max_stories: 2
+                        parking_spaces_required: 1
+                        affordable_units_required: 0
+                        setbacks:
+                          front: 10
+                          rear: 10
+                          side: 4
+                        lot_coverage_pct: 70
+                        estimated_buildable_sqft: 4200
+                        notes:
+                          - "Ministerial approval required"
+                          - "Reduced parking under SB9"
+                      - scenario_name: "SB9 Lot Split + Duplexes"
+                        legal_basis: "SB9 (2021) - Lot Split with Two Units Per Lot"
+                        max_units: 4
+                        max_building_sqft: 6400
+                        max_height_ft: 28
+                        max_stories: 2
+                        parking_spaces_required: 2
+                        affordable_units_required: 0
+                        setbacks:
+                          front: 10
+                          rear: 10
+                          side: 4
+                        lot_coverage_pct: 70
+                        estimated_buildable_sqft: 4200
+                        notes:
+                          - "Creates two parcels of 3,000 sq ft each"
+                          - "Two units allowed per new parcel"
+                          - "Ministerial approval required"
+                    recommended_scenario: "SB9 Lot Split + Duplexes"
+                    recommendation_reason: "Maximizes unit count with 4 units under SB9 (2021) - Lot Split with Two Units Per Lot"
+                    applicable_laws:
+                      - "Local Zoning Code"
+                      - "SB9 (2021)"
+                    potential_incentives:
+                      - "SB9 lot split and duplex development"
+                    warnings:
+                      - "Existing 1 unit(s) may need to be demolished or incorporated"
+
+        '400':
+          description: Invalid request parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                invalid-lot-size:
+                  value:
+                    detail: "lot_size_sqft must be greater than 0"
+
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                analysis-failed:
+                  value:
+                    detail: "Analysis failed: Unexpected error in SB9 calculation"
+
+  /quick-analysis:
+    post:
+      tags:
+        - Analysis
+      summary: Quick analysis with key metrics only
+      description: |
+        Faster endpoint that returns essential information without full scenario details.
+
+        Useful for:
+        - Initial screening of parcels
+        - Bulk analysis of multiple parcels
+        - Dashboard summaries
+
+        Returns only:
+        - Base maximum units
+        - Optimized maximum units
+        - Recommended scenario name
+        - Applicable laws
+        - Top 3 opportunities
+      operationId: quickAnalysis
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AnalysisRequest'
+            examples:
+              quick-check:
+                summary: Quick feasibility check
+                value:
+                  parcel:
+                    apn: "4293-015-023"
+                    address: "1234 Main Street"
+                    city: "Santa Monica"
+                    county: "Los Angeles"
+                    zip_code: "90405"
+                    lot_size_sqft: 6000
+                    zoning_code: "R1"
+                    existing_units: 1
+                    existing_building_sqft: 1800
+                  include_sb9: true
+                  include_sb35: true
+                  include_ab2011: false
+                  include_density_bonus: false
+
+      responses:
+        '200':
+          description: Quick analysis results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  parcel_apn:
+                    type: string
+                    description: Assessor's Parcel Number
+                  max_units_base:
+                    type: integer
+                    description: Maximum units under base zoning
+                  max_units_optimized:
+                    type: integer
+                    description: Maximum units with state law incentives
+                  recommended_scenario:
+                    type: string
+                    description: Name of recommended development scenario
+                  applicable_laws:
+                    type: array
+                    items:
+                      type: string
+                    description: List of applicable laws
+                  key_opportunities:
+                    type: array
+                    items:
+                      type: string
+                    description: Top 3 development opportunities
+              examples:
+                quick-result:
+                  value:
+                    parcel_apn: "4293-015-023"
+                    max_units_base: 1
+                    max_units_optimized: 4
+                    recommended_scenario: "SB9 Lot Split + Duplexes"
+                    applicable_laws:
+                      - "Local Zoning Code"
+                      - "SB9 (2021)"
+                    key_opportunities:
+                      - "SB9 lot split and duplex development"
+
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /rules:
+    get:
+      tags:
+        - Rules
+      summary: Get all California housing rules
+      description: |
+        Returns information about all implemented California housing rules.
+
+        Includes:
+        - SB9 (Senate Bill 9 - 2021)
+        - SB35 (Senate Bill 35 - 2017)
+        - AB2011 (Assembly Bill 2011 - 2022)
+        - AB2097 (Assembly Bill 2097 - 2022)
+        - State Density Bonus Law (Gov Code 65915)
+
+        Each rule includes description, year enacted, key provisions, and eligibility criteria.
+      operationId: getAllRules
+
+      responses:
+        '200':
+          description: List of all rules
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RuleInfo'
+              examples:
+                all-rules:
+                  value:
+                    - name: "Senate Bill 9"
+                      code: "SB9"
+                      description: "Allows lot splits and up to two units per lot on parcels zoned for single-family"
+                      year_enacted: 2021
+                      applies_to:
+                        - "Single-family residential zones"
+                        - "Urban areas"
+                      key_provisions:
+                        - "Allows lot split creating two parcels minimum 1,200 sq ft each"
+                        - "Allows up to 2 units per parcel (4 total with split)"
+                        - "Ministerial approval required"
+                        - "Maximum 800 sq ft per unit if lot < 5,000 sq ft"
+                      eligibility_criteria:
+                        - "Not in high fire hazard zone"
+                        - "Not in flood zone"
+                        - "Not historic property"
+                        - "Not prime farmland"
+                        - "Must be in urban area"
+
+  /rules/{rule_code}:
+    get:
+      tags:
+        - Rules
+      summary: Get details for specific rule
+      description: |
+        Returns detailed information about a specific California housing rule.
+
+        Available rule codes:
+        - SB9: Senate Bill 9 (lot splits and duplexes)
+        - SB35: Senate Bill 35 (streamlined approval)
+        - AB2011: Assembly Bill 2011 (office conversions)
+        - AB2097: Assembly Bill 2097 (parking reductions)
+        - DensityBonus: State Density Bonus Law
+      operationId: getRuleDetails
+      parameters:
+        - name: rule_code
+          in: path
+          required: true
+          description: Rule code (case insensitive)
+          schema:
+            type: string
+            enum:
+              - SB9
+              - SB35
+              - AB2011
+              - AB2097
+              - DensityBonus
+          examples:
+            sb9:
+              value: "SB9"
+              summary: Senate Bill 9
+            sb35:
+              value: "SB35"
+              summary: Senate Bill 35
+
+      responses:
+        '200':
+          description: Rule details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RuleInfo'
+              examples:
+                sb9-details:
+                  value:
+                    name: "Senate Bill 9"
+                    code: "SB9"
+                    description: "Allows lot splits and up to two units per lot on parcels zoned for single-family"
+                    year_enacted: 2021
+                    applies_to:
+                      - "Single-family residential zones"
+                      - "Urban areas"
+                    key_provisions:
+                      - "Allows lot split creating two parcels minimum 1,200 sq ft each"
+                      - "Allows up to 2 units per parcel (4 total with split)"
+                      - "Ministerial approval required"
+                      - "Maximum 800 sq ft per unit if lot < 5,000 sq ft"
+                    eligibility_criteria:
+                      - "Not in high fire hazard zone"
+                      - "Not in flood zone"
+                      - "Not historic property"
+                      - "Not prime farmland"
+                      - "Must be in urban area"
+
+        '404':
+          description: Rule not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                not-found:
+                  value:
+                    detail: "Rule XYZ123 not found"
+
+  /rules/check-eligibility/{rule_code}:
+    get:
+      tags:
+        - Rules
+      summary: Quick eligibility check for specific rule
+      description: |
+        Performs a quick eligibility check for a specific California housing rule
+        without running a full analysis.
+
+        Useful for:
+        - Pre-screening parcels
+        - Understanding basic requirements
+        - Quick feasibility checks
+
+        Note: This is a preliminary check. Full analysis is recommended for
+        accurate development scenarios.
+      operationId: checkRuleEligibility
+      parameters:
+        - name: rule_code
+          in: path
+          required: true
+          description: Rule code to check eligibility
+          schema:
+            type: string
+            enum:
+              - SB9
+              - SB35
+              - AB2011
+              - AB2097
+              - DensityBonus
+
+        - name: lot_size_sqft
+          in: query
+          required: true
+          description: Lot size in square feet
+          schema:
+            type: number
+            minimum: 0
+          example: 6000
+
+        - name: zoning_code
+          in: query
+          required: true
+          description: Current zoning code
+          schema:
+            type: string
+          example: "R1"
+
+        - name: transit_distance_miles
+          in: query
+          required: false
+          description: Distance to nearest major transit stop (for AB2097)
+          schema:
+            type: number
+            minimum: 0
+            default: 999.0
+          example: 0.3
+
+      responses:
+        '200':
+          description: Eligibility check result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  rule_code:
+                    type: string
+                    description: Rule code checked
+                  eligible:
+                    type: boolean
+                    description: Whether parcel is eligible
+                  reasons:
+                    type: array
+                    items:
+                      type: string
+                    description: Reasons for eligibility determination
+                  note:
+                    type: string
+                    description: Additional notes
+              examples:
+                sb9-eligible:
+                  value:
+                    rule_code: "SB9"
+                    eligible: true
+                    reasons:
+                      - "Meets minimum lot size for SB9 lot split"
+                    note: "This is a preliminary check. Full analysis recommended."
+
+                sb9-not-eligible:
+                  value:
+                    rule_code: "SB9"
+                    eligible: false
+                    reasons:
+                      - "Lot too small for SB9 lot split (need 2,400 sq ft minimum)"
+                    note: "This is a preliminary check. Full analysis recommended."
+
+                ab2097-eligible:
+                  value:
+                    rule_code: "AB2097"
+                    eligible: true
+                    reasons:
+                      - "Within 0.5 miles of transit - no parking minimums required"
+                    note: "This is a preliminary check. Full analysis recommended."
+
+        '404':
+          description: Rule not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /health:
+    get:
+      tags:
+        - Health
+      summary: Health check endpoint
+      description: |
+        Returns the health status of the API service.
+
+        Use this endpoint to:
+        - Monitor service availability
+        - Check API version
+        - Verify connectivity
+      operationId: healthCheck
+
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: Health status
+                  version:
+                    type: string
+                    description: API version
+              examples:
+                healthy:
+                  value:
+                    status: "healthy"
+                    version: "0.1.0"
+
+components:
+  schemas:
+    ParcelBase:
+      type: object
+      required:
+        - apn
+        - address
+        - city
+        - county
+        - zip_code
+        - lot_size_sqft
+        - zoning_code
+      properties:
+        apn:
+          type: string
+          description: Assessor's Parcel Number
+          example: "4293-015-023"
+        address:
+          type: string
+          description: Street address
+          example: "1234 Main Street"
+        city:
+          type: string
+          description: City name
+          example: "Santa Monica"
+        county:
+          type: string
+          description: County name
+          example: "Los Angeles"
+        zip_code:
+          type: string
+          description: ZIP code
+          example: "90405"
+        lot_size_sqft:
+          type: number
+          description: Lot size in square feet
+          minimum: 0
+          exclusiveMinimum: true
+          example: 6000
+        lot_width_ft:
+          type: number
+          description: Lot width in feet
+          minimum: 0
+          exclusiveMinimum: true
+          nullable: true
+          example: 50
+        lot_depth_ft:
+          type: number
+          description: Lot depth in feet
+          minimum: 0
+          exclusiveMinimum: true
+          nullable: true
+          example: 120
+        zoning_code:
+          type: string
+          description: Zoning designation code
+          example: "R1"
+        general_plan:
+          type: string
+          description: General plan designation
+          nullable: true
+          example: "Low Density Residential"
+        existing_units:
+          type: integer
+          description: Number of existing units
+          minimum: 0
+          default: 0
+          example: 1
+        existing_building_sqft:
+          type: number
+          description: Existing building square footage
+          minimum: 0
+          default: 0
+          example: 1800
+        year_built:
+          type: integer
+          description: Year existing structure was built
+          nullable: true
+          example: 1955
+        latitude:
+          type: number
+          description: Latitude coordinate
+          nullable: true
+          example: 34.0195
+        longitude:
+          type: number
+          description: Longitude coordinate
+          nullable: true
+          example: -118.4912
+
+    AnalysisRequest:
+      type: object
+      required:
+        - parcel
+      properties:
+        parcel:
+          $ref: '#/components/schemas/ParcelBase'
+        include_sb9:
+          type: boolean
+          description: Include SB9 lot split analysis
+          default: true
+        include_sb35:
+          type: boolean
+          description: Include SB35 streamlining analysis
+          default: true
+        include_ab2011:
+          type: boolean
+          description: Include AB2011 office conversion analysis
+          default: true
+        include_density_bonus:
+          type: boolean
+          description: Include density bonus analysis
+          default: true
+        target_affordability_pct:
+          type: number
+          description: Target percentage of affordable units
+          minimum: 0
+          maximum: 100
+          nullable: true
+          example: 15.0
+        prefer_max_density:
+          type: boolean
+          description: Prefer maximum allowable density
+          default: true
+
+    DevelopmentScenario:
+      type: object
+      required:
+        - scenario_name
+        - legal_basis
+        - max_units
+        - max_building_sqft
+        - max_height_ft
+        - max_stories
+        - lot_coverage_pct
+      properties:
+        scenario_name:
+          type: string
+          description: Name of the development scenario
+          example: "SB9 Lot Split + Duplexes"
+        legal_basis:
+          type: string
+          description: Legal basis for the scenario
+          example: "SB9 (2021) - Lot Split with Two Units Per Lot"
+        max_units:
+          type: integer
+          description: Maximum units allowed
+          minimum: 0
+          example: 4
+        max_building_sqft:
+          type: number
+          description: Maximum building square footage
+          minimum: 0
+          example: 6400
+        max_height_ft:
+          type: number
+          description: Maximum building height in feet
+          minimum: 0
+          exclusiveMinimum: true
+          example: 28
+        max_stories:
+          type: integer
+          description: Maximum number of stories
+          minimum: 1
+          example: 2
+        parking_spaces_required:
+          type: integer
+          description: Required parking spaces
+          minimum: 0
+          default: 0
+          example: 2
+        affordable_units_required:
+          type: integer
+          description: Required affordable units
+          minimum: 0
+          default: 0
+          example: 0
+        setbacks:
+          type: object
+          description: Setback requirements in feet
+          additionalProperties:
+            type: number
+          example:
+            front: 10
+            rear: 10
+            side: 4
+        lot_coverage_pct:
+          type: number
+          description: Maximum lot coverage percentage
+          minimum: 0
+          maximum: 100
+          example: 70
+        estimated_buildable_sqft:
+          type: number
+          description: Estimated buildable square footage
+          nullable: true
+          example: 4200
+        notes:
+          type: array
+          items:
+            type: string
+          description: Additional notes and considerations
+          example:
+            - "Creates two parcels of 3,000 sq ft each"
+            - "Two units allowed per new parcel"
+
+    AnalysisResponse:
+      type: object
+      required:
+        - parcel_apn
+        - analysis_date
+        - base_scenario
+        - recommended_scenario
+        - recommendation_reason
+      properties:
+        parcel_apn:
+          type: string
+          description: Analyzed parcel APN
+          example: "4293-015-023"
+        analysis_date:
+          type: string
+          format: date-time
+          description: Analysis timestamp
+          example: "2025-10-05T10:30:00Z"
+        base_scenario:
+          $ref: '#/components/schemas/DevelopmentScenario'
+        alternative_scenarios:
+          type: array
+          items:
+            $ref: '#/components/schemas/DevelopmentScenario'
+          description: Alternative development scenarios
+        recommended_scenario:
+          type: string
+          description: Name of recommended scenario
+          example: "SB9 Lot Split + Duplexes"
+        recommendation_reason:
+          type: string
+          description: Reason for recommendation
+          example: "Maximizes unit count with 4 units under SB9 (2021)"
+        applicable_laws:
+          type: array
+          items:
+            type: string
+          description: List of applicable state laws
+          example:
+            - "Local Zoning Code"
+            - "SB9 (2021)"
+        potential_incentives:
+          type: array
+          items:
+            type: string
+          description: Potential incentives available
+          example:
+            - "SB9 lot split and duplex development"
+        warnings:
+          type: array
+          items:
+            type: string
+          description: Warnings and constraints
+          example:
+            - "Existing 1 unit(s) may need to be demolished or incorporated"
+
+    RuleInfo:
+      type: object
+      required:
+        - name
+        - code
+        - description
+        - year_enacted
+        - applies_to
+        - key_provisions
+        - eligibility_criteria
+      properties:
+        name:
+          type: string
+          description: Full name of the rule
+          example: "Senate Bill 9"
+        code:
+          type: string
+          description: Rule code or abbreviation
+          example: "SB9"
+        description:
+          type: string
+          description: Brief description of the rule
+          example: "Allows lot splits and up to two units per lot on parcels zoned for single-family"
+        year_enacted:
+          type: integer
+          description: Year the law was enacted
+          example: 2021
+        applies_to:
+          type: array
+          items:
+            type: string
+          description: Types of parcels or zones the rule applies to
+          example:
+            - "Single-family residential zones"
+            - "Urban areas"
+        key_provisions:
+          type: array
+          items:
+            type: string
+          description: Key provisions of the law
+          example:
+            - "Allows lot split creating two parcels minimum 1,200 sq ft each"
+            - "Allows up to 2 units per parcel (4 total with split)"
+        eligibility_criteria:
+          type: array
+          items:
+            type: string
+          description: Eligibility criteria for using this rule
+          example:
+            - "Not in high fire hazard zone"
+            - "Not in flood zone"
+            - "Not historic property"
+
+    Error:
+      type: object
+      required:
+        - detail
+      properties:
+        detail:
+          type: string
+          description: Error message
+          example: "Analysis failed: Invalid parcel data"
+
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: API key for authentication (future implementation)
+
+# Future implementation
+# security:
+#   - ApiKeyAuth: []
