@@ -63,6 +63,19 @@ export class ParcelAPI {
     const promises = laws.map(law => this.getStateLawInfo(law));
     return Promise.all(promises);
   }
+
+  /**
+   * Export feasibility analysis as PDF
+   * @param analysis - The analysis response to export
+   * @returns Promise with PDF blob
+   */
+  static async exportFeasibilityPDF(analysis: AnalysisResponse): Promise<Blob> {
+    const response = await api.post('/api/v1/export/pdf', analysis, {
+      responseType: 'blob',  // Important: tells axios to return blob
+    });
+
+    return response.data;
+  }
 }
 
 export default ParcelAPI;

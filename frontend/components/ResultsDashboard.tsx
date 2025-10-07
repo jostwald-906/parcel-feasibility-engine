@@ -8,6 +8,7 @@ import ScenarioComparison from './ScenarioComparison';
 import ScenarioComparisonMatrix from './ScenarioComparisonMatrix';
 import CNELDisplayCard from './CNELDisplayCard';
 import CommunityBenefitsCard from './CommunityBenefitsCard';
+import ExportButton from './ExportButton';
 import {
   BarChart,
   Bar,
@@ -80,12 +81,15 @@ export default function ResultsDashboard({ analysis, onReset, parcel }: ResultsD
               Analyzed: {formatDate(analysis.analysis_date)}
             </p>
           </div>
-          <button
-            onClick={onReset}
-            className="px-4 py-2 bg-white text-blue-600 rounded-lg font-medium hover:bg-blue-50 transition-colors"
-          >
-            New Analysis
-          </button>
+          <div className="flex items-center gap-3">
+            <ExportButton analysis={analysis} />
+            <button
+              onClick={onReset}
+              className="px-4 py-2 bg-white text-blue-600 rounded-lg font-medium hover:bg-blue-50 transition-colors"
+            >
+              New Analysis
+            </button>
+          </div>
         </div>
       </div>
 

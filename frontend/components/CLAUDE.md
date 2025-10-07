@@ -24,7 +24,8 @@ components/
 ├── ProposedProjectForm.tsx         # Proposed project details form
 ├── ResultsDashboard.tsx            # Analysis results display (tabbed)
 ├── ScenarioComparison.tsx          # Development scenario cards
-├── ScenarioComparisonMatrix.tsx    # Scenario comparison table (NEW)
+├── ScenarioComparisonMatrix.tsx    # Scenario comparison table
+├── ExportButton.tsx                # PDF export button (NEW)
 ├── CNELDisplayCard.tsx             # Noise analysis visualization
 ├── CommunityBenefitsCard.tsx       # Community benefits display
 └── OverlayDetailCard.tsx           # Overlay zone details
@@ -691,6 +692,126 @@ const exportToCSV = () => {
 - Provide visual feedback (hover states, transition-colors)
 - Clear user guidance (footer info text)
 
+### ExportButton.tsx
+
+**Purpose**: Provides PDF export functionality for feasibility analysis reports.
+
+**Key Features**:
+- Loading state with spinner animation
+- Automatic browser download trigger
+- Error handling with toast-style notifications
+- Auto-dismissing error messages
+- Disabled state support
+- Matches existing button patterns
+
+**Props**:
+```typescript
+interface ExportButtonProps {
+  analysis: AnalysisResponse;
+  disabled?: boolean;
+}
+```
+
+**Implementation Pattern**:
+```typescript
+'use client';
+
+import { useState } from 'react';
+import { Download, Loader2 } from 'lucide-react';
+import type { AnalysisResponse } from '@/lib/types';
+import ParcelAPI from '@/lib/api';
+import { downloadPDF, generatePDFFilename } from '@/lib/download-utils';
+
+export default function ExportButton({ analysis, disabled = false }: ExportButtonProps) {
+  const [isExporting, setIsExporting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleExport = async () => {
+    setError(null);
+    setIsExporting(true);
+
+    try {
+      // Call API to generate PDF
+      const blob = await ParcelAPI.exportFeasibilityPDF(analysis);
+
+      // Generate filename based on APN
+      const filename = generatePDFFilename(analysis.parcel_apn);
+
+      // Trigger download
+      downloadPDF(blob, filename);
+    } catch (err) {
+      // Extract and display error message
+      const errorMessage = extractErrorMessage(err);
+      setError(errorMessage);
+
+      // Auto-dismiss after 5 seconds
+      setTimeout(() => setError(null), 5000);
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  return (
+    <div className="relative">
+      <button
+        onClick={handleExport}
+        disabled={disabled || isExporting}
+        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium flex items-center gap-2"
+      >
+        {isExporting ? (
+          <>
+            <Loader2 className="w-4 h-4 animate-spin" />
+            <span>Generating PDF...</span>
+          </>
+        ) : (
+          <>
+            <Download className="w-4 h-4" />
+            <span>Export PDF</span>
+          </>
+        )}
+      </button>
+
+      {/* Error toast notification */}
+      {error && (
+        <div className="absolute top-full mt-2 right-0 z-50 w-80 bg-red-50 border-l-4 border-red-500 rounded-lg p-4 shadow-lg">
+          {/* Error content */}
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+**Integration**:
+```typescript
+// In ResultsDashboard.tsx
+import ExportButton from './ExportButton';
+
+<div className="flex items-center gap-3">
+  <ExportButton analysis={analysis} />
+  <button onClick={onReset}>New Analysis</button>
+</div>
+```
+
+**File Download Flow**:
+1. User clicks "Export PDF" button
+2. Button shows loading state with spinner
+3. API call to `/api/v1/export/pdf` with analysis data
+4. Backend generates PDF and returns blob
+5. Frontend triggers browser download automatically
+6. Button returns to normal state
+
+**Error Handling**:
+- Try/catch around API call
+- Extract error message from various error formats
+- Display toast notification positioned near button
+- Auto-dismiss after 5 seconds
+- User can manually dismiss with X button
+
+**Utilities Used**:
+- `lib/api.ts`: `ParcelAPI.exportFeasibilityPDF(analysis)`
+- `lib/download-utils.ts`: `downloadPDF(blob, filename)` and `generatePDFFilename(apn)`
+
 ## Tailwind CSS Patterns
 
 ### Cards
@@ -823,6 +944,72 @@ className="flex flex-col md:flex-row gap-4 items-center"
   Click me
 </button>
 ```
+
+## Common Patterns
+
+### File Downloads (PDF Export)
+
+**Pattern**: Use blob-based downloads with temporary URL creation
+
+**Implementation**:
+
+1. **API Call with Blob Response**:
+```typescript
+// lib/api.ts
+static async exportFeasibilityPDF(analysis: AnalysisResponse): Promise<Blob> {
+  const response = await api.post('/api/v1/export/pdf', analysis, {
+    responseType: 'blob',  // Critical: tells axios to return blob
+  });
+  return response.data;
+}
+```
+
+2. **Download Utility**:
+```typescript
+// lib/download-utils.ts
+export function downloadPDF(blob: Blob, filename: string): void {
+  // Create temporary URL
+  const url = URL.createObjectURL(blob);
+
+  // Create and trigger download link
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  link.style.display = 'none';
+
+  document.body.appendChild(link);
+  link.click();
+
+  // Clean up
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
+export function generatePDFFilename(apn: string): string {
+  const cleanAPN = apn.replace(/[^a-zA-Z0-9]/g, '-');
+  const date = new Date().toISOString().split('T')[0];
+  return `feasibility-report_${cleanAPN}_${date}.pdf`;
+}
+```
+
+3. **Usage in Component**:
+```typescript
+const handleExport = async () => {
+  try {
+    const blob = await ParcelAPI.exportFeasibilityPDF(analysis);
+    const filename = generatePDFFilename(analysis.parcel_apn);
+    downloadPDF(blob, filename);
+  } catch (err) {
+    // Handle error
+  }
+};
+```
+
+**Important Notes**:
+- Always set `responseType: 'blob'` in axios config
+- Clean up URL with `URL.revokeObjectURL()` to prevent memory leaks
+- Generate descriptive filenames with timestamp
+- Remove special characters from APN for filename safety
 
 ## Related Documentation
 
