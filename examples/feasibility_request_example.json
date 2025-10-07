@@ -1,0 +1,48 @@
+{
+  "parcel_apn": "4293-021-012",
+  "scenario_name": "SB 9 Lot Split + Density Bonus (35% Affordable)",
+  "units": 30,
+  "buildable_sf": 25000.0,
+  "timeline": {
+    "predevelopment_months": 12,
+    "construction_months": 18,
+    "lease_up_months": 6,
+    "operating_years": 10
+  },
+  "assumptions": {
+    "discount_rate": 0.12,
+    "risk_free_rate": 0.035,
+    "market_risk_premium": 0.06,
+    "project_risk_premium": 0.025,
+    "cap_rate": 0.045,
+    "location_factor": 1.3,
+    "quality_factor": 1.0,
+    "vacancy_rate": 0.07,
+    "tax_rate": 0.012,
+    "rent_growth_rate": 0.03,
+    "expense_growth_rate": 0.025,
+    "use_ccci": false,
+    "source_references": {
+      "risk_free_rate": "FRED DGS10 (10-Year Treasury, Jan 2025)",
+      "location_factor": "RAND Corporation - Santa Monica: 1.3x regional average",
+      "cap_rate": "CBRE Q1 2025 LA Metro multifamily cap rates: 4.5%",
+      "tax_rate": "CA Prop 13 (1%) + Santa Monica local bonds (0.2%)"
+    }
+  },
+  "revenue_inputs": {
+    "parcel_zip": "90401",
+    "county": "Los Angeles",
+    "market_units": 20,
+    "affordable_units": 10,
+    "unit_mix": {
+      "0": 5,
+      "1": 15,
+      "2": 8,
+      "3": 2
+    },
+    "use_safmr": true,
+    "quality_factor": 1.1
+  },
+  "run_sensitivity": true,
+  "run_monte_carlo": true
+}

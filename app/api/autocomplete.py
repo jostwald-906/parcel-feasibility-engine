@@ -1,9 +1,10 @@
 """Autocomplete API endpoints for parcel search."""
-from fastapi import APIRouter, Query, HTTPException
+from fastapi import APIRouter, Query, HTTPException, Request
 from typing import List
 from sqlmodel import Session, select, or_
 from app.core.database import engine
 from app.models.parcel_cache import ParcelCache
+from app.core.rate_limit import limiter, RATE_LIMITS
 from pydantic import BaseModel
 
 router = APIRouter(prefix="/api/v1/autocomplete", tags=["Autocomplete"])
@@ -18,7 +19,9 @@ class AutocompleteResult(BaseModel):
 
 
 @router.get("/parcels", response_model=List[AutocompleteResult])
+@limiter.limit(RATE_LIMITS["autocomplete"])
 async def autocomplete_parcels(
+    request: Request,
     q: str = Query(..., min_length=2, description="Search query (APN or address)"),
     limit: int = Query(10, ge=1, le=50, description="Maximum results")
 ):
@@ -33,6 +36,8 @@ async def autocomplete_parcels(
 
     Returns:
         List of matching parcels with APN, address, zoning, and lot size
+
+    Rate limit: 30 requests per minute per IP.
     """
     try:
         with Session(engine) as session:

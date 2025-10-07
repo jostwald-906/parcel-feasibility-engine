@@ -18,3 +18,16 @@ ruff==0.1.14
 mypy==1.8.0
 cloudscraper==1.2.71
 beautifulsoup4==4.12.3
+fredapi==0.5.2
+tenacity==9.0.0
+numpy>=1.26.0
+scipy>=1.11.0
+numpy-financial>=1.0.0
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+bcrypt>=4.0.0,<5.0.0
+python-multipart==0.0.6
+stripe==10.12.0
+sqlalchemy-utils==0.41.1
+slowapi==0.1.9
+sentry-sdk[fastapi]==2.40.0

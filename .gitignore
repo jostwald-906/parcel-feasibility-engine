@@ -68,3 +68,4 @@ frontend/.turbo/
 # OS
 .DS_Store
 Thumbs.db
+.vercel

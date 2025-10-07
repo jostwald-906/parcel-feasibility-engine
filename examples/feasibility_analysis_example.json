@@ -1,0 +1,322 @@
+{
+  "scenario_name": "SB 9 Lot Split + Density Bonus (35% Affordable)",
+  "parcel_apn": "4293-021-012",
+  "construction_cost_estimate": {
+    "hard_costs": 6000000.0,
+    "soft_costs": 1500000.0,
+    "architecture_engineering": 420000.0,
+    "permits_and_fees": 750000.0,
+    "construction_financing": 300000.0,
+    "legal_consulting": 180000.0,
+    "contingency": 450000.0,
+    "total_cost": 7500000.0,
+    "cost_per_unit": 250000.0,
+    "cost_per_sf": 300.0,
+    "escalation_factors": {
+      "materials_index": 1.15,
+      "labor_index": 1.10,
+      "wage_premium": 1.0,
+      "location_factor": 1.3
+    },
+    "source_notes": {
+      "base_cost_source": "RSMeans 2025 multifamily wood frame Type V construction",
+      "construction_type": "wood_frame",
+      "wage_adjustment": "Standard wage (not prevailing wage)",
+      "location_adjustment": "Santa Monica RAND factor: 1.3x",
+      "permit_fees": "Santa Monica impact fees: $25k/unit average",
+      "assumptions": "30 units, 3-4 stories, standard finishes",
+      "date": "2025-01-15"
+    }
+  },
+  "revenue_projection": {
+    "annual_gross_income": 900000.0,
+    "vacancy_loss": 63000.0,
+    "effective_gross_income": 837000.0,
+    "operating_expenses": 334800.0,
+    "annual_noi": 502200.0,
+    "noi_per_unit": 16740.0,
+    "market_rent_roll": {
+      "0BR": 2400.0,
+      "1BR": 2900.0,
+      "2BR": 3700.0,
+      "3BR": 4800.0
+    },
+    "affordable_rent_roll": {
+      "0BR_50AMI": 1200.0,
+      "1BR_50AMI": 1300.0,
+      "2BR_60AMI": 1550.0,
+      "3BR_60AMI": 1800.0
+    },
+    "expense_breakdown": {
+      "property_management": 33480.0,
+      "maintenance": 83700.0,
+      "utilities": 41850.0,
+      "insurance": 25110.0,
+      "property_tax": 90000.0,
+      "reserves": 16740.0,
+      "other": 43920.0
+    },
+    "source_notes": {
+      "fmr_source": "HUD Small Area FMR 2025 - ZIP 90401 (Santa Monica)",
+      "ami_source": "HCD 2025 Income Limits - Los Angeles County",
+      "market_rent_basis": "SAFMR × 1.1 quality factor (new construction premium)",
+      "affordable_rent_basis": "30% of income standard (HUD/HCD guidelines)",
+      "opex_basis": "40% of EGI (industry standard for Class A multifamily)",
+      "opex_detail": "Management 4%, Maintenance 10%, Utilities 5%, Insurance 3%, Tax 10.8%, Reserves 2%, Other 5.2%",
+      "date": "2025-01-15"
+    }
+  },
+  "financial_metrics": {
+    "npv": 2156000.0,
+    "irr": 0.165,
+    "payback_period_years": 8.2,
+    "profitability_index": 1.29,
+    "return_on_cost": 0.067,
+    "exit_value": 11160000.0,
+    "total_cash_flows": [
+      {
+        "period": 0,
+        "period_type": "predevelopment",
+        "revenue": 0.0,
+        "operating_expenses": 0.0,
+        "capital_expenditure": 750000.0,
+        "net_cash_flow": -750000.0,
+        "cumulative_cash_flow": -750000.0
+      },
+      {
+        "period": 1,
+        "period_type": "construction",
+        "revenue": 0.0,
+        "operating_expenses": 0.0,
+        "capital_expenditure": 3375000.0,
+        "net_cash_flow": -3375000.0,
+        "cumulative_cash_flow": -4125000.0
+      },
+      {
+        "period": 2,
+        "period_type": "construction",
+        "revenue": 0.0,
+        "operating_expenses": 0.0,
+        "capital_expenditure": 3375000.0,
+        "net_cash_flow": -3375000.0,
+        "cumulative_cash_flow": -7500000.0
+      },
+      {
+        "period": 3,
+        "period_type": "lease_up",
+        "revenue": 251100.0,
+        "operating_expenses": 167400.0,
+        "capital_expenditure": 0.0,
+        "net_cash_flow": 83700.0,
+        "cumulative_cash_flow": -7416300.0
+      },
+      {
+        "period": 4,
+        "period_type": "operations",
+        "revenue": 502200.0,
+        "operating_expenses": 334800.0,
+        "capital_expenditure": 0.0,
+        "net_cash_flow": 167400.0,
+        "cumulative_cash_flow": -7248900.0
+      },
+      {
+        "period": 5,
+        "period_type": "operations",
+        "revenue": 517266.0,
+        "operating_expenses": 343170.0,
+        "capital_expenditure": 0.0,
+        "net_cash_flow": 174096.0,
+        "cumulative_cash_flow": -7074804.0
+      },
+      {
+        "period": 6,
+        "period_type": "operations",
+        "revenue": 532784.0,
+        "operating_expenses": 351749.0,
+        "capital_expenditure": 0.0,
+        "net_cash_flow": 181035.0,
+        "cumulative_cash_flow": -6893769.0
+      },
+      {
+        "period": 7,
+        "period_type": "operations",
+        "revenue": 548768.0,
+        "operating_expenses": 360543.0,
+        "capital_expenditure": 0.0,
+        "net_cash_flow": 188225.0,
+        "cumulative_cash_flow": -6705544.0
+      },
+      {
+        "period": 8,
+        "period_type": "operations",
+        "revenue": 565231.0,
+        "operating_expenses": 369556.0,
+        "capital_expenditure": 0.0,
+        "net_cash_flow": 195675.0,
+        "cumulative_cash_flow": -6509869.0
+      },
+      {
+        "period": 9,
+        "period_type": "operations",
+        "revenue": 582188.0,
+        "operating_expenses": 378795.0,
+        "capital_expenditure": 0.0,
+        "net_cash_flow": 203393.0,
+        "cumulative_cash_flow": -6306476.0
+      },
+      {
+        "period": 10,
+        "period_type": "operations",
+        "revenue": 599654.0,
+        "operating_expenses": 388265.0,
+        "capital_expenditure": 0.0,
+        "net_cash_flow": 211389.0,
+        "cumulative_cash_flow": -6095087.0
+      },
+      {
+        "period": 11,
+        "period_type": "operations",
+        "revenue": 617643.0,
+        "operating_expenses": 397971.0,
+        "capital_expenditure": 0.0,
+        "net_cash_flow": 219672.0,
+        "cumulative_cash_flow": -5875415.0
+      },
+      {
+        "period": 12,
+        "period_type": "operations",
+        "revenue": 636172.0,
+        "operating_expenses": 407920.0,
+        "capital_expenditure": 0.0,
+        "net_cash_flow": 228252.0,
+        "cumulative_cash_flow": -5647163.0
+      },
+      {
+        "period": 13,
+        "period_type": "operations",
+        "revenue": 655257.0,
+        "operating_expenses": 418119.0,
+        "capital_expenditure": 50000.0,
+        "net_cash_flow": 187138.0,
+        "cumulative_cash_flow": -5460025.0
+      }
+    ]
+  },
+  "sensitivity_analysis": {
+    "tornado": [
+      {
+        "variable": "cost_per_sf",
+        "downside_npv": 3656000.0,
+        "upside_npv": 656000.0,
+        "impact": 3000000.0
+      },
+      {
+        "variable": "rent_per_sf",
+        "downside_npv": 1056000.0,
+        "upside_npv": 3256000.0,
+        "impact": 2200000.0
+      },
+      {
+        "variable": "cap_rate",
+        "downside_npv": 3006000.0,
+        "upside_npv": 1306000.0,
+        "impact": 1700000.0
+      },
+      {
+        "variable": "vacancy_rate",
+        "downside_npv": 1656000.0,
+        "upside_npv": 2656000.0,
+        "impact": 1000000.0
+      },
+      {
+        "variable": "construction_duration",
+        "downside_npv": 1806000.0,
+        "upside_npv": 2506000.0,
+        "impact": 700000.0
+      },
+      {
+        "variable": "discount_rate",
+        "downside_npv": 2456000.0,
+        "upside_npv": 1856000.0,
+        "impact": 600000.0
+      }
+    ],
+    "monte_carlo": {
+      "probability_npv_positive": 0.87,
+      "mean_npv": 2080000.0,
+      "std_npv": 950000.0,
+      "percentiles": {
+        "p10": 650000.0,
+        "p25": 1350000.0,
+        "p50": 2100000.0,
+        "p75": 2850000.0,
+        "p90": 3500000.0
+      },
+      "histogram_bins": [
+        -2000000.0,
+        -1000000.0,
+        0.0,
+        1000000.0,
+        2000000.0,
+        3000000.0,
+        4000000.0,
+        5000000.0
+      ],
+      "histogram_counts": [
+        45,
+        250,
+        980,
+        2850,
+        3100,
+        2100,
+        590,
+        85
+      ]
+    }
+  },
+  "decision_recommendation": "Recommended with Caution - Moderate Feasibility",
+  "source_notes": {
+    "cost_sources": [
+      "RSMeans 2025 Commercial Cost Data",
+      "RAND Corporation California location factors",
+      "Santa Monica Development Services fee schedule"
+    ],
+    "revenue_sources": [
+      "HUD Small Area FMR 2025 (ZIP 90401)",
+      "HCD 2025 State Income Limits (Los Angeles County)",
+      "CoStar market rent surveys (Santa Monica)"
+    ],
+    "assumptions": [
+      "12-month entitlement timeline (ministerial SB 9 + density bonus)",
+      "18-month construction (wood frame Type V, 3-4 stories)",
+      "6-month lease-up period",
+      "10-year holding period",
+      "Standard quality construction (quality_factor: 1.0)",
+      "New construction rent premium: 10% above SAFMR",
+      "35% affordable units (10 of 30 units at 50-60% AMI)",
+      "Standard wage construction (not prevailing wage)"
+    ],
+    "caveats": [
+      "Assumes ministerial SB 9 + density bonus approval (60-90 days)",
+      "Market rents subject to economic conditions and supply/demand",
+      "Construction costs volatile - recent 5-year escalation ~25% (CCCI)",
+      "Affordable units reduce revenue but may enable density bonus concessions",
+      "Exit cap rate risk: range 4.0%-6.0% significantly impacts exit value",
+      "87% probability of positive NPV indicates moderate development risk",
+      "Payback period: 8.2 years - longer than typical (5-7 years)",
+      "Return on cost (6.7%) vs. cap rate (4.5%) = positive value creation spread",
+      "IRR 16.5% exceeds discount rate 12% but below high-end (20%+) projects"
+    ],
+    "recommendations": [
+      "Proceed with caution - financial metrics are positive but not strong",
+      "Consider strategies to reduce construction costs (value engineering)",
+      "Explore additional density bonus concessions (height, FAR) to increase units",
+      "Verify market rents with local broker/appraiser before proceeding",
+      "Lock in construction costs with GMP contract to reduce cost risk",
+      "Consider phased development to reduce capital requirements",
+      "Sensitivity shows cost_per_sf has highest impact - focus cost control here",
+      "Monte Carlo shows 13% probability of negative NPV - acceptable risk for this market"
+    ]
+  },
+  "analysis_timestamp": "2025-01-15T10:30:00"
+}

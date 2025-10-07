@@ -1,11 +1,12 @@
 """
 Analysis API endpoints.
 """
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Request
 from fastapi.responses import Response
 from typing import List
 from app.models.analysis import AnalysisRequest, AnalysisResponse, DevelopmentScenario  # RentControlData, RentControlUnit - DISABLED
 from app.models.parcel import Parcel
+from app.models.user import User
 from app.rules.base_zoning import analyze_base_zoning
 from app.rules.state_law.sb9 import analyze_sb9
 from app.rules.state_law.sb35 import analyze_sb35
@@ -17,6 +18,8 @@ from app.rules.dcp_scenarios import is_in_dcp_area, generate_all_dcp_scenarios
 from app.services.comprehensive_analysis import generate_comprehensive_scenarios
 from app.utils.logging import get_logger, DecisionLogger
 from app.core.config import settings
+from app.core.rate_limit import limiter, RATE_LIMITS
+from app.core.dependencies import require_active_subscription, require_auth_with_usage_limit
 from app.services.rent_control_api import get_mar_summary
 from app.services.cnel_analyzer import classify_cnel, format_cnel_for_display, check_santa_monica_compliance
 from app.services.community_benefits import get_available_benefits, format_benefits_for_display
@@ -59,7 +62,12 @@ def add_existing_units_context(scenario: DevelopmentScenario, parcel: Parcel) ->
 
 
 @router.post("/analyze", response_model=AnalysisResponse)
-async def analyze_parcel(request: AnalysisRequest) -> AnalysisResponse:
+@limiter.limit(RATE_LIMITS["analysis"])
+async def analyze_parcel(
+    request: Request,
+    analysis_request: AnalysisRequest,
+    current_user: User = Depends(require_auth_with_usage_limit)
+) -> AnalysisResponse:
     """
     Analyze a parcel for development feasibility.
 
@@ -74,9 +82,11 @@ async def analyze_parcel(request: AnalysisRequest) -> AnalysisResponse:
     Returns all viable development scenarios with recommendations.
 
     Set debug=True in request to include detailed decision logging.
+
+    Rate limit: 10 requests per minute per IP.
     """
     try:
-        parcel = request.parcel
+        parcel = analysis_request.parcel
         scenarios: List[DevelopmentScenario] = []
         applicable_laws: List[str] = []
         potential_incentives: List[str] = []
@@ -84,7 +94,7 @@ async def analyze_parcel(request: AnalysisRequest) -> AnalysisResponse:
 
         # Initialize decision logger if debug mode is enabled
         decision_logger = None
-        if request.debug or settings.API_DEBUG_MODE:
+        if analysis_request.debug or settings.API_DEBUG_MODE:
             decision_logger = DecisionLogger(parcel.apn, logger)
             logger.info(f"Starting analysis for parcel {parcel.apn} in DEBUG mode")
 
@@ -104,7 +114,7 @@ async def analyze_parcel(request: AnalysisRequest) -> AnalysisResponse:
             )
 
         # 2. Check SB9 eligibility
-        if request.include_sb9 and settings.ENABLE_SB9:
+        if analysis_request.include_sb9 and settings.ENABLE_SB9:
             sb9_scenarios = analyze_sb9(parcel)
             if sb9_scenarios:
                 scenarios.extend(sb9_scenarios)
@@ -137,7 +147,7 @@ async def analyze_parcel(request: AnalysisRequest) -> AnalysisResponse:
                     )
 
         # 3. Check SB35 eligibility
-        if request.include_sb35 and settings.ENABLE_SB35:
+        if analysis_request.include_sb35 and settings.ENABLE_SB35:
             sb35_scenario = analyze_sb35(parcel)
             if sb35_scenario:
                 scenarios.append(sb35_scenario)
@@ -174,7 +184,7 @@ async def analyze_parcel(request: AnalysisRequest) -> AnalysisResponse:
                         )
 
         # 4. Check AB2011 eligibility (office conversion)
-        if request.include_ab2011 and settings.ENABLE_AB2011:
+        if analysis_request.include_ab2011 and settings.ENABLE_AB2011:
             ab2011_scenario = analyze_ab2011(parcel)
             if ab2011_scenario:
                 scenarios.append(ab2011_scenario)
@@ -234,11 +244,11 @@ async def analyze_parcel(request: AnalysisRequest) -> AnalysisResponse:
                     )
 
         # 5. Apply density bonus
-        if request.include_density_bonus and request.target_affordability_pct and settings.ENABLE_DENSITY_BONUS:
+        if analysis_request.include_density_bonus and analysis_request.target_affordability_pct and settings.ENABLE_DENSITY_BONUS:
             density_bonus_scenario = apply_density_bonus(
                 base_scenario,
                 parcel,
-                affordability_pct=request.target_affordability_pct
+                affordability_pct=analysis_request.target_affordability_pct
             )
             if density_bonus_scenario:
                 scenarios.append(density_bonus_scenario)
@@ -248,9 +258,9 @@ async def analyze_parcel(request: AnalysisRequest) -> AnalysisResponse:
                     decision_logger.log_decision(
                         rule_name="Density Bonus",
                         decision="applied",
-                        reason=f"Applied {request.target_affordability_pct}% affordable housing density bonus",
+                        reason=f"Applied {analysis_request.target_affordability_pct}% affordable housing density bonus",
                         details={
-                            "affordability_pct": request.target_affordability_pct,
+                            "affordability_pct": analysis_request.target_affordability_pct,
                             "bonus_units": density_bonus_scenario.max_units - base_scenario.max_units
                         }
                     )
@@ -468,9 +478,9 @@ async def analyze_parcel(request: AnalysisRequest) -> AnalysisResponse:
 
         # Validate proposed project against recommended scenario (if provided)
         proposed_validation = None
-        if request.proposed_project:
+        if analysis_request.proposed_project:
             validation_warnings = validate_proposed_vs_allowed(
-                request.proposed_project,
+                analysis_request.proposed_project,
                 recommended_scenario,
                 parcel.lot_size_sqft
             )
@@ -494,6 +504,21 @@ async def analyze_parcel(request: AnalysisRequest) -> AnalysisResponse:
             debug=debug_info
         )
 
+        # Track API usage for free tier enforcement
+        from app.models.subscription import APIUsage
+        from app.core.database import get_session as get_db_session
+
+        with next(get_db_session()) as session:
+            usage = APIUsage(
+                user_id=current_user.id,
+                endpoint=request.url.path,
+                method="POST",
+                status_code=200,
+                parcel_apn=parcel.apn
+            )
+            session.add(usage)
+            session.commit()
+
         return response
 
     except Exception as e:
@@ -502,14 +527,21 @@ async def analyze_parcel(request: AnalysisRequest) -> AnalysisResponse:
 
 
 @router.post("/quick-analysis")
-async def quick_analysis(request: AnalysisRequest) -> dict:
+@limiter.limit(RATE_LIMITS["analysis"])
+async def quick_analysis(
+    request: Request,
+    analysis_request: AnalysisRequest,
+    current_user: User = Depends(require_active_subscription)
+) -> dict:
     """
     Quick analysis returning only key metrics.
 
     Faster endpoint that returns essential information without full scenario details.
+
+    Rate limit: 10 requests per minute per IP.
     """
     try:
-        full_analysis = await analyze_parcel(request)
+        full_analysis = await analyze_parcel(request, analysis_request)
 
         return {
             "parcel_apn": full_analysis.parcel_apn,
@@ -528,7 +560,12 @@ async def quick_analysis(request: AnalysisRequest) -> dict:
 
 
 @router.post("/comprehensive-analysis")
-async def comprehensive_analysis(request: AnalysisRequest) -> dict:
+@limiter.limit(RATE_LIMITS["analysis"])
+async def comprehensive_analysis(
+    request: Request,
+    analysis_request: AnalysisRequest,
+    current_user: User = Depends(require_active_subscription)
+) -> dict:
     """
     Comprehensive analysis integrating all special plan areas and state law programs.
 
@@ -540,17 +577,19 @@ async def comprehensive_analysis(request: AnalysisRequest) -> dict:
 
     Returns a simplified response focused on viable development paths,
     with clear guidance on how different programs interact.
+
+    Rate limit: 10 requests per minute per IP.
     """
     try:
-        parcel = request.parcel
+        parcel = analysis_request.parcel
 
         # Use comprehensive analysis service
         result = generate_comprehensive_scenarios(
             parcel,
-            include_sb35=request.include_sb35 if hasattr(request, 'include_sb35') else True,
-            include_ab2011=request.include_ab2011 if hasattr(request, 'include_ab2011') else True,
-            include_density_bonus=request.include_density_bonus if hasattr(request, 'include_density_bonus') else True,
-            target_affordability_pct=request.target_affordability_pct if hasattr(request, 'target_affordability_pct') else 15.0
+            include_sb35=analysis_request.include_sb35 if hasattr(analysis_request, 'include_sb35') else True,
+            include_ab2011=analysis_request.include_ab2011 if hasattr(analysis_request, 'include_ab2011') else True,
+            include_density_bonus=analysis_request.include_density_bonus if hasattr(analysis_request, 'include_density_bonus') else True,
+            target_affordability_pct=analysis_request.target_affordability_pct if hasattr(analysis_request, 'target_affordability_pct') else 15.0
         )
 
         # Apply AB2097 parking reductions to all scenarios
@@ -829,7 +868,12 @@ def get_available_ami_percentages() -> dict:
 
 
 @router.post("/export/pdf")
-async def export_feasibility_report(analysis: AnalysisResponse) -> Response:
+@limiter.limit(RATE_LIMITS["pdf_export"])
+async def export_feasibility_report(
+    request: Request,
+    analysis: AnalysisResponse,
+    current_user: User = Depends(require_active_subscription)
+) -> Response:
     """
     Generate PDF report for parcel feasibility analysis.
 
@@ -848,6 +892,8 @@ async def export_feasibility_report(analysis: AnalysisResponse) -> Response:
 
     Returns:
         PDF file with content-type: application/pdf
+
+    Rate limit: 5 requests per minute per IP.
 
     Example:
         POST /api/v1/export/pdf

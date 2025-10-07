@@ -7,17 +7,48 @@ middleware for the enterprise-grade parcel analysis system.
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from datetime import datetime
 import time
 import logging
 
-from app.api import analyze, rules, metadata, autocomplete
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+
+from app.api import analyze, rules, metadata, autocomplete, economic_feasibility, auth, payments, admin
 from app.core.config import settings
+from app.core.rate_limit import limiter
+from app.core.database import create_db_and_tables
 from app.utils.logging import setup_logging, get_logger
 
 # Setup logging
 setup_logging()
 logger = get_logger(__name__)
+
+# Initialize Sentry for error monitoring
+if settings.SENTRY_ENABLED and settings.SENTRY_DSN:
+    import sentry_sdk
+    from sentry_sdk.integrations.fastapi import FastApiIntegration
+    from sentry_sdk.integrations.starlette import StarletteIntegration
+
+    sentry_sdk.init(
+        dsn=settings.SENTRY_DSN,
+        environment=settings.SENTRY_ENVIRONMENT or settings.ENVIRONMENT,
+        traces_sample_rate=settings.SENTRY_TRACES_SAMPLE_RATE,
+        integrations=[
+            StarletteIntegration(transaction_style="endpoint"),
+            FastApiIntegration(transaction_style="endpoint"),
+        ],
+        # Send PII (Personally Identifiable Information) - disabled by default
+        send_default_pii=False,
+        # Additional configuration
+        attach_stacktrace=True,
+        before_send=lambda event, hint: event if settings.ENVIRONMENT != "development" else None,
+    )
+    logger.info("Sentry error monitoring initialized", extra={
+        "environment": settings.SENTRY_ENVIRONMENT or settings.ENVIRONMENT,
+        "traces_sample_rate": settings.SENTRY_TRACES_SAMPLE_RATE
+    })
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -27,6 +58,48 @@ app = FastAPI(
     redoc_url="/redoc",
     openapi_url="/openapi.json",
 )
+
+# Create database tables on startup
+@app.on_event("startup")
+def on_startup():
+    """Initialize database tables on application startup."""
+    logger.info("Creating database tables...")
+    create_db_and_tables()
+    logger.info("Database tables created successfully")
+
+# Add rate limiter to app
+app.state.limiter = limiter
+
+# Add custom rate limit exception handler
+@app.exception_handler(RateLimitExceeded)
+async def custom_rate_limit_handler(request: Request, exc: RateLimitExceeded):
+    """
+    Custom error handler for rate limit exceeded errors.
+
+    Returns a helpful JSON response with retry information.
+    """
+    # Log rate limit violation
+    logger.warning(
+        "Rate limit exceeded",
+        extra={
+            "ip": request.client.host if request.client else "unknown",
+            "path": request.url.path,
+            "limit": exc.detail,
+        }
+    )
+
+    return JSONResponse(
+        status_code=429,
+        content={
+            "error": "rate_limit_exceeded",
+            "message": f"Too many requests. Limit: {exc.detail}",
+            "retry_after_seconds": 60,
+            "documentation": f"{settings.API_V1_STR}/docs"
+        },
+        headers={
+            "Retry-After": "60"
+        }
+    )
 
 # Custom CORS origin checker that supports wildcard patterns
 def is_allowed_origin(origin: str) -> bool:
@@ -95,10 +168,18 @@ async def log_requests(request: Request, call_next):
 
 
 # Register routers
+app.include_router(auth.router, prefix=f"{settings.API_V1_STR}/auth", tags=["Authentication"])
+app.include_router(payments.router, prefix=f"{settings.API_V1_STR}/payments", tags=["Payments"])
+app.include_router(admin.router, prefix=f"{settings.API_V1_STR}/admin", tags=["Admin"])
 app.include_router(analyze.router, prefix=settings.API_V1_STR, tags=["Analysis"])
 app.include_router(rules.router, prefix=settings.API_V1_STR, tags=["Rules"])
 app.include_router(metadata.router, prefix=settings.API_V1_STR, tags=["Metadata"])
 app.include_router(autocomplete.router)
+app.include_router(
+    economic_feasibility.router,
+    prefix=f"{settings.API_V1_STR}/economic-feasibility",
+    tags=["Economic Feasibility"]
+)
 
 # Rent control endpoint - TEMPORARILY DISABLED due to cloudscraper timeout issues
 # from app.services.rent_control_api import lookup_mar, get_mar_summary, RentControlLookupError
@@ -153,6 +234,8 @@ async def health_check():
             "gis_services_configured": bool(settings.SANTA_MONICA_PARCEL_SERVICE_URL),
             "narrative_generation": settings.ENABLE_NARRATIVE_GENERATION,
             "database": settings.DATABASE_URL.split("@")[-1] if "@" in settings.DATABASE_URL else "configured",
+            "error_monitoring": settings.SENTRY_ENABLED,
+            "rate_limiting": settings.RATE_LIMIT_ENABLED,
         }
     }
 

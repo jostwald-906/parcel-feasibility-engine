@@ -146,6 +146,14 @@ class Settings(BaseSettings):
     CENSUS_API_KEY: Optional[str] = None  # US Census Bureau API key (optional)
 
     # ============================================
+    # Error Monitoring (Sentry)
+    # ============================================
+    SENTRY_DSN: Optional[str] = None  # Sentry Data Source Name for error tracking
+    SENTRY_ENABLED: bool = False  # Enable Sentry error monitoring
+    SENTRY_TRACES_SAMPLE_RATE: float = 0.1  # 10% of transactions for performance monitoring
+    SENTRY_ENVIRONMENT: Optional[str] = None  # Sentry environment (defaults to ENVIRONMENT)
+
+    # ============================================
     # Environment
     # ============================================
     ENVIRONMENT: str = "development"
