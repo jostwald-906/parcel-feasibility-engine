@@ -2,6 +2,7 @@
 Analysis API endpoints.
 """
 from fastapi import APIRouter, HTTPException, Depends
+from fastapi.responses import Response
 from typing import List
 from app.models.analysis import AnalysisRequest, AnalysisResponse, DevelopmentScenario  # RentControlData, RentControlUnit - DISABLED
 from app.models.parcel import Parcel
@@ -825,3 +826,64 @@ def get_available_ami_percentages() -> dict:
     except Exception as e:
         logger.error(f"Failed to get AMI percentages: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Failed to get AMI percentages: {str(e)}")
+
+
+@router.post("/export/pdf")
+async def export_feasibility_report(request: AnalysisRequest) -> Response:
+    """
+    Generate PDF report for parcel feasibility analysis.
+
+    This endpoint generates a comprehensive PDF report including:
+    - Executive Summary
+    - Parcel Information
+    - Base Zoning Scenario
+    - Alternative Scenarios (SB 9, SB 35, AB 2011, Density Bonus)
+    - Scenario Comparison Matrix
+    - Applicable Laws & Citations
+    - Timeline Estimates
+    - Recommendations
+
+    Args:
+        request: Analysis request with parcel data and analysis options
+
+    Returns:
+        PDF file with content-type: application/pdf
+
+    Example:
+        POST /api/v1/export/pdf
+        {
+            "parcel": {
+                "apn": "4291-012-023",
+                "address": "123 Main St",
+                "lot_size_sqft": 7500,
+                "zoning_code": "R2"
+            }
+        }
+    """
+    from fastapi.responses import Response
+    from app.services.report_generator import generate_pdf_report
+
+    try:
+        # Run full analysis
+        analysis = await analyze_parcel(request)
+
+        # Generate PDF report
+        pdf_bytes = generate_pdf_report(analysis, request.parcel)
+
+        # Build filename from parcel address or APN
+        safe_name = request.parcel.apn.replace("/", "-").replace("\\", "-")
+        filename = f"feasibility_report_{safe_name}.pdf"
+
+        # Return PDF with appropriate headers
+        return Response(
+            content=pdf_bytes,
+            media_type="application/pdf",
+            headers={
+                "Content-Disposition": f'attachment; filename="{filename}"',
+                "Content-Type": "application/pdf",
+            },
+        )
+
+    except Exception as e:
+        logger.error(f"PDF export failed: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"PDF export failed: {str(e)}")

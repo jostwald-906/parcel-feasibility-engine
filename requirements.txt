@@ -9,6 +9,7 @@ pydantic-settings==2.1.0
 alembic==1.13.1
 httpx==0.26.0
 pandas==2.3.3
+reportlab==4.2.5
 pytest==7.4.4
 pytest-asyncio==0.23.3
 pytest-cov==4.1.0
