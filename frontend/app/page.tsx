@@ -1,7 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { Building2, AlertCircle, Map, Layers } from 'lucide-react';
+import { Building2, AlertCircle, Map, Layers, LogOut } from 'lucide-react';
+import { useAuth } from '@/lib/auth-context';
+import Link from 'next/link';
 import ParcelForm from '@/components/ParcelForm';
 import ResultsDashboard from '@/components/ResultsDashboard';
 import ParcelMapWrapper from '@/components/ParcelMapWrapper';
@@ -13,6 +15,7 @@ import type { AnalysisRequest, AnalysisResponse } from '@/lib/types';
 import type { ParcelAnalysis } from '@/lib/arcgis-client';
 
 export default function Home() {
+  const { user, logout } = useAuth();
   const [analysisResult, setAnalysisResult] = useState<AnalysisResponse | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -70,15 +73,32 @@ export default function Home() {
       {/* Header */}
       <header className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex items-center gap-3">
-            <Building2 className="w-8 h-8 text-blue-600" />
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">
-                Santa Monica Parcel Feasibility Engine
-              </h1>
-              <p className="text-sm text-gray-600 mt-1">
-                AI-powered development analysis with California housing law integration
-              </p>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Building2 className="w-8 h-8 text-blue-600" />
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900">
+                  Santa Monica Parcel Feasibility Engine
+                </h1>
+                <p className="text-sm text-gray-600 mt-1">
+                  AI-powered development analysis with California housing law integration
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-4">
+              <Link
+                href="/dashboard"
+                className="text-gray-600 hover:text-gray-900 font-medium"
+              >
+                Dashboard
+              </Link>
+              <button
+                onClick={logout}
+                className="flex items-center gap-2 text-gray-600 hover:text-gray-900 font-medium"
+              >
+                <LogOut className="w-5 h-5" />
+                Logout
+              </button>
             </div>
           </div>
         </div>
