@@ -1,0 +1,763 @@
+{
+  "overlays": [
+    {
+      "url": "https://gis.santamonica.gov/server/rest/services/Bergamot_Area_Plan/FeatureServer/0",
+      "layerName": "Bergamot Area Plan Overlays",
+      "layerId": 0,
+      "geometryType": "esriGeometryPolygon",
+      "fields": {
+        "objectid": "esriFieldTypeOID",
+        "label": "esriFieldTypeString",
+        "Shape__Area": "esriFieldTypeDouble",
+        "Shape__Length": "esriFieldTypeDouble"
+      },
+      "keyFields": []
+    },
+    {
+      "url": "https://gis.santamonica.gov/server/rest/services/Bergamot_Area_Plan/FeatureServer/1",
+      "layerName": "Bergamot Area Plan Districts",
+      "layerId": 1,
+      "geometryType": "esriGeometryPolygon",
+      "fields": {
+        "objectid": "esriFieldTypeOID",
+        "area_name": "esriFieldTypeString",
+        "label": "esriFieldTypeString",
+        "Shape__Area": "esriFieldTypeDouble",
+        "Shape__Length": "esriFieldTypeDouble"
+      },
+      "keyFields": [
+        "overlay"
+      ]
+    },
+    {
+      "url": "https://gis.santamonica.gov/server/rest/services/Bergamot_Area_Plan/MapServer/0",
+      "layerName": "Bergamot Area Plan Overlays",
+      "layerId": 0,
+      "geometryType": "esriGeometryPolygon",
+      "fields": {
+        "objectid": "esriFieldTypeOID",
+        "label": "esriFieldTypeString",
+        "shape": "esriFieldTypeGeometry",
+        "st_area(shape)": "esriFieldTypeDouble",
+        "st_perimeter(shape)": "esriFieldTypeDouble"
+      },
+      "keyFields": []
+    },
+    {
+      "url": "https://gis.santamonica.gov/server/rest/services/Bergamot_Area_Plan/MapServer/1",
+      "layerName": "Bergamot Area Plan Districts",
+      "layerId": 1,
+      "geometryType": "esriGeometryPolygon",
+      "fields": {
+        "objectid": "esriFieldTypeOID",
+        "area_name": "esriFieldTypeString",
+        "label": "esriFieldTypeString",
+        "shape": "esriFieldTypeGeometry",
+        "st_area(shape)": "esriFieldTypeDouble",
+        "st_perimeter(shape)": "esriFieldTypeDouble"
+      },
+      "keyFields": [
+        "overlay"
+      ]
+    },
+    {
+      "url": "https://gis.santamonica.gov/server/rest/services/Bike_Action_Plan/FeatureServer/0",
+      "layerName": "Bike Action Plan PBL Network",
+      "layerId": 0,
+      "geometryType": "esriGeometryPolyline",
+      "fields": {
+        "objectid": "esriFieldTypeOID",
+        "street": "esriFieldTypeString",
+        "nn_id": "esriFieldTypeDouble",
+        "corridor": "esriFieldTypeString",
+        "from_to": "esriFieldTypeString",
+        "priority": "esriFieldTypeSmallInteger",
+        "miles": "esriFieldTypeDouble",
+        "Shape__Length": "esriFieldTypeDouble"
+      },
+      "keyFields": [
+        "address"
+      ]
+    },
+    {
+      "url": "https://gis.santamonica.gov/server/rest/services/Bike_Action_Plan/FeatureServer/1",
+      "layerName": "Bike Action Plan LTS Network",
+      "layerId": 1,
+      "geometryType": "esriGeometryPolyline",
+      "fields": {
+        "objectid": "esriFieldTypeOID",
+        "fullname": "esriFieldTypeString",
+        "exbiketype": "esriFieldTypeString",
+        "bikelanewi": "esriFieldTypeInteger",
+        "parkwidth": "esriFieldTypeInteger",
+        "bikemin": "esriFieldTypeInteger",
+        "gplane": "esriFieldTypeInteger",
+        "lts_speed": "esriFieldTypeInteger",
+        "maxbp": "esriFieldTypeInteger",
+        "minbp": "esriFieldTypeInteger",
+        "biketype5": "esriFieldTypeString",
+        "biketype20": "esriFieldTypeString",
+        "oneway": "esriFieldTypeInteger",
+        "lts_mod": "esriFieldTypeInteger",
+        "adtsum": "esriFieldTypeDouble",
+        "lsnw_carto": "esriFieldTypeString",
+        "need": "esriFieldTypeString",
+        "f85thspeed": "esriFieldTypeDouble",
+        "Shape__Length": "esriFieldTypeDouble"
+      },
+      "keyFields": []
+    },
+    {
+      "url": "https://gis.santamonica.gov/server/rest/services/Bike_Action_Plan/MapServer/0",
+      "layerName": "Bike Action Plan PBL Network",
+      "layerId": 0,
+      "geometryType": "esriGeometryPolyline",
+      "fields": {
+        "objectid": "esriFieldTypeOID",
+        "street": "esriFieldTypeString",
+        "nn_id": "esriFieldTypeDouble",
+        "corridor": "esriFieldTypeString",
+        "from_to": "esriFieldTypeString",
+        "priority": "esriFieldTypeSmallInteger",
+        "miles": "esriFieldTypeDouble",
+        "shape": "esriFieldTypeGeometry",
+        "st_length(shape)": "esriFieldTypeDouble"
+      },
+      "keyFields": [
+        "address"
+      ]
+    },
+    {
+      "url": "https://gis.santamonica.gov/server/rest/services/Bike_Action_Plan/MapServer/1",
+      "layerName": "Bike Action Plan LTS Network",
+      "layerId": 1,
+      "geometryType": "esriGeometryPolyline",
+      "fields": {
+        "objectid": "esriFieldTypeOID",
+        "fullname": "esriFieldTypeString",
+        "exbiketype": "esriFieldTypeString",
+        "bikelanewi": "esriFieldTypeInteger",
+        "parkwidth": "esriFieldTypeInteger",
+        "bikemin": "esriFieldTypeInteger",
+        "gplane": "esriFieldTypeInteger",
+        "lts_speed": "esriFieldTypeInteger",
+        "maxbp": "esriFieldTypeInteger",
+        "minbp": "esriFieldTypeInteger",
+        "biketype5": "esriFieldTypeString",
+        "biketype20": "esriFieldTypeString",
+        "oneway": "esriFieldTypeInteger",
+        "lts_mod": "esriFieldTypeInteger",
+        "adtsum": "esriFieldTypeDouble",
+        "lsnw_carto": "esriFieldTypeString",
+        "need": "esriFieldTypeString",
+        "f85thspeed": "esriFieldTypeDouble",
+        "shape": "esriFieldTypeGeometry",
+        "st_length(shape)": "esriFieldTypeDouble"
+      },
+      "keyFields": []
+    },
+    {
+      "url": "https://gis.santamonica.gov/server/rest/services/Community_Noise_Equivalent_Levels_CNEL/FeatureServer/0",
+      "layerName": "Community Noise Equivalent Levels (CNEL)",
+      "layerId": 0,
+      "geometryType": "esriGeometryPolygon",
+      "fields": {
+        "objectid": "esriFieldTypeOID",
+        "csment_dbo_cnel_area": "esriFieldTypeDouble",
+        "perimeter": "esriFieldTypeDouble",
+        "cnel": "esriFieldTypeString",
+        "Shape__Area": "esriFieldTypeDouble",
+        "Shape__Length": "esriFieldTypeDouble"
+      },
+      "keyFields": []
+    },
+    {
+      "url": "https://gis.santamonica.gov/server/rest/services/Community_Noise_Equivalent_Levels_CNEL/MapServer/0",
+      "layerName": "Community Noise Equivalent Levels (CNEL)",
+      "layerId": 0,
+      "geometryType": "esriGeometryPolygon",
+      "fields": {
+        "objectid": "esriFieldTypeOID",
+        "csment_dbo_cnel_area": "esriFieldTypeDouble",
+        "perimeter": "esriFieldTypeDouble",
+        "cnel": "esriFieldTypeString",
+        "shape": "esriFieldTypeGeometry",
+        "st_area(shape)": "esriFieldTypeDouble",
+        "st_perimeter(shape)": "esriFieldTypeDouble"
+      },
+      "keyFields": []
+    }
+  ],
+  "hazards": [
+    {
+      "url": "https://gis.santamonica.gov/server/rest/services/Fault_Zones/FeatureServer/0",
+      "layerName": "Fault Traces",
+      "layerId": 0,
+      "geometryType": "esriGeometryPolyline",
+      "fields": {
+        "objectid": "esriFieldTypeOID",
+        "fault_name": "esriFieldTypeString",
+        "fault_zone": "esriFieldTypeString",
+        "line_type": "esriFieldTypeString",
+        "line_style": "esriFieldTypeString",
+        "comments": "esriFieldTypeString",
+        "quad_name": "esriFieldTypeString",
+        "Shape__Length": "esriFieldTypeDouble"
+      },
+      "keyFields": [
+        "hazard"
+      ]
+    },
+    {
+      "url": "https://gis.santamonica.gov/server/rest/services/Fault_Zones/FeatureServer/1",
+      "layerName": "Fault Zones",
+      "layerId": 1,
+      "geometryType": "esriGeometryPolygon",
+      "fields": {
+        "objectid": "esriFieldTypeOID",
+        "quad_name": "esriFieldTypeString",
+        "map_releas": "esriFieldTypeString",
+        "map_revise": "esriFieldTypeString",
+        "prev_map_r": "esriFieldTypeString",
+        "zn_release": "esriFieldTypeString",
+        "zn_revised": "esriFieldTypeString",
+        "prev_zn_re": "esriFieldTypeString",
+        "geopdflink": "esriFieldTypeString",
+        "reportlink": "esriFieldTypeString",
+        "comments": "esriFieldTypeString",
+        "Shape__Area": "esriFieldTypeDouble",
+        "Shape__Length": "esriFieldTypeDouble"
+      },
+      "keyFields": []
+    },
+    {
+      "url": "https://gis.santamonica.gov/server/rest/services/Fault_Zones/MapServer/0",
+      "layerName": "Fault Traces",
+      "layerId": 0,
+      "geometryType": "esriGeometryPolyline",
+      "fields": {
+        "objectid": "esriFieldTypeOID",
+        "fault_name": "esriFieldTypeString",
+        "fault_zone": "esriFieldTypeString",
+        "line_type": "esriFieldTypeString",
+        "line_style": "esriFieldTypeString",
+        "comments": "esriFieldTypeString",
+        "quad_name": "esriFieldTypeString",
+        "shape": "esriFieldTypeGeometry",
+        "st_length(shape)": "esriFieldTypeDouble"
+      },
+      "keyFields": [
+        "hazard"
+      ]
+    },
+    {
+      "url": "https://gis.santamonica.gov/server/rest/services/Fault_Zones/MapServer/1",
+      "layerName": "Fault Zones",
+      "layerId": 1,
+      "geometryType": "esriGeometryPolygon",
+      "fields": {
+        "objectid": "esriFieldTypeOID",
+        "quad_name": "esriFieldTypeString",
+        "map_releas": "esriFieldTypeString",
+        "map_revise": "esriFieldTypeString",
+        "prev_map_r": "esriFieldTypeString",
+        "zn_release": "esriFieldTypeString",
+        "zn_revised": "esriFieldTypeString",
+        "prev_zn_re": "esriFieldTypeString",
+        "geopdflink": "esriFieldTypeString",
+        "reportlink": "esriFieldTypeString",
+        "comments": "esriFieldTypeString",
+        "shape": "esriFieldTypeGeometry",
+        "st_area(shape)": "esriFieldTypeDouble",
+        "st_perimeter(shape)": "esriFieldTypeDouble"
+      },
+      "keyFields": []
+    },
+    {
+      "url": "https://gis.santamonica.gov/server/rest/services/FEMA_National_Flood_Hazard_Area/MapServer/0",
+      "layerName": "FEMA Flood Hazard Area ",
+      "layerId": 0,
+      "geometryType": "esriGeometryPolygon",
+      "fields": {
+        "objectid": "esriFieldTypeOID",
+        "dfirm_id": "esriFieldTypeString",
+        "version_id": "esriFieldTypeString",
+        "fld_ar_id": "esriFieldTypeString",
+        "study_typ": "esriFieldTypeString",
+        "fld_zone": "esriFieldTypeString",
+        "zone_subty": "esriFieldTypeString",
+        "sfha_tf": "esriFieldTypeString",
+        "static_bfe": "esriFieldTypeDouble",
+        "v_datum": "esriFieldTypeString",
+        "depth": "esriFieldTypeDouble",
+        "len_unit": "esriFieldTypeString",
+        "velocity": "esriFieldTypeDouble",
+        "vel_unit": "esriFieldTypeString",
+        "ar_revert": "esriFieldTypeString",
+        "ar_subtrv": "esriFieldTypeString",
+        "bfe_revert": "esriFieldTypeDouble",
+        "dep_revert": "esriFieldTypeDouble",
+        "dual_zone": "esriFieldTypeString",
+        "source_cit": "esriFieldTypeString",
+        "shape": "esriFieldTypeGeometry",
+        "st_area(shape)": "esriFieldTypeDouble",
+        "st_perimeter(shape)": "esriFieldTypeDouble"
+      },
+      "keyFields": [
+        "zone",
+        "flood"
+      ]
+    },
+    {
+      "url": "https://gis.santamonica.gov/server/rest/services/Landslide_Susceptability_Area/FeatureServer/0",
+      "layerName": "Landslide Susceptability Area",
+      "layerId": 0,
+      "geometryType": "esriGeometryPolygon",
+      "fields": {
+        "objectid": "esriFieldTypeOID",
+        "landslidep": "esriFieldTypeString",
+        "Shape__Area": "esriFieldTypeDouble",
+        "Shape__Length": "esriFieldTypeDouble"
+      },
+      "keyFields": [
+        "hazard"
+      ]
+    },
+    {
+      "url": "https://gis.santamonica.gov/server/rest/services/Landslide_Susceptability_Area/MapServer/0",
+      "layerName": "Landslide Susceptability Area",
+      "layerId": 0,
+      "geometryType": "esriGeometryPolygon",
+      "fields": {
+        "objectid": "esriFieldTypeOID",
+        "landslidep": "esriFieldTypeString",
+        "shape": "esriFieldTypeGeometry",
+        "st_area(shape)": "esriFieldTypeDouble",
+        "st_perimeter(shape)": "esriFieldTypeDouble"
+      },
+      "keyFields": [
+        "hazard"
+      ]
+    },
+    {
+      "url": "https://gis.santamonica.gov/server/rest/services/Landslide_Zones_and_High_Risk_Area/FeatureServer/0",
+      "layerName": "Landslide Zones",
+      "layerId": 0,
+      "geometryType": "esriGeometryPolygon",
+      "fields": {
+        "objectid": "esriFieldTypeOID",
+        "id": "esriFieldTypeDouble",
+        "usgs_quad": "esriFieldTypeString",
+        "type": "esriFieldTypeDouble",
+        "Shape__Area": "esriFieldTypeDouble",
+        "Shape__Length": "esriFieldTypeDouble"
+      },
+      "keyFields": [
+        "transit"
+      ]
+    },
+    {
+      "url": "https://gis.santamonica.gov/server/rest/services/Landslide_Zones_and_High_Risk_Area/FeatureServer/1",
+      "layerName": "Landslide Risk",
+      "layerId": 1,
+      "geometryType": "esriGeometryPolygon",
+      "fields": {
+        "objectid": "esriFieldTypeOID",
+        "landslidep": "esriFieldTypeString",
+        "Shape__Area": "esriFieldTypeDouble",
+        "Shape__Length": "esriFieldTypeDouble"
+      },
+      "keyFields": [
+        "hazard"
+      ]
+    },
+    {
+      "url": "https://gis.santamonica.gov/server/rest/services/Landslide_Zones_and_High_Risk_Area/MapServer/0",
+      "layerName": "Landslide Zones",
+      "layerId": 0,
+      "geometryType": "esriGeometryPolygon",
+      "fields": {
+        "objectid": "esriFieldTypeOID",
+        "id": "esriFieldTypeDouble",
+        "usgs_quad": "esriFieldTypeString",
+        "type": "esriFieldTypeDouble",
+        "shape": "esriFieldTypeGeometry",
+        "st_area(shape)": "esriFieldTypeDouble",
+        "st_perimeter(shape)": "esriFieldTypeDouble"
+      },
+      "keyFields": [
+        "transit"
+      ]
+    },
+    {
+      "url": "https://gis.santamonica.gov/server/rest/services/Landslide_Zones_and_High_Risk_Area/MapServer/1",
+      "layerName": "Landslide Risk",
+      "layerId": 1,
+      "geometryType": "esriGeometryPolygon",
+      "fields": {
+        "objectid": "esriFieldTypeOID",
+        "landslidep": "esriFieldTypeString",
+        "shape": "esriFieldTypeGeometry",
+        "st_area(shape)": "esriFieldTypeDouble",
+        "st_perimeter(shape)": "esriFieldTypeDouble"
+      },
+      "keyFields": [
+        "hazard"
+      ]
+    },
+    {
+      "url": "https://gis.santamonica.gov/server/rest/services/Liquefaction_Risk_Areas/FeatureServer/0",
+      "layerName": "Liquefaction Risk Areas",
+      "layerId": 0,
+      "geometryType": "esriGeometryPolygon",
+      "fields": {
+        "objectid": "esriFieldTypeOID",
+        "dis": "esriFieldTypeDouble",
+        "count_": "esriFieldTypeDouble",
+        "Shape__Area": "esriFieldTypeDouble",
+        "Shape__Length": "esriFieldTypeDouble"
+      },
+      "keyFields": []
+    },
+    {
+      "url": "https://gis.santamonica.gov/server/rest/services/Liquefaction_Risk_Areas/MapServer/0",
+      "layerName": "Liquefaction Risk Areas",
+      "layerId": 0,
+      "geometryType": "esriGeometryPolygon",
+      "fields": {
+        "objectid": "esriFieldTypeOID",
+        "dis": "esriFieldTypeDouble",
+        "count_": "esriFieldTypeDouble",
+        "shape": "esriFieldTypeGeometry",
+        "st_area(shape)": "esriFieldTypeDouble",
+        "st_perimeter(shape)": "esriFieldTypeDouble"
+      },
+      "keyFields": []
+    },
+    {
+      "url": "https://gis.santamonica.gov/server/rest/services/Tsunami_Hazard_Zone_Public/FeatureServer/4",
+      "layerName": "Maximum Tsunami Inundation Zone",
+      "layerId": 4,
+      "geometryType": "esriGeometryPolygon",
+      "fields": {
+        "objectid_1": "esriFieldTypeOID",
+        "objectid": "esriFieldTypeInteger",
+        "evacuate": "esriFieldTypeString",
+        "county": "esriFieldTypeString",
+        "gis_link": "esriFieldTypeString",
+        "kmz_link": "esriFieldTypeString",
+        "map_link": "esriFieldTypeString",
+        "label": "esriFieldTypeString",
+        "shape_leng": "esriFieldTypeDouble",
+        "Shape__Area": "esriFieldTypeDouble",
+        "Shape__Length": "esriFieldTypeDouble"
+      },
+      "keyFields": []
+    },
+    {
+      "url": "https://gis.santamonica.gov/server/rest/services/Tsunami_Hazard_Zone_Public/MapServer/4",
+      "layerName": "Maximum Tsunami Inundation Zone",
+      "layerId": 4,
+      "geometryType": "esriGeometryPolygon",
+      "fields": {
+        "objectid_1": "esriFieldTypeOID",
+        "objectid": "esriFieldTypeInteger",
+        "evacuate": "esriFieldTypeString",
+        "county": "esriFieldTypeString",
+        "gis_link": "esriFieldTypeString",
+        "kmz_link": "esriFieldTypeString",
+        "map_link": "esriFieldTypeString",
+        "label": "esriFieldTypeString",
+        "shape_leng": "esriFieldTypeDouble",
+        "shape": "esriFieldTypeGeometry",
+        "st_area(shape)": "esriFieldTypeDouble",
+        "st_perimeter(shape)": "esriFieldTypeDouble"
+      },
+      "keyFields": []
+    }
+  ],
+  "transit": {
+    "url": "https://gis.santamonica.gov/server/rest/services/Big_Blue_Bus_Stops_and_Routes/FeatureServer/0",
+    "layerName": "Big Blue Bus Stops",
+    "layerId": 0,
+    "geometryType": "esriGeometryPoint",
+    "fields": {
+      "objectid": "esriFieldTypeOID",
+      "stop_id": "esriFieldTypeString",
+      "stop_code": "esriFieldTypeString",
+      "stop_name": "esriFieldTypeString",
+      "stop_desc": "esriFieldTypeString",
+      "stop_lat": "esriFieldTypeDouble",
+      "stop_lon": "esriFieldTypeDouble",
+      "zone_id": "esriFieldTypeString",
+      "stop_url": "esriFieldTypeString",
+      "location_type": "esriFieldTypeString",
+      "parent_station": "esriFieldTypeString",
+      "stop_timezone": "esriFieldTypeString",
+      "wheelchair_boarding": "esriFieldTypeString"
+    },
+    "keyFields": [
+      "address",
+      "zone",
+      "flood",
+      "transit"
+    ]
+  },
+  "coastal": {
+    "url": "https://gis.santamonica.gov/server/rest/services/Coastal_Zone/FeatureServer/0",
+    "layerName": "Coastal Zone",
+    "layerId": 0,
+    "geometryType": "esriGeometryPolygon",
+    "fields": {
+      "objectid": "esriFieldTypeOID",
+      "csment_dbo_coastalzone_area": "esriFieldTypeDouble",
+      "perimeter": "esriFieldTypeDouble",
+      "coastalzon": "esriFieldTypeDouble",
+      "coastalz_1": "esriFieldTypeDouble",
+      "Shape__Area": "esriFieldTypeDouble",
+      "Shape__Length": "esriFieldTypeDouble"
+    },
+    "keyFields": []
+  },
+  "flood": {
+    "url": "https://gis.santamonica.gov/server/rest/services/FEMA_National_Flood_Hazard_Area/MapServer/0",
+    "layerName": "FEMA Flood Hazard Area ",
+    "layerId": 0,
+    "geometryType": "esriGeometryPolygon",
+    "fields": {
+      "objectid": "esriFieldTypeOID",
+      "dfirm_id": "esriFieldTypeString",
+      "version_id": "esriFieldTypeString",
+      "fld_ar_id": "esriFieldTypeString",
+      "study_typ": "esriFieldTypeString",
+      "fld_zone": "esriFieldTypeString",
+      "zone_subty": "esriFieldTypeString",
+      "sfha_tf": "esriFieldTypeString",
+      "static_bfe": "esriFieldTypeDouble",
+      "v_datum": "esriFieldTypeString",
+      "depth": "esriFieldTypeDouble",
+      "len_unit": "esriFieldTypeString",
+      "velocity": "esriFieldTypeDouble",
+      "vel_unit": "esriFieldTypeString",
+      "ar_revert": "esriFieldTypeString",
+      "ar_subtrv": "esriFieldTypeString",
+      "bfe_revert": "esriFieldTypeDouble",
+      "dep_revert": "esriFieldTypeDouble",
+      "dual_zone": "esriFieldTypeString",
+      "source_cit": "esriFieldTypeString",
+      "shape": "esriFieldTypeGeometry",
+      "st_area(shape)": "esriFieldTypeDouble",
+      "st_perimeter(shape)": "esriFieldTypeDouble"
+    },
+    "keyFields": [
+      "zone",
+      "flood"
+    ]
+  },
+  "historic": {
+    "url": "https://gis.santamonica.gov/server/rest/services/Historic_Preservation_Layers/FeatureServer/2",
+    "layerName": "Historic Resources Inventory",
+    "layerId": 2,
+    "geometryType": "esriGeometryPolygon",
+    "fields": {
+      "objectid": "esriFieldTypeOID",
+      "ain": "esriFieldTypeString",
+      "situsaddress": "esriFieldTypeString",
+      "additional_apns": "esriFieldTypeString",
+      "district_name": "esriFieldTypeString",
+      "address": "esriFieldTypeString",
+      "street": "esriFieldTypeString",
+      "suffix": "esriFieldTypeString",
+      "main_address": "esriFieldTypeString",
+      "alternate_address": "esriFieldTypeString",
+      "year_built": "esriFieldTypeString",
+      "architect": "esriFieldTypeString",
+      "builder": "esriFieldTypeString",
+      "resource_name": "esriFieldTypeString",
+      "resource_evaluation": "esriFieldTypeString",
+      "located_in_district_": "esriFieldTypeString",
+      "district": "esriFieldTypeString",
+      "architectural_style": "esriFieldTypeString",
+      "individually_eligible": "esriFieldTypeString",
+      "current_": "esriFieldTypeString",
+      "access_id": "esriFieldTypeInteger",
+      "resource_type": "esriFieldTypeString",
+      "Shape__Area": "esriFieldTypeDouble",
+      "Shape__Length": "esriFieldTypeDouble"
+    },
+    "keyFields": [
+      "apn",
+      "address",
+      "overlay",
+      "historic"
+    ]
+  },
+  "parcels": {
+    "url": "https://gis.santamonica.gov/server/rest/services/Parcels_Public/FeatureServer/0",
+    "layerName": "Parcels Public",
+    "layerId": 0,
+    "geometryType": "esriGeometryPolygon",
+    "fields": {
+      "objectid": "esriFieldTypeOID",
+      "ain": "esriFieldTypeString",
+      "apn": "esriFieldTypeString",
+      "situshouseno": "esriFieldTypeString",
+      "situsfraction": "esriFieldTypeString",
+      "situsdirection": "esriFieldTypeString",
+      "situsunit": "esriFieldTypeString",
+      "situsstreet": "esriFieldTypeString",
+      "situsaddress": "esriFieldTypeString",
+      "situscity": "esriFieldTypeString",
+      "situszip": "esriFieldTypeString",
+      "situsfulladdress": "esriFieldTypeString",
+      "taxratearea": "esriFieldTypeString",
+      "taxratecity": "esriFieldTypeString",
+      "agencyclassno": "esriFieldTypeInteger",
+      "agencyname": "esriFieldTypeString",
+      "agencytype": "esriFieldTypeString",
+      "usecode": "esriFieldTypeString",
+      "usecode_2": "esriFieldTypeString",
+      "usetype": "esriFieldTypeString",
+      "usedescription": "esriFieldTypeString",
+      "designtype1": "esriFieldTypeString",
+      "yearbuilt1": "esriFieldTypeString",
+      "effectiveyear1": "esriFieldTypeString",
+      "units1": "esriFieldTypeSmallInteger",
+      "bedrooms1": "esriFieldTypeSmallInteger",
+      "bathrooms1": "esriFieldTypeSmallInteger",
+      "sqftmain1": "esriFieldTypeInteger",
+      "designtype2": "esriFieldTypeString",
+      "yearbuilt2": "esriFieldTypeString",
+      "effectiveyear2": "esriFieldTypeString",
+      "units2": "esriFieldTypeSmallInteger",
+      "bedrooms2": "esriFieldTypeSmallInteger",
+      "bathrooms2": "esriFieldTypeSmallInteger",
+      "sqftmain2": "esriFieldTypeInteger",
+      "designtype3": "esriFieldTypeString",
+      "yearbuilt3": "esriFieldTypeString",
+      "effectiveyear3": "esriFieldTypeString",
+      "units3": "esriFieldTypeSmallInteger",
+      "bedrooms3": "esriFieldTypeSmallInteger",
+      "bathrooms3": "esriFieldTypeSmallInteger",
+      "sqftmain3": "esriFieldTypeInteger",
+      "designtype4": "esriFieldTypeString",
+      "yearbuilt4": "esriFieldTypeString",
+      "effectiveyear4": "esriFieldTypeString",
+      "units4": "esriFieldTypeSmallInteger",
+      "bedrooms4": "esriFieldTypeSmallInteger",
+      "bathrooms4": "esriFieldTypeSmallInteger",
+      "sqftmain4": "esriFieldTypeInteger",
+      "designtype5": "esriFieldTypeString",
+      "yearbuilt5": "esriFieldTypeString",
+      "effectiveyear5": "esriFieldTypeString",
+      "units5": "esriFieldTypeSmallInteger",
+      "bedrooms5": "esriFieldTypeSmallInteger",
+      "bathrooms5": "esriFieldTypeSmallInteger",
+      "sqftmain5": "esriFieldTypeInteger",
+      "recdate": "esriFieldTypeString",
+      "recdocno": "esriFieldTypeInteger",
+      "roll_year": "esriFieldTypeString",
+      "roll_landvalue": "esriFieldTypeInteger",
+      "roll_impvalue": "esriFieldTypeInteger",
+      "roll_perspropvalue": "esriFieldTypeInteger",
+      "roll_fixturevalue": "esriFieldTypeInteger",
+      "roll_homeownersexemp": "esriFieldTypeInteger",
+      "roll_realestateexemp": "esriFieldTypeInteger",
+      "roll_perspropexemp": "esriFieldTypeInteger",
+      "roll_fixtureexemp": "esriFieldTypeInteger",
+      "roll_landbaseyear": "esriFieldTypeString",
+      "roll_impbaseyear": "esriFieldTypeString",
+      "lastsaledate": "esriFieldTypeString",
+      "lastsaleamount": "esriFieldTypeInteger",
+      "qualityclass1": "esriFieldTypeString",
+      "qualityclass2": "esriFieldTypeString",
+      "qualityclass3": "esriFieldTypeString",
+      "qualityclass4": "esriFieldTypeString",
+      "qualityclass5": "esriFieldTypeString",
+      "legaldescline1": "esriFieldTypeString",
+      "legaldescline2": "esriFieldTypeString",
+      "legaldescline3": "esriFieldTypeString",
+      "legaldescline4": "esriFieldTypeString",
+      "legaldescline5": "esriFieldTypeString",
+      "legaldesclinelast": "esriFieldTypeString",
+      "legaldescription": "esriFieldTypeString",
+      "spatialchangedate": "esriFieldTypeDate",
+      "parcelcreatedate": "esriFieldTypeInteger",
+      "parceltypecode": "esriFieldTypeInteger",
+      "assr_map": "esriFieldTypeString",
+      "assr_index_map": "esriFieldTypeString",
+      "center_lat": "esriFieldTypeDouble",
+      "center_lon": "esriFieldTypeDouble",
+      "center_x": "esriFieldTypeDouble",
+      "center_y": "esriFieldTypeDouble",
+      "lat_lon": "esriFieldTypeString",
+      "shape": "esriFieldTypeGeometry",
+      "situsstate": "esriFieldTypeString",
+      "situscountry": "esriFieldTypeString",
+      "mailcountry": "esriFieldTypeString",
+      "mailcity_mailzip": "esriFieldTypeString",
+      "st_area(shape)": "esriFieldTypeDouble",
+      "st_perimeter(shape)": "esriFieldTypeDouble"
+    },
+    "keyFields": [
+      "apn",
+      "address"
+    ]
+  },
+  "setbacks": {
+    "url": "https://gis.santamonica.gov/server/rest/services/Setbacks/FeatureServer/0",
+    "layerName": "Setbacks",
+    "layerId": 0,
+    "geometryType": "esriGeometryPoint",
+    "fields": {
+      "objectid_1": "esriFieldTypeOID",
+      "objectid": "esriFieldTypeInteger",
+      "setback": "esriFieldTypeSmallInteger",
+      "distmap": "esriFieldTypeString"
+    },
+    "keyFields": [
+      "setback"
+    ]
+  },
+  "zoning": {
+    "url": "https://gis.santamonica.gov/server/rest/services/Zoning_Update/FeatureServer/0",
+    "layerName": "Zoning Parcel Based",
+    "layerId": 0,
+    "geometryType": "esriGeometryPolygon",
+    "fields": {
+      "objectid": "esriFieldTypeOID",
+      "zoning": "esriFieldTypeString",
+      "overlay": "esriFieldTypeString",
+      "label": "esriFieldTypeString",
+      "major_cat": "esriFieldTypeString",
+      "zonedesc": "esriFieldTypeString",
+      "overlaydes": "esriFieldTypeString",
+      "shape_starea_1": "esriFieldTypeDouble",
+      "shape_stlength_1": "esriFieldTypeDouble",
+      "Shape__Area": "esriFieldTypeDouble",
+      "Shape__Length": "esriFieldTypeDouble"
+    },
+    "keyFields": [
+      "zone",
+      "overlay",
+      "flood"
+    ]
+  },
+  "streets": {
+    "url": "https://gis.santamonica.gov/server/rest/services/Street_centerlines/FeatureServer/0",
+    "layerName": "Street Centerlines",
+    "layerId": 0,
+    "geometryType": "esriGeometryPolyline",
+    "fields": {
+      "objectid_1": "esriFieldTypeOID",
+      "fullname": "esriFieldTypeString",
+      "stname": "esriFieldTypeString",
+      "type": "esriFieldTypeString",
+      "luce_class": "esriFieldTypeString",
+      "speed": "esriFieldTypeSmallInteger"
+    },
+    "keyFields": [
+      "street"
+    ]
+  }
+}
