@@ -103,6 +103,7 @@ export default function ParcelMap({ onParcelSelected, onLoadingChange, height = 
             city: parcelData.city,
             zip: parcelData.zip,
             useCode: parcelData.useCode,
+            useType: parcelData.useType,
             useDescription: parcelData.useDescription,
             yearBuilt: parcelData.yearBuilt,
             units: parcelData.units,
