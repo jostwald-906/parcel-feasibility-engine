@@ -28,9 +28,29 @@ app = FastAPI(
     openapi_url="/openapi.json",
 )
 
-# CORS middleware
+# Custom CORS origin checker that supports wildcard patterns
+def is_allowed_origin(origin: str) -> bool:
+    """Check if origin is allowed based on CORS settings."""
+    import re
+
+    # Check exact matches first
+    if origin in settings.BACKEND_CORS_ORIGINS:
+        return True
+
+    # Check wildcard patterns
+    for allowed_origin in settings.BACKEND_CORS_ORIGINS:
+        if '*' in allowed_origin:
+            # Convert wildcard pattern to regex
+            pattern = allowed_origin.replace('.', r'\.').replace('*', '.*')
+            if re.match(f'^{pattern}$', origin):
+                return True
+
+    return False
+
+# CORS middleware with custom origin validation
 app.add_middleware(
     CORSMiddleware,
+    allow_origin_regex=r'https://frontend-[a-z0-9]+-jordan-ostwalds-projects\.vercel\.app',
     allow_origins=settings.BACKEND_CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
