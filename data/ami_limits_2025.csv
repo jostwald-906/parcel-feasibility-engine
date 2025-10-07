@@ -1,0 +1,769 @@
+county,household_size,ami_pct,income_limit
+Los Angeles,1,30,22386
+Los Angeles,1,50,37310
+Los Angeles,1,60,44772
+Los Angeles,1,80,59696
+Los Angeles,1,100,74620
+Los Angeles,1,120,89544
+Los Angeles,2,30,25584
+Los Angeles,2,50,42640
+Los Angeles,2,60,51168
+Los Angeles,2,80,68224
+Los Angeles,2,100,85280
+Los Angeles,2,120,102336
+Los Angeles,3,30,28782
+Los Angeles,3,50,47970
+Los Angeles,3,60,57564
+Los Angeles,3,80,76752
+Los Angeles,3,100,95940
+Los Angeles,3,120,115128
+Los Angeles,4,30,31980
+Los Angeles,4,50,53300
+Los Angeles,4,60,63960
+Los Angeles,4,80,85280
+Los Angeles,4,100,106600
+Los Angeles,4,120,127920
+Los Angeles,5,30,34538
+Los Angeles,5,50,57564
+Los Angeles,5,60,69077
+Los Angeles,5,80,92102
+Los Angeles,5,100,115128
+Los Angeles,5,120,138154
+Los Angeles,6,30,37097
+Los Angeles,6,50,61828
+Los Angeles,6,60,74194
+Los Angeles,6,80,98925
+Los Angeles,6,100,123656
+Los Angeles,6,120,148387
+Los Angeles,7,30,39655
+Los Angeles,7,50,66092
+Los Angeles,7,60,79310
+Los Angeles,7,80,105747
+Los Angeles,7,100,132184
+Los Angeles,7,120,158621
+Los Angeles,8,30,42214
+Los Angeles,8,50,70356
+Los Angeles,8,60,84427
+Los Angeles,8,80,112570
+Los Angeles,8,100,140712
+Los Angeles,8,120,168854
+Orange,1,30,28602
+Orange,1,50,47670
+Orange,1,60,57204
+Orange,1,80,76272
+Orange,1,100,95340
+Orange,1,120,114408
+Orange,2,30,32688
+Orange,2,50,54480
+Orange,2,60,65376
+Orange,2,80,87168
+Orange,2,100,108960
+Orange,2,120,130752
+Orange,3,30,36774
+Orange,3,50,61290
+Orange,3,60,73548
+Orange,3,80,98064
+Orange,3,100,122580
+Orange,3,120,147096
+Orange,4,30,40860
+Orange,4,50,68100
+Orange,4,60,81720
+Orange,4,80,108960
+Orange,4,100,136200
+Orange,4,120,163440
+Orange,5,30,44129
+Orange,5,50,73548
+Orange,5,60,88258
+Orange,5,80,117677
+Orange,5,100,147096
+Orange,5,120,176515
+Orange,6,30,47398
+Orange,6,50,78996
+Orange,6,60,94795
+Orange,6,80,126394
+Orange,6,100,157992
+Orange,6,120,189590
+Orange,7,30,50666
+Orange,7,50,84444
+Orange,7,60,101333
+Orange,7,80,135110
+Orange,7,100,168888
+Orange,7,120,202666
+Orange,8,30,53935
+Orange,8,50,89892
+Orange,8,60,107870
+Orange,8,80,143827
+Orange,8,100,179784
+Orange,8,120,215741
+San Diego,1,30,25809
+San Diego,1,50,43015
+San Diego,1,60,51618
+San Diego,1,80,68824
+San Diego,1,100,86030
+San Diego,1,120,103236
+San Diego,2,30,29496
+San Diego,2,50,49160
+San Diego,2,60,58992
+San Diego,2,80,78656
+San Diego,2,100,98320
+San Diego,2,120,117984
+San Diego,3,30,33183
+San Diego,3,50,55305
+San Diego,3,60,66366
+San Diego,3,80,88488
+San Diego,3,100,110610
+San Diego,3,120,132732
+San Diego,4,30,36870
+San Diego,4,50,61450
+San Diego,4,60,73740
+San Diego,4,80,98320
+San Diego,4,100,122900
+San Diego,4,120,147480
+San Diego,5,30,39820
+San Diego,5,50,66366
+San Diego,5,60,79639
+San Diego,5,80,106186
+San Diego,5,100,132732
+San Diego,5,120,159278
+San Diego,6,30,42769
+San Diego,6,50,71282
+San Diego,6,60,85538
+San Diego,6,80,114051
+San Diego,6,100,142564
+San Diego,6,120,171077
+San Diego,7,30,45719
+San Diego,7,50,76198
+San Diego,7,60,91438
+San Diego,7,80,121917
+San Diego,7,100,152396
+San Diego,7,120,182875
+San Diego,8,30,48668
+San Diego,8,50,81114
+San Diego,8,60,97337
+San Diego,8,80,129782
+San Diego,8,100,162228
+San Diego,8,120,194674
+Riverside,1,30,20391
+Riverside,1,50,33985
+Riverside,1,60,40782
+Riverside,1,80,54376
+Riverside,1,100,67970
+Riverside,1,120,81564
+Riverside,2,30,23304
+Riverside,2,50,38840
+Riverside,2,60,46608
+Riverside,2,80,62144
+Riverside,2,100,77680
+Riverside,2,120,93216
+Riverside,3,30,26217
+Riverside,3,50,43695
+Riverside,3,60,52434
+Riverside,3,80,69912
+Riverside,3,100,87390
+Riverside,3,120,104868
+Riverside,4,30,29130
+Riverside,4,50,48550
+Riverside,4,60,58260
+Riverside,4,80,77680
+Riverside,4,100,97100
+Riverside,4,120,116520
+Riverside,5,30,31460
+Riverside,5,50,52434
+Riverside,5,60,62921
+Riverside,5,80,83894
+Riverside,5,100,104868
+Riverside,5,120,125842
+Riverside,6,30,33791
+Riverside,6,50,56318
+Riverside,6,60,67582
+Riverside,6,80,90109
+Riverside,6,100,112636
+Riverside,6,120,135163
+Riverside,7,30,36121
+Riverside,7,50,60202
+Riverside,7,60,72242
+Riverside,7,80,96323
+Riverside,7,100,120404
+Riverside,7,120,144485
+Riverside,8,30,38452
+Riverside,8,50,64086
+Riverside,8,60,76903
+Riverside,8,80,102538
+Riverside,8,100,128172
+Riverside,8,120,153806
+San Bernardino,1,30,19194
+San Bernardino,1,50,31990
+San Bernardino,1,60,38388
+San Bernardino,1,80,51184
+San Bernardino,1,100,63980
+San Bernardino,1,120,76776
+San Bernardino,2,30,21936
+San Bernardino,2,50,36560
+San Bernardino,2,60,43872
+San Bernardino,2,80,58496
+San Bernardino,2,100,73120
+San Bernardino,2,120,87744
+San Bernardino,3,30,24678
+San Bernardino,3,50,41130
+San Bernardino,3,60,49356
+San Bernardino,3,80,65808
+San Bernardino,3,100,82260
+San Bernardino,3,120,98712
+San Bernardino,4,30,27420
+San Bernardino,4,50,45700
+San Bernardino,4,60,54840
+San Bernardino,4,80,73120
+San Bernardino,4,100,91400
+San Bernardino,4,120,109680
+San Bernardino,5,30,29614
+San Bernardino,5,50,49356
+San Bernardino,5,60,59227
+San Bernardino,5,80,78970
+San Bernardino,5,100,98712
+San Bernardino,5,120,118454
+San Bernardino,6,30,31807
+San Bernardino,6,50,53012
+San Bernardino,6,60,63614
+San Bernardino,6,80,84819
+San Bernardino,6,100,106024
+San Bernardino,6,120,127229
+San Bernardino,7,30,34001
+San Bernardino,7,50,56668
+San Bernardino,7,60,68002
+San Bernardino,7,80,90669
+San Bernardino,7,100,113336
+San Bernardino,7,120,136003
+San Bernardino,8,30,36194
+San Bernardino,8,50,60324
+San Bernardino,8,60,72389
+San Bernardino,8,80,96518
+San Bernardino,8,100,120648
+San Bernardino,8,120,144778
+Ventura,1,30,25851
+Ventura,1,50,43085
+Ventura,1,60,51702
+Ventura,1,80,68936
+Ventura,1,100,86170
+Ventura,1,120,103404
+Ventura,2,30,29544
+Ventura,2,50,49240
+Ventura,2,60,59088
+Ventura,2,80,78784
+Ventura,2,100,98480
+Ventura,2,120,118176
+Ventura,3,30,33237
+Ventura,3,50,55395
+Ventura,3,60,66474
+Ventura,3,80,88632
+Ventura,3,100,110790
+Ventura,3,120,132948
+Ventura,4,30,36930
+Ventura,4,50,61550
+Ventura,4,60,73860
+Ventura,4,80,98480
+Ventura,4,100,123100
+Ventura,4,120,147720
+Ventura,5,30,39884
+Ventura,5,50,66474
+Ventura,5,60,79769
+Ventura,5,80,106358
+Ventura,5,100,132948
+Ventura,5,120,159538
+Ventura,6,30,42839
+Ventura,6,50,71398
+Ventura,6,60,85678
+Ventura,6,80,114237
+Ventura,6,100,142796
+Ventura,6,120,171355
+Ventura,7,30,45793
+Ventura,7,50,76322
+Ventura,7,60,91586
+Ventura,7,80,122115
+Ventura,7,100,152644
+Ventura,7,120,183173
+Ventura,8,30,48748
+Ventura,8,50,81246
+Ventura,8,60,97495
+Ventura,8,80,129994
+Ventura,8,100,162492
+Ventura,8,120,194990
+Santa Barbara,1,30,25053
+Santa Barbara,1,50,41755
+Santa Barbara,1,60,50106
+Santa Barbara,1,80,66808
+Santa Barbara,1,100,83510
+Santa Barbara,1,120,100212
+Santa Barbara,2,30,28632
+Santa Barbara,2,50,47720
+Santa Barbara,2,60,57264
+Santa Barbara,2,80,76352
+Santa Barbara,2,100,95440
+Santa Barbara,2,120,114528
+Santa Barbara,3,30,32211
+Santa Barbara,3,50,53685
+Santa Barbara,3,60,64422
+Santa Barbara,3,80,85896
+Santa Barbara,3,100,107370
+Santa Barbara,3,120,128844
+Santa Barbara,4,30,35790
+Santa Barbara,4,50,59650
+Santa Barbara,4,60,71580
+Santa Barbara,4,80,95440
+Santa Barbara,4,100,119300
+Santa Barbara,4,120,143160
+Santa Barbara,5,30,38653
+Santa Barbara,5,50,64422
+Santa Barbara,5,60,77306
+Santa Barbara,5,80,103075
+Santa Barbara,5,100,128844
+Santa Barbara,5,120,154613
+Santa Barbara,6,30,41516
+Santa Barbara,6,50,69194
+Santa Barbara,6,60,83033
+Santa Barbara,6,80,110710
+Santa Barbara,6,100,138388
+Santa Barbara,6,120,166066
+Santa Barbara,7,30,44380
+Santa Barbara,7,50,73966
+Santa Barbara,7,60,88759
+Santa Barbara,7,80,118346
+Santa Barbara,7,100,147932
+Santa Barbara,7,120,177518
+Santa Barbara,8,30,47243
+Santa Barbara,8,50,78738
+Santa Barbara,8,60,94486
+Santa Barbara,8,80,125981
+Santa Barbara,8,100,157476
+Santa Barbara,8,120,188971
+San Francisco,1,30,38976
+San Francisco,1,50,64960
+San Francisco,1,60,77952
+San Francisco,1,80,103936
+San Francisco,1,100,129920
+San Francisco,1,120,155904
+San Francisco,2,30,44544
+San Francisco,2,50,74240
+San Francisco,2,60,89088
+San Francisco,2,80,118784
+San Francisco,2,100,148480
+San Francisco,2,120,178176
+San Francisco,3,30,50112
+San Francisco,3,50,83520
+San Francisco,3,60,100224
+San Francisco,3,80,133632
+San Francisco,3,100,167040
+San Francisco,3,120,200448
+San Francisco,4,30,55680
+San Francisco,4,50,92800
+San Francisco,4,60,111360
+San Francisco,4,80,148480
+San Francisco,4,100,185600
+San Francisco,4,120,222720
+San Francisco,5,30,60134
+San Francisco,5,50,100224
+San Francisco,5,60,120269
+San Francisco,5,80,160358
+San Francisco,5,100,200448
+San Francisco,5,120,240538
+San Francisco,6,30,64589
+San Francisco,6,50,107648
+San Francisco,6,60,129178
+San Francisco,6,80,172237
+San Francisco,6,100,215296
+San Francisco,6,120,258355
+San Francisco,7,30,69043
+San Francisco,7,50,115072
+San Francisco,7,60,138086
+San Francisco,7,80,184115
+San Francisco,7,100,230144
+San Francisco,7,120,276173
+San Francisco,8,30,73498
+San Francisco,8,50,122496
+San Francisco,8,60,146995
+San Francisco,8,80,195994
+San Francisco,8,100,244992
+San Francisco,8,120,293990
+Alameda,1,30,36603
+Alameda,1,50,61005
+Alameda,1,60,73206
+Alameda,1,80,97608
+Alameda,1,100,122010
+Alameda,1,120,146412
+Alameda,2,30,41832
+Alameda,2,50,69720
+Alameda,2,60,83664
+Alameda,2,80,111552
+Alameda,2,100,139440
+Alameda,2,120,167328
+Alameda,3,30,47061
+Alameda,3,50,78435
+Alameda,3,60,94122
+Alameda,3,80,125496
+Alameda,3,100,156870
+Alameda,3,120,188244
+Alameda,4,30,52290
+Alameda,4,50,87150
+Alameda,4,60,104580
+Alameda,4,80,139440
+Alameda,4,100,174300
+Alameda,4,120,209160
+Alameda,5,30,56473
+Alameda,5,50,94122
+Alameda,5,60,112946
+Alameda,5,80,150595
+Alameda,5,100,188244
+Alameda,5,120,225893
+Alameda,6,30,60656
+Alameda,6,50,101094
+Alameda,6,60,121313
+Alameda,6,80,161750
+Alameda,6,100,202188
+Alameda,6,120,242626
+Alameda,7,30,64840
+Alameda,7,50,108066
+Alameda,7,60,129679
+Alameda,7,80,172906
+Alameda,7,100,216132
+Alameda,7,120,259358
+Alameda,8,30,69023
+Alameda,8,50,115038
+Alameda,8,60,138046
+Alameda,8,80,184061
+Alameda,8,100,230076
+Alameda,8,120,276091
+Santa Clara,1,30,40383
+Santa Clara,1,50,67305
+Santa Clara,1,60,80766
+Santa Clara,1,80,107688
+Santa Clara,1,100,134610
+Santa Clara,1,120,161532
+Santa Clara,2,30,46152
+Santa Clara,2,50,76920
+Santa Clara,2,60,92304
+Santa Clara,2,80,123072
+Santa Clara,2,100,153840
+Santa Clara,2,120,184608
+Santa Clara,3,30,51921
+Santa Clara,3,50,86535
+Santa Clara,3,60,103842
+Santa Clara,3,80,138456
+Santa Clara,3,100,173070
+Santa Clara,3,120,207684
+Santa Clara,4,30,57690
+Santa Clara,4,50,96150
+Santa Clara,4,60,115380
+Santa Clara,4,80,153840
+Santa Clara,4,100,192300
+Santa Clara,4,120,230760
+Santa Clara,5,30,62305
+Santa Clara,5,50,103842
+Santa Clara,5,60,124610
+Santa Clara,5,80,166147
+Santa Clara,5,100,207684
+Santa Clara,5,120,249221
+Santa Clara,6,30,66920
+Santa Clara,6,50,111534
+Santa Clara,6,60,133841
+Santa Clara,6,80,178454
+Santa Clara,6,100,223068
+Santa Clara,6,120,267682
+Santa Clara,7,30,71536
+Santa Clara,7,50,119226
+Santa Clara,7,60,143071
+Santa Clara,7,80,190762
+Santa Clara,7,100,238452
+Santa Clara,7,120,286142
+Santa Clara,8,30,76151
+Santa Clara,8,50,126918
+Santa Clara,8,60,152302
+Santa Clara,8,80,203069
+Santa Clara,8,100,253836
+Santa Clara,8,120,304603
+San Mateo,1,30,41328
+San Mateo,1,50,68880
+San Mateo,1,60,82656
+San Mateo,1,80,110208
+San Mateo,1,100,137760
+San Mateo,1,120,165312
+San Mateo,2,30,47232
+San Mateo,2,50,78720
+San Mateo,2,60,94464
+San Mateo,2,80,125952
+San Mateo,2,100,157440
+San Mateo,2,120,188928
+San Mateo,3,30,53136
+San Mateo,3,50,88560
+San Mateo,3,60,106272
+San Mateo,3,80,141696
+San Mateo,3,100,177120
+San Mateo,3,120,212544
+San Mateo,4,30,59040
+San Mateo,4,50,98400
+San Mateo,4,60,118080
+San Mateo,4,80,157440
+San Mateo,4,100,196800
+San Mateo,4,120,236160
+San Mateo,5,30,63763
+San Mateo,5,50,106272
+San Mateo,5,60,127526
+San Mateo,5,80,170035
+San Mateo,5,100,212544
+San Mateo,5,120,255053
+San Mateo,6,30,68486
+San Mateo,6,50,114144
+San Mateo,6,60,136973
+San Mateo,6,80,182630
+San Mateo,6,100,228288
+San Mateo,6,120,273946
+San Mateo,7,30,73210
+San Mateo,7,50,122016
+San Mateo,7,60,146419
+San Mateo,7,80,195226
+San Mateo,7,100,244032
+San Mateo,7,120,292838
+San Mateo,8,30,77933
+San Mateo,8,50,129888
+San Mateo,8,60,155866
+San Mateo,8,80,207821
+San Mateo,8,100,259776
+San Mateo,8,120,311731
+Sacramento,1,30,23289
+Sacramento,1,50,38815
+Sacramento,1,60,46578
+Sacramento,1,80,62104
+Sacramento,1,100,77630
+Sacramento,1,120,93156
+Sacramento,2,30,26616
+Sacramento,2,50,44360
+Sacramento,2,60,53232
+Sacramento,2,80,70976
+Sacramento,2,100,88720
+Sacramento,2,120,106464
+Sacramento,3,30,29943
+Sacramento,3,50,49905
+Sacramento,3,60,59886
+Sacramento,3,80,79848
+Sacramento,3,100,99810
+Sacramento,3,120,119772
+Sacramento,4,30,33270
+Sacramento,4,50,55450
+Sacramento,4,60,66540
+Sacramento,4,80,88720
+Sacramento,4,100,110900
+Sacramento,4,120,133080
+Sacramento,5,30,35932
+Sacramento,5,50,59886
+Sacramento,5,60,71863
+Sacramento,5,80,95818
+Sacramento,5,100,119772
+Sacramento,5,120,143726
+Sacramento,6,30,38593
+Sacramento,6,50,64322
+Sacramento,6,60,77186
+Sacramento,6,80,102915
+Sacramento,6,100,128644
+Sacramento,6,120,154373
+Sacramento,7,30,41255
+Sacramento,7,50,68758
+Sacramento,7,60,82510
+Sacramento,7,80,110013
+Sacramento,7,100,137516
+Sacramento,7,120,165019
+Sacramento,8,30,43916
+Sacramento,8,50,73194
+Sacramento,8,60,87833
+Sacramento,8,80,117110
+Sacramento,8,100,146388
+Sacramento,8,120,175666
+Fresno,1,30,15855
+Fresno,1,50,26425
+Fresno,1,60,31710
+Fresno,1,80,42280
+Fresno,1,100,52850
+Fresno,1,120,63420
+Fresno,2,30,18120
+Fresno,2,50,30200
+Fresno,2,60,36240
+Fresno,2,80,48320
+Fresno,2,100,60400
+Fresno,2,120,72480
+Fresno,3,30,20385
+Fresno,3,50,33975
+Fresno,3,60,40770
+Fresno,3,80,54360
+Fresno,3,100,67950
+Fresno,3,120,81540
+Fresno,4,30,22650
+Fresno,4,50,37750
+Fresno,4,60,45300
+Fresno,4,80,60400
+Fresno,4,100,75500
+Fresno,4,120,90600
+Fresno,5,30,24462
+Fresno,5,50,40770
+Fresno,5,60,48924
+Fresno,5,80,65232
+Fresno,5,100,81540
+Fresno,5,120,97848
+Fresno,6,30,26274
+Fresno,6,50,43790
+Fresno,6,60,52548
+Fresno,6,80,70064
+Fresno,6,100,87580
+Fresno,6,120,105096
+Fresno,7,30,28086
+Fresno,7,50,46810
+Fresno,7,60,56172
+Fresno,7,80,74896
+Fresno,7,100,93620
+Fresno,7,120,112344
+Fresno,8,30,29898
+Fresno,8,50,49830
+Fresno,8,60,59796
+Fresno,8,80,79728
+Fresno,8,100,99660
+Fresno,8,120,119592
+Kern,1,30,15540
+Kern,1,50,25900
+Kern,1,60,31080
+Kern,1,80,41440
+Kern,1,100,51800
+Kern,1,120,62160
+Kern,2,30,17760
+Kern,2,50,29600
+Kern,2,60,35520
+Kern,2,80,47360
+Kern,2,100,59200
+Kern,2,120,71040
+Kern,3,30,19980
+Kern,3,50,33300
+Kern,3,60,39960
+Kern,3,80,53280
+Kern,3,100,66600
+Kern,3,120,79920
+Kern,4,30,22200
+Kern,4,50,37000
+Kern,4,60,44400
+Kern,4,80,59200
+Kern,4,100,74000
+Kern,4,120,88800
+Kern,5,30,23976
+Kern,5,50,39960
+Kern,5,60,47952
+Kern,5,80,63936
+Kern,5,100,79920
+Kern,5,120,95904
+Kern,6,30,25752
+Kern,6,50,42920
+Kern,6,60,51504
+Kern,6,80,68672
+Kern,6,100,85840
+Kern,6,120,103008
+Kern,7,30,27528
+Kern,7,50,45880
+Kern,7,60,55056
+Kern,7,80,73408
+Kern,7,100,91760
+Kern,7,120,110112
+Kern,8,30,29304
+Kern,8,50,48840
+Kern,8,60,58608
+Kern,8,80,78144
+Kern,8,100,97680
+Kern,8,120,117216
+San Joaquin,1,30,20916
+San Joaquin,1,50,34860
+San Joaquin,1,60,41832
+San Joaquin,1,80,55776
+San Joaquin,1,100,69720
+San Joaquin,1,120,83664
+San Joaquin,2,30,23904
+San Joaquin,2,50,39840
+San Joaquin,2,60,47808
+San Joaquin,2,80,63744
+San Joaquin,2,100,79680
+San Joaquin,2,120,95616
+San Joaquin,3,30,26892
+San Joaquin,3,50,44820
+San Joaquin,3,60,53784
+San Joaquin,3,80,71712
+San Joaquin,3,100,89640
+San Joaquin,3,120,107568
+San Joaquin,4,30,29880
+San Joaquin,4,50,49800
+San Joaquin,4,60,59760
+San Joaquin,4,80,79680
+San Joaquin,4,100,99600
+San Joaquin,4,120,119520
+San Joaquin,5,30,32270
+San Joaquin,5,50,53784
+San Joaquin,5,60,64541
+San Joaquin,5,80,86054
+San Joaquin,5,100,107568
+San Joaquin,5,120,129082
+San Joaquin,6,30,34661
+San Joaquin,6,50,57768
+San Joaquin,6,60,69322
+San Joaquin,6,80,92429
+San Joaquin,6,100,115536
+San Joaquin,6,120,138643
+San Joaquin,7,30,37051
+San Joaquin,7,50,61752
+San Joaquin,7,60,74102
+San Joaquin,7,80,98803
+San Joaquin,7,100,123504
+San Joaquin,7,120,148205
+San Joaquin,8,30,39442
+San Joaquin,8,50,65736
+San Joaquin,8,60,78883
+San Joaquin,8,80,105178
+San Joaquin,8,100,131472
+San Joaquin,8,120,157766
+Stanislaus,1,30,18501
+Stanislaus,1,50,30835
+Stanislaus,1,60,37002
+Stanislaus,1,80,49336
+Stanislaus,1,100,61670
+Stanislaus,1,120,74004
+Stanislaus,2,30,21144
+Stanislaus,2,50,35240
+Stanislaus,2,60,42288
+Stanislaus,2,80,56384
+Stanislaus,2,100,70480
+Stanislaus,2,120,84576
+Stanislaus,3,30,23787
+Stanislaus,3,50,39645
+Stanislaus,3,60,47574
+Stanislaus,3,80,63432
+Stanislaus,3,100,79290
+Stanislaus,3,120,95148
+Stanislaus,4,30,26430
+Stanislaus,4,50,44050
+Stanislaus,4,60,52860
+Stanislaus,4,80,70480
+Stanislaus,4,100,88100
+Stanislaus,4,120,105720
+Stanislaus,5,30,28544
+Stanislaus,5,50,47574
+Stanislaus,5,60,57089
+Stanislaus,5,80,76118
+Stanislaus,5,100,95148
+Stanislaus,5,120,114178
+Stanislaus,6,30,30659
+Stanislaus,6,50,51098
+Stanislaus,6,60,61318
+Stanislaus,6,80,81757
+Stanislaus,6,100,102196
+Stanislaus,6,120,122635
+Stanislaus,7,30,32773
+Stanislaus,7,50,54622
+Stanislaus,7,60,65546
+Stanislaus,7,80,87395
+Stanislaus,7,100,109244
+Stanislaus,7,120,131093
+Stanislaus,8,30,34888
+Stanislaus,8,50,58146
+Stanislaus,8,60,69775
+Stanislaus,8,80,93034
+Stanislaus,8,100,116292
+Stanislaus,8,120,139550

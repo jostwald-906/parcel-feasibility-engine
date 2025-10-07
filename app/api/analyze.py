@@ -20,6 +20,7 @@ from app.services.rent_control_api import get_mar_summary
 from app.services.cnel_analyzer import classify_cnel, format_cnel_for_display, check_santa_monica_compliance
 from app.services.community_benefits import get_available_benefits, format_benefits_for_display
 from app.rules.proposed_validation import validate_proposed_vs_allowed, format_warnings_for_response
+from app.services.ami_calculator import get_ami_calculator, AffordableRent, AffordableSalesPrice, AMILookup
 from datetime import datetime
 import re
 
@@ -605,3 +606,222 @@ async def comprehensive_analysis(request: AnalysisRequest) -> dict:
     except Exception as e:
         logger.error(f"Comprehensive analysis failed: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Comprehensive analysis failed: {str(e)}")
+
+
+@router.get("/ami/rent", response_model=AffordableRent)
+def get_affordable_rent(
+    county: str,
+    ami_pct: float,
+    bedrooms: int,
+    utility_allowance: float = 150.0
+) -> AffordableRent:
+    """
+    Get maximum affordable rent for given parameters.
+
+    Calculates affordable rent using the 30% of income standard.
+
+    Args:
+        county: County name (e.g., "Los Angeles")
+        ami_pct: AMI percentage (e.g., 50.0 for 50% AMI)
+        bedrooms: Number of bedrooms (0-4+)
+        utility_allowance: Monthly utility allowance (default: $150)
+
+    Returns:
+        AffordableRent model with rent calculations
+
+    Examples:
+        GET /api/v1/ami/rent?county=Los Angeles&ami_pct=50&bedrooms=2
+        {
+            "county": "Los Angeles",
+            "ami_pct": 50.0,
+            "bedrooms": 2,
+            "household_size": 3,
+            "income_limit": 47970.0,
+            "max_rent_with_utilities": 1199.25,
+            "max_rent_no_utilities": 1049.25,
+            "utility_allowance": 150.0
+        }
+    """
+    try:
+        calculator = get_ami_calculator()
+        return calculator.calculate_max_rent(county, ami_pct, bedrooms, utility_allowance)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.error(f"Affordable rent calculation failed: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Calculation failed: {str(e)}")
+
+
+@router.get("/ami/sales-price", response_model=AffordableSalesPrice)
+def get_affordable_sales_price(
+    county: str,
+    ami_pct: float,
+    household_size: int,
+    interest_rate_pct: float = 6.5,
+    loan_term_years: int = 30,
+    down_payment_pct: float = 10.0,
+    property_tax_rate_pct: float = 1.25,
+    insurance_rate_pct: float = 0.5,
+    hoa_monthly: float = 0.0
+) -> AffordableSalesPrice:
+    """
+    Get maximum affordable sales price.
+
+    Calculates affordable home price using 30% of income for PITI + HOA.
+
+    Args:
+        county: County name
+        ami_pct: AMI percentage
+        household_size: Household size (1-8 persons)
+        interest_rate_pct: Annual interest rate (default: 6.5%)
+        loan_term_years: Loan term in years (default: 30)
+        down_payment_pct: Down payment percentage (default: 10%)
+        property_tax_rate_pct: Annual property tax rate (default: 1.25%)
+        insurance_rate_pct: Annual insurance rate (default: 0.5%)
+        hoa_monthly: Monthly HOA fees (default: $0)
+
+    Returns:
+        AffordableSalesPrice model with price and assumptions
+
+    Examples:
+        GET /api/v1/ami/sales-price?county=Los Angeles&ami_pct=80&household_size=4
+        {
+            "county": "Los Angeles",
+            "ami_pct": 80.0,
+            "household_size": 4,
+            "income_limit": 85280.0,
+            "max_sales_price": 425000.0,
+            "assumptions": {
+                "interest_rate_pct": 6.5,
+                "loan_term_years": 30,
+                "down_payment_pct": 10.0,
+                "property_tax_rate_pct": 1.25,
+                "insurance_rate_pct": 0.5,
+                "hoa_monthly": 0.0
+            }
+        }
+    """
+    try:
+        calculator = get_ami_calculator()
+        return calculator.calculate_max_sales_price(
+            county=county,
+            ami_pct=ami_pct,
+            household_size=household_size,
+            interest_rate_pct=interest_rate_pct,
+            loan_term_years=loan_term_years,
+            down_payment_pct=down_payment_pct,
+            property_tax_rate_pct=property_tax_rate_pct,
+            insurance_rate_pct=insurance_rate_pct,
+            hoa_monthly=hoa_monthly
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.error(f"Affordable sales price calculation failed: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Calculation failed: {str(e)}")
+
+
+@router.get("/ami/income-limit", response_model=AMILookup)
+def get_income_limit(
+    county: str,
+    ami_pct: float,
+    household_size: int
+) -> AMILookup:
+    """
+    Get income limit for given county, AMI percentage, and household size.
+
+    Data source: HCD 2025 State Income Limits (Effective April 23, 2025)
+
+    Args:
+        county: County name (e.g., "Los Angeles")
+        ami_pct: AMI percentage (e.g., 50.0 for 50% AMI, 80.0 for 80% AMI)
+        household_size: Household size (1-8 persons)
+
+    Returns:
+        AMILookup model with income limit data
+
+    Examples:
+        GET /api/v1/ami/income-limit?county=Los Angeles&ami_pct=50&household_size=2
+        {
+            "county": "Los Angeles",
+            "ami_pct": 50.0,
+            "household_size": 2,
+            "income_limit": 42640.0
+        }
+    """
+    try:
+        calculator = get_ami_calculator()
+        return calculator.get_ami_lookup(county, ami_pct, household_size)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.error(f"Income limit lookup failed: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Lookup failed: {str(e)}")
+
+
+@router.get("/ami/counties")
+def get_available_counties() -> dict:
+    """
+    Get list of available counties in the AMI dataset.
+
+    Returns:
+        Dictionary with list of county names
+
+    Examples:
+        GET /api/v1/ami/counties
+        {
+            "counties": ["Alameda", "Fresno", "Kern", "Los Angeles", ...]
+        }
+    """
+    try:
+        calculator = get_ami_calculator()
+        return {"counties": calculator.get_available_counties()}
+    except Exception as e:
+        logger.error(f"Failed to get counties: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Failed to get counties: {str(e)}")
+
+
+@router.get("/ami/percentages")
+def get_available_ami_percentages() -> dict:
+    """
+    Get list of available AMI percentages.
+
+    Returns:
+        Dictionary with list of AMI percentages and their descriptions
+
+    Examples:
+        GET /api/v1/ami/percentages
+        {
+            "ami_percentages": [
+                {"value": 30, "label": "30% AMI (Extremely Low Income)"},
+                {"value": 50, "label": "50% AMI (Very Low Income)"},
+                ...
+            ]
+        }
+    """
+    try:
+        calculator = get_ami_calculator()
+        percentages = calculator.get_available_ami_percentages()
+
+        # Add labels for common AMI categories
+        labels = {
+            30: "Extremely Low Income",
+            50: "Very Low Income",
+            60: "Low Income",
+            80: "Low Income",
+            100: "Median Income",
+            120: "Moderate Income"
+        }
+
+        return {
+            "ami_percentages": [
+                {
+                    "value": pct,
+                    "label": f"{int(pct)}% AMI ({labels.get(pct, 'Income Category')})"
+                }
+                for pct in percentages
+            ]
+        }
+    except Exception as e:
+        logger.error(f"Failed to get AMI percentages: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Failed to get AMI percentages: {str(e)}")
