@@ -13,6 +13,7 @@ export interface ParcelDataSimple {
   city: string;
   zip: string;
   useCode: string;
+  useType?: string;
   useDescription: string;
   yearBuilt?: string;
   units?: number;
@@ -125,6 +126,7 @@ export async function getParcelNearPoint(lon: number, lat: number): Promise<Parc
       city: attrs.situscity || 'Santa Monica',
       zip: attrs.situszip || '',
       useCode: attrs.usecode || '',
+      useType: attrs.usetype || '',
       useDescription: attrs.usedescription || '',
       yearBuilt: attrs.yearbuilt1,
       units: attrs.units1,
@@ -167,6 +169,7 @@ export async function getParcelByAPN(apn: string): Promise<ParcelDataSimple | nu
       city: attrs.situscity || 'Santa Monica',
       zip: attrs.situszip || '',
       useCode: attrs.usecode || '',
+      useType: attrs.usetype || '',
       useDescription: attrs.usedescription || '',
       yearBuilt: attrs.yearbuilt1,
       units: attrs.units1,
