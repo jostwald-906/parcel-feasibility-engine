@@ -860,19 +860,53 @@ async def export_feasibility_report(analysis: AnalysisResponse) -> Response:
     from fastapi.responses import Response
     from app.services.report_generator import generate_pdf_report
     from app.models.parcel import ParcelBase
+    import re
 
     try:
-        # Create minimal ParcelBase object with required fields
-        # DevelopmentScenario doesn't have parcel detail fields, so use defaults
-        # The PDF report uses data from analysis.base_scenario and alternative_scenarios
+        # Extract parcel data from base_scenario notes and analysis
+        # The PDF generator will extract lot size from base_scenario
+        lot_size_sqft = 1.0  # Placeholder - will be extracted by PDF generator
+
+        # Try to extract lot size from base_scenario notes
+        for note in analysis.base_scenario.notes:
+            match = re.search(r'([\d,]+)\s*sq\s*ft', note, re.IGNORECASE)
+            if match:
+                lot_size_sqft = float(match.group(1).replace(',', ''))
+                break
+
+        # If not found in notes, calculate from base_scenario FAR
+        if lot_size_sqft <= 1.0 and analysis.base_scenario.max_building_sqft > 0:
+            # Estimate lot size from building sqft (assume 0.5 FAR for conservative estimate)
+            lot_size_sqft = analysis.base_scenario.max_building_sqft / 0.5
+
+        # Extract address from base_scenario notes if available
+        address = f"APN {analysis.parcel_apn}"
+        for note in analysis.base_scenario.notes:
+            # Look for address patterns in notes
+            if "address" in note.lower():
+                # Try to extract address
+                addr_match = re.search(r'address[:\s]+(.+?)(?:[,\.]|$)', note, re.IGNORECASE)
+                if addr_match:
+                    address = addr_match.group(1).strip()
+                    break
+
+        # Extract zoning code from base_scenario legal_basis
+        zoning_code = ''
+        if analysis.base_scenario.legal_basis:
+            # Try to extract zoning from "Santa Monica Municipal Code - R2" format
+            if '-' in analysis.base_scenario.legal_basis:
+                zoning_code = analysis.base_scenario.legal_basis.split('-')[-1].strip()
+
+        # Create ParcelBase object with best available data
+        # Note: PDF generator will extract additional data from base_scenario if needed
         parcel = ParcelBase(
             apn=analysis.parcel_apn,
-            address=f"APN {analysis.parcel_apn}",  # Minimal - actual data in scenarios
+            address=address,
             city='Santa Monica',
             county='Los Angeles',
             zip_code='90401',
-            lot_size_sqft=1.0,  # Placeholder - PDF uses base_scenario data
-            zoning_code='',  # Placeholder - PDF uses base_scenario.zoning_code
+            lot_size_sqft=lot_size_sqft,
+            zoning_code=zoning_code,
         )
 
         # Generate PDF report

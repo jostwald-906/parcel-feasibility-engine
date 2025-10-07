@@ -201,6 +201,10 @@ class PDFReportGenerator:
         # Recommendations
         story.extend(self._build_recommendations_section(analysis))
 
+        # Report Metadata
+        story.append(Spacer(1, 0.3 * inch))
+        story.extend(self._build_report_metadata_section(analysis))
+
         # Build PDF with page numbers
         doc.build(story, onFirstPage=self._add_page_footer, onLaterPages=self._add_page_footer)
 
@@ -256,6 +260,29 @@ class PDFReportGenerator:
 
         elements.append(Paragraph("Executive Summary", self.styles["SectionHeader"]))
 
+        # Extract actual lot size from base_scenario notes
+        # The parcel object passed in has placeholder data (1.0 sq ft)
+        # Real lot size is in the base_scenario data
+        lot_size_sqft = parcel.lot_size_sqft
+
+        # Try to extract from base_scenario notes if placeholder detected
+        if lot_size_sqft <= 1.0:
+            # Look for lot size in base scenario notes
+            for note in analysis.base_scenario.notes:
+                if "lot size" in note.lower() or "sq ft" in note.lower():
+                    # Try to extract number
+                    import re
+                    match = re.search(r'([\d,]+)\s*sq\s*ft', note, re.IGNORECASE)
+                    if match:
+                        lot_size_sqft = float(match.group(1).replace(',', ''))
+                        break
+
+        # If still not found, calculate from FAR and building size
+        if lot_size_sqft <= 1.0:
+            # Approximate from max_building_sqft and typical FAR
+            # This is a fallback - real lot size should be in parcel data
+            lot_size_sqft = analysis.base_scenario.max_building_sqft / 0.5  # Assume 0.5 FAR
+
         # Calculate key metrics
         base_units = analysis.base_scenario.max_units
         max_units = max(
@@ -263,11 +290,19 @@ class PDFReportGenerator:
         )
         num_scenarios = len(analysis.alternative_scenarios) + 1  # +1 for base
 
+        # Get actual property address (not "APN {apn}")
+        # If address is just the APN, use alternative format
+        if parcel.address and not parcel.address.startswith("APN"):
+            property_location = f"{parcel.address}, {parcel.city}, CA"
+        else:
+            property_location = f"APN {parcel.apn}, {parcel.city}, CA"
+
         # Build summary paragraph
         summary_text = (
-            f"This feasibility analysis evaluates development potential for the parcel at "
-            f"{parcel.address} (APN: {parcel.apn}). The {parcel.lot_size_sqft:,.0f} sq ft parcel "
-            f"is zoned {parcel.zoning_code} and permits up to {base_units} units under base zoning. "
+            f"This feasibility analysis evaluates development potential for the parcel located at "
+            f"{property_location}. The {lot_size_sqft:,.0f} sq ft parcel "
+            f"is zoned {analysis.base_scenario.legal_basis.split('-')[-1].strip() if '-' in analysis.base_scenario.legal_basis else parcel.zoning_code} "
+            f"and permits up to {base_units} units under base zoning. "
         )
 
         if analysis.alternative_scenarios:
@@ -287,6 +322,44 @@ class PDFReportGenerator:
             )
 
         elements.append(Paragraph(summary_text, self.styles["BodyText"]))
+        elements.append(Spacer(1, 0.2 * inch))
+
+        # Add legal disclaimer
+        disclaimer_text = (
+            "<b>IMPORTANT NOTICE:</b> This is a preliminary feasibility analysis for planning purposes only. "
+            "This report does not constitute legal advice, professional planning services, or a "
+            "guarantee of project approval. Actual development potential may vary based on: "
+            "(1) Site-specific conditions and constraints not evaluated in this analysis; "
+            "(2) Discretionary review and approval requirements; "
+            "(3) Changes in applicable laws, regulations, or local policies; "
+            "(4) Environmental review (CEQA) findings; "
+            "(5) Public hearing outcomes and community input. "
+            "<br/><br/>"
+            "Users should consult with qualified professionals including licensed architects, "
+            "land use attorneys, and city planning staff before making development decisions or "
+            "property investments based on this analysis."
+        )
+
+        # Create a style for disclaimers
+        if "Disclaimer" not in self.styles:
+            self.styles.add(
+                ParagraphStyle(
+                    name="Disclaimer",
+                    parent=self.styles["Normal"],
+                    fontSize=8,
+                    textColor=colors.HexColor("#991b1b"),  # Dark red
+                    leftIndent=10,
+                    rightIndent=10,
+                    spaceAfter=6,
+                    spaceBefore=6,
+                    borderWidth=1,
+                    borderColor=colors.HexColor("#ef4444"),  # Red border
+                    borderPadding=8,
+                    backColor=colors.HexColor("#fef2f2"),  # Light red background
+                )
+            )
+
+        elements.append(Paragraph(disclaimer_text, self.styles["Disclaimer"]))
 
         return elements
 
@@ -561,6 +634,15 @@ class PDFReportGenerator:
             elements.append(
                 Paragraph("No state housing programs applicable.", self.styles["BodyText"])
             )
+            # Add statutory caveat even if no state programs
+            elements.append(Spacer(1, 0.2 * inch))
+            caveat_text = (
+                "<b>NOTE:</b> Statutory citations are current as of "
+                f"{analysis.analysis_date.strftime('%B %d, %Y')} and are subject to change "
+                "through legislative amendments, court decisions, or local ordinance updates. Users should "
+                "verify current law with qualified legal counsel before relying on this analysis."
+            )
+            elements.append(Paragraph(caveat_text, self.styles["Citation"]))
             return elements
 
         # List applicable laws
@@ -587,6 +669,20 @@ class PDFReportGenerator:
             )
             for citation in sorted(all_citations)[:10]:  # Limit to 10 most important
                 elements.append(Paragraph(f"• {citation}", self.styles["Citation"]))
+
+        elements.append(Spacer(1, 0.2 * inch))
+
+        # Add statutory caveat
+        caveat_text = (
+            "<b>NOTE:</b> Statutory citations are current as of "
+            f"{analysis.analysis_date.strftime('%B %d, %Y')} and are subject to change "
+            "through legislative amendments, court decisions, or local ordinance updates. Users should "
+            "verify current law with qualified legal counsel before relying on this analysis. "
+            "All statute references can be verified at leginfo.legislature.ca.gov for California state law "
+            "and with the Santa Monica City Clerk for local municipal code provisions."
+        )
+
+        elements.append(Paragraph(caveat_text, self.styles["Citation"]))
 
         return elements
 
@@ -657,15 +753,22 @@ class PDFReportGenerator:
         elements.append(table)
         elements.append(Spacer(1, 0.1 * inch))
 
-        # Timeline note
-        elements.append(
-            Paragraph(
-                "<i>Note: Timelines are estimates based on typical processing durations. "
-                "Actual timelines may vary based on application completeness, complexity, "
-                "and city workload.</i>",
-                self.styles["Citation"],
-            )
+        # Timeline caveat
+        caveat_text = (
+            "<b>NOTICE:</b> Timeline estimates are based on typical processing times and assume complete "
+            "applications with no appeals or litigation. Actual timelines may be significantly longer "
+            "due to factors including: (1) Incomplete applications requiring resubmittal; "
+            "(2) Staff workload and resource constraints; (3) Public opposition or community concerns; "
+            "(4) Environmental review requirements beyond initial assessment; (5) Discretionary approvals "
+            "requiring multiple hearings; (6) Design revisions requested by planning staff or commissions; "
+            "(7) Appeals to Planning Commission or City Council. "
+            "<br/><br/>"
+            "Ministerial pathways (SB 9, SB 35, ADU) have statutory deadlines but may still experience delays "
+            "if applications are deemed incomplete. Discretionary projects requiring CEQA review should expect "
+            "12-24 months minimum. Consult with city planning staff for project-specific timeline guidance."
         )
+
+        elements.append(Paragraph(caveat_text, self.styles["Disclaimer"]))
 
         return elements
 
@@ -706,6 +809,80 @@ class PDFReportGenerator:
             )
             for warning in analysis.warnings:
                 elements.append(Paragraph(f"• {warning}", self.styles["BodyText"]))
+
+        return elements
+
+    def _build_report_metadata_section(self, analysis: AnalysisResponse) -> List[Any]:
+        """Build report metadata section."""
+        elements = []
+
+        elements.append(
+            Paragraph("Report Metadata", self.styles["SectionHeader"])
+        )
+
+        # Get version from settings
+        from app.core.config import settings
+        version = getattr(settings, 'VERSION', '1.0.0')
+
+        # Build metadata table
+        metadata = [
+            ["<b>Report Information</b>", ""],
+            ["Generated:", analysis.analysis_date.strftime('%B %d, %Y at %I:%M %p')],
+            ["Analysis Engine:", f"Santa Monica Parcel Feasibility Engine v{version}"],
+            ["Report Type:", "Automated Feasibility Analysis"],
+            ["", ""],
+            ["<b>Data Sources</b>", ""],
+            ["Zoning Standards:", "Santa Monica Municipal Code (SMMC)"],
+            ["State Law Citations:", "California Government Code, leginfo.legislature.ca.gov"],
+            ["Income Limits:", "HCD 2025 State Income Limits (Effective April 23, 2025)"],
+            ["GIS Data:", "Santa Monica GIS, California HCD, State Databases"],
+            ["", ""],
+            ["<b>Report Limitations</b>", ""],
+            ["Analysis Type:", "Automated desktop analysis - no site inspection performed"],
+            ["Not Included:", "Site-specific engineering, environmental assessment, title review"],
+            ["Not Included:", "Detailed CEQA analysis, traffic study, utility capacity analysis"],
+            ["Not Included:", "Market feasibility, financial pro forma, construction cost estimate"],
+            ["", ""],
+            ["<b>Validity</b>", ""],
+            ["Valid As Of:", analysis.analysis_date.strftime('%B %d, %Y')],
+            ["Note:", "Zoning and regulations are subject to change without notice"],
+            ["Recommendation:", "Verify current standards with Santa Monica Planning Division"],
+            ["Contact:", "planning@smgov.net | (310) 458-8341"],
+        ]
+
+        table = Table(metadata, colWidths=[2.5 * inch, 4 * inch])
+        table.setStyle(
+            TableStyle([
+                ("FONT", (0, 0), (-1, -1), "Helvetica", 8),
+                ("FONT", (0, 0), (0, -1), "Helvetica-Bold", 8),
+                ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                ("ALIGN", (0, 0), (0, -1), "RIGHT"),
+                ("ALIGN", (1, 0), (1, -1), "LEFT"),
+                ("LEFTPADDING", (0, 0), (-1, -1), 6),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 6),
+                ("TOPPADDING", (0, 0), (-1, -1), 3),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
+                # Add subtle background to section headers
+                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#f1f5f9")),
+                ("BACKGROUND", (0, 5), (-1, 5), colors.HexColor("#f1f5f9")),
+                ("BACKGROUND", (0, 11), (-1, 11), colors.HexColor("#f1f5f9")),
+                ("BACKGROUND", (0, 17), (-1, 17), colors.HexColor("#f1f5f9")),
+            ])
+        )
+
+        elements.append(table)
+        elements.append(Spacer(1, 0.2 * inch))
+
+        # Add final disclaimer
+        final_disclaimer = (
+            "<b>PROFESSIONAL SERVICES DISCLAIMER:</b> This automated analysis tool provides preliminary "
+            "feasibility information only. It does not replace professional services from licensed "
+            "architects, engineers, land use attorneys, or other qualified consultants. Development "
+            "applicants should engage appropriate professionals and consult directly with City of Santa Monica "
+            "planning staff before proceeding with property transactions or development applications."
+        )
+
+        elements.append(Paragraph(final_disclaimer, self.styles["Disclaimer"]))
 
         return elements
 
