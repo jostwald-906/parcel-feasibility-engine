@@ -30,7 +30,12 @@ class Settings(BaseSettings):
     # ============================================
     # CORS Configuration
     # ============================================
-    BACKEND_CORS_ORIGINS: List[str] = ["http://localhost:3000", "http://localhost:8000"]
+    BACKEND_CORS_ORIGINS: List[str] = [
+        "http://localhost:3000",
+        "http://localhost:8000",
+        "https://parcel-feasibility-engine.vercel.app",
+        "https://*.vercel.app"
+    ]
 
     # ============================================
     # Feature Flags - State Housing Laws

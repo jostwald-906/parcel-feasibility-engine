@@ -50,7 +50,7 @@ def is_allowed_origin(origin: str) -> bool:
 # CORS middleware with custom origin validation
 app.add_middleware(
     CORSMiddleware,
-    allow_origin_regex=r'https://frontend-[a-z0-9]+-jordan-ostwalds-projects\.vercel\.app',
+    allow_origin_regex=r'https://.*\.vercel\.app',
     allow_origins=settings.BACKEND_CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
