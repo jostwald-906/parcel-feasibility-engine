@@ -862,16 +862,17 @@ async def export_feasibility_report(analysis: AnalysisResponse) -> Response:
     from app.models.parcel import ParcelBase
 
     try:
-        # Extract parcel data from analysis
+        # Extract parcel data from base scenario
         # Create minimal ParcelBase object for report generation
+        base = analysis.base_scenario
         parcel = ParcelBase(
             apn=analysis.parcel_apn,
-            address=getattr(analysis, 'parcel_address', ''),
-            city=getattr(analysis, 'parcel_city', 'Santa Monica'),
-            county=getattr(analysis, 'parcel_county', 'Los Angeles'),
-            zip_code=getattr(analysis, 'parcel_zip', '90401'),
-            lot_size_sqft=analysis.base_scenario.lot_size_sqft if analysis.base_scenario else 0,
-            zoning_code=analysis.base_scenario.zoning_code if analysis.base_scenario else '',
+            address=getattr(base, 'address', ''),
+            city='Santa Monica',  # Default - could extract from base scenario if available
+            county='Los Angeles',  # Default - could extract from base scenario if available
+            zip_code='90401',  # Default - could extract from base scenario if available
+            lot_size_sqft=base.lot_size_sqft if base else 0,
+            zoning_code=base.zoning_code if base else '',
         )
 
         # Generate PDF report
