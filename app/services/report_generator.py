@@ -133,6 +133,24 @@ class PDFReportGenerator:
                 )
             )
 
+        if "Disclaimer" not in self.styles:
+            self.styles.add(
+                ParagraphStyle(
+                    name="Disclaimer",
+                    parent=self.styles["Normal"],
+                    fontSize=8,
+                    textColor=colors.HexColor("#991b1b"),  # Dark red
+                    leftIndent=10,
+                    rightIndent=10,
+                    spaceAfter=6,
+                    spaceBefore=6,
+                    borderWidth=1,
+                    borderColor=colors.HexColor("#ef4444"),  # Red border
+                    borderPadding=8,
+                    backColor=colors.HexColor("#fef2f2"),  # Light red background
+                )
+            )
+
     def generate_report(
         self,
         analysis: AnalysisResponse,
@@ -340,25 +358,6 @@ class PDFReportGenerator:
             "property investments based on this analysis."
         )
 
-        # Create a style for disclaimers
-        if "Disclaimer" not in self.styles:
-            self.styles.add(
-                ParagraphStyle(
-                    name="Disclaimer",
-                    parent=self.styles["Normal"],
-                    fontSize=8,
-                    textColor=colors.HexColor("#991b1b"),  # Dark red
-                    leftIndent=10,
-                    rightIndent=10,
-                    spaceAfter=6,
-                    spaceBefore=6,
-                    borderWidth=1,
-                    borderColor=colors.HexColor("#ef4444"),  # Red border
-                    borderPadding=8,
-                    backColor=colors.HexColor("#fef2f2"),  # Light red background
-                )
-            )
-
         elements.append(Paragraph(disclaimer_text, self.styles["Disclaimer"]))
 
         return elements
@@ -370,29 +369,35 @@ class PDFReportGenerator:
         elements.append(Paragraph("Parcel Information", self.styles["SectionHeader"]))
 
         # Build parcel info table
+        # Track section header rows for styling
+        section_header_rows = []
+
         data = [
-            ["<b>Property</b>", ""],
+            ["Property", ""],
             ["Address:", parcel.address],
             ["APN:", parcel.apn],
             ["City:", parcel.city],
             ["County:", parcel.county],
             ["Zip Code:", parcel.zip_code],
             ["", ""],
-            ["<b>Site Characteristics</b>", ""],
+            ["Site Characteristics", ""],
             ["Lot Size:", f"{parcel.lot_size_sqft:,.0f} sq ft ({parcel.lot_size_sqft / 43560:.3f} acres)"],
             ["Zoning:", parcel.zoning_code],
         ]
+        section_header_rows = [0, 7]  # Property and Site Characteristics headers
 
         if parcel.general_plan:
             data.append(["General Plan:", parcel.general_plan])
 
         if parcel.existing_units > 0:
+            existing_dev_row = len(data) + 2  # +2 for empty row and header
             data.extend([
                 ["", ""],
-                ["<b>Existing Development</b>", ""],
+                ["Existing Development", ""],
                 ["Existing Units:", str(parcel.existing_units)],
                 ["Existing Building Sq Ft:", f"{parcel.existing_building_sqft:,.0f}"],
             ])
+            section_header_rows.append(existing_dev_row)
 
         if parcel.use_description:
             data.append(["Current Use:", parcel.use_description])
@@ -402,29 +407,37 @@ class PDFReportGenerator:
 
         # Tier and overlay information
         if parcel.development_tier or parcel.overlay_codes:
+            special_areas_row = len(data) + 2  # +2 for empty row and header
             data.extend([
                 ["", ""],
-                ["<b>Special Plan Areas</b>", ""],
+                ["Special Plan Areas", ""],
             ])
+            section_header_rows.append(special_areas_row)
             if parcel.development_tier:
                 data.append(["Development Tier:", f"Tier {parcel.development_tier}"])
             if parcel.overlay_codes:
                 data.append(["Overlay Codes:", ", ".join(parcel.overlay_codes)])
 
         table = Table(data, colWidths=[2.5 * inch, 4 * inch])
-        table.setStyle(
-            TableStyle([
-                ("FONT", (0, 0), (-1, -1), "Helvetica", 9),
-                ("FONT", (0, 0), (0, -1), "Helvetica-Bold", 9),
-                ("VALIGN", (0, 0), (-1, -1), "TOP"),
-                ("ALIGN", (0, 0), (0, -1), "RIGHT"),
-                ("ALIGN", (1, 0), (1, -1), "LEFT"),
-                ("LEFTPADDING", (0, 0), (-1, -1), 6),
-                ("RIGHTPADDING", (0, 0), (-1, -1), 6),
-                ("TOPPADDING", (0, 0), (-1, -1), 3),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
-            ])
-        )
+
+        # Build style commands - base styles for all rows
+        style_commands = [
+            ("FONT", (0, 0), (-1, -1), "Helvetica", 9),
+            ("FONT", (0, 0), (0, -1), "Helvetica-Bold", 9),
+            ("VALIGN", (0, 0), (-1, -1), "TOP"),
+            ("ALIGN", (0, 0), (0, -1), "RIGHT"),
+            ("ALIGN", (1, 0), (1, -1), "LEFT"),
+            ("LEFTPADDING", (0, 0), (-1, -1), 6),
+            ("RIGHTPADDING", (0, 0), (-1, -1), 6),
+            ("TOPPADDING", (0, 0), (-1, -1), 3),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
+        ]
+
+        # Add bold styling for section header rows (both columns)
+        for row in section_header_rows:
+            style_commands.append(("FONT", (0, row), (1, row), "Helvetica-Bold", 10))
+
+        table.setStyle(TableStyle(style_commands))
 
         elements.append(table)
 
@@ -826,24 +839,24 @@ class PDFReportGenerator:
 
         # Build metadata table
         metadata = [
-            ["<b>Report Information</b>", ""],
+            ["Report Information", ""],
             ["Generated:", analysis.analysis_date.strftime('%B %d, %Y at %I:%M %p')],
             ["Analysis Engine:", f"Santa Monica Parcel Feasibility Engine v{version}"],
             ["Report Type:", "Automated Feasibility Analysis"],
             ["", ""],
-            ["<b>Data Sources</b>", ""],
+            ["Data Sources", ""],
             ["Zoning Standards:", "Santa Monica Municipal Code (SMMC)"],
             ["State Law Citations:", "California Government Code, leginfo.legislature.ca.gov"],
             ["Income Limits:", "HCD 2025 State Income Limits (Effective April 23, 2025)"],
             ["GIS Data:", "Santa Monica GIS, California HCD, State Databases"],
             ["", ""],
-            ["<b>Report Limitations</b>", ""],
+            ["Report Limitations", ""],
             ["Analysis Type:", "Automated desktop analysis - no site inspection performed"],
             ["Not Included:", "Site-specific engineering, environmental assessment, title review"],
             ["Not Included:", "Detailed CEQA analysis, traffic study, utility capacity analysis"],
             ["Not Included:", "Market feasibility, financial pro forma, construction cost estimate"],
             ["", ""],
-            ["<b>Validity</b>", ""],
+            ["Validity", ""],
             ["Valid As Of:", analysis.analysis_date.strftime('%B %d, %Y')],
             ["Note:", "Zoning and regulations are subject to change without notice"],
             ["Recommendation:", "Verify current standards with Santa Monica Planning Division"],
@@ -851,24 +864,29 @@ class PDFReportGenerator:
         ]
 
         table = Table(metadata, colWidths=[2.5 * inch, 4 * inch])
-        table.setStyle(
-            TableStyle([
-                ("FONT", (0, 0), (-1, -1), "Helvetica", 8),
-                ("FONT", (0, 0), (0, -1), "Helvetica-Bold", 8),
-                ("VALIGN", (0, 0), (-1, -1), "TOP"),
-                ("ALIGN", (0, 0), (0, -1), "RIGHT"),
-                ("ALIGN", (1, 0), (1, -1), "LEFT"),
-                ("LEFTPADDING", (0, 0), (-1, -1), 6),
-                ("RIGHTPADDING", (0, 0), (-1, -1), 6),
-                ("TOPPADDING", (0, 0), (-1, -1), 3),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
-                # Add subtle background to section headers
-                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#f1f5f9")),
-                ("BACKGROUND", (0, 5), (-1, 5), colors.HexColor("#f1f5f9")),
-                ("BACKGROUND", (0, 11), (-1, 11), colors.HexColor("#f1f5f9")),
-                ("BACKGROUND", (0, 17), (-1, 17), colors.HexColor("#f1f5f9")),
-            ])
-        )
+
+        # Section header rows are at indices: 0, 5, 11, 17
+        section_header_rows = [0, 5, 11, 17]
+
+        # Build style commands
+        style_commands = [
+            ("FONT", (0, 0), (-1, -1), "Helvetica", 8),
+            ("FONT", (0, 0), (0, -1), "Helvetica-Bold", 8),
+            ("VALIGN", (0, 0), (-1, -1), "TOP"),
+            ("ALIGN", (0, 0), (0, -1), "RIGHT"),
+            ("ALIGN", (1, 0), (1, -1), "LEFT"),
+            ("LEFTPADDING", (0, 0), (-1, -1), 6),
+            ("RIGHTPADDING", (0, 0), (-1, -1), 6),
+            ("TOPPADDING", (0, 0), (-1, -1), 3),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
+        ]
+
+        # Add bold styling and background to section header rows
+        for row in section_header_rows:
+            style_commands.append(("FONT", (0, row), (1, row), "Helvetica-Bold", 9))
+            style_commands.append(("BACKGROUND", (0, row), (-1, row), colors.HexColor("#f1f5f9")))
+
+        table.setStyle(TableStyle(style_commands))
 
         elements.append(table)
         elements.append(Spacer(1, 0.2 * inch))
