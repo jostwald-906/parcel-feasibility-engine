@@ -250,3 +250,16 @@ async def root():
         "docs_url": "/docs",
         "health_check": "/health",
     }
+
+
+@app.get("/sentry-debug")
+async def trigger_error():
+    """
+    Test endpoint to verify Sentry error tracking.
+
+    Triggers a division by zero error that will be captured by Sentry.
+    Only use for testing error monitoring setup.
+    """
+    logger.info("Sentry debug endpoint called - triggering test error")
+    division_by_zero = 1 / 0
+    return {"status": "This should never return"}
