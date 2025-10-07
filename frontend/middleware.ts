@@ -27,6 +27,11 @@ export function middleware(request: NextRequest) {
   // Check if route is an auth route
   const isAuthRoute = authRoutes.some((route) => pathname.startsWith(route));
 
+  // Redirect authenticated users away from landing page to the tool (/)
+  if (pathname === '/landing' && isAuthenticated) {
+    return NextResponse.redirect(new URL('/', request.url));
+  }
+
   // Redirect unauthenticated users to /landing for ALL non-public routes
   // This protects the homepage (/) and all tool routes by default
   if (!isPublicRoute && !isAuthenticated) {
