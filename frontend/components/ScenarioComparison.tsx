@@ -1,8 +1,10 @@
 'use client';
 
-import { Building, Home, Ruler, Car, TrendingUp } from 'lucide-react';
+import { Building, Home, Ruler, Car, TrendingUp, Clock } from 'lucide-react';
 import type { DevelopmentScenario } from '@/lib/types';
 import { formatNumber } from '@/lib/utils';
+import { useState } from 'react';
+import TimelineVisualization from './TimelineVisualization';
 
 interface ScenarioComparisonProps {
   scenarios: DevelopmentScenario[];
@@ -10,9 +12,15 @@ interface ScenarioComparisonProps {
 }
 
 export default function ScenarioComparison({ scenarios, recommendedScenario }: ScenarioComparisonProps) {
+  const [expandedTimeline, setExpandedTimeline] = useState<number | null>(null);
+
   if (scenarios.length === 0) {
     return null;
   }
+
+  const toggleTimeline = (index: number) => {
+    setExpandedTimeline(expandedTimeline === index ? null : index);
+  };
 
   // Helper to extract existing units from notes
   const getExistingUnits = (scenario: DevelopmentScenario): number | null => {
@@ -250,9 +258,77 @@ export default function ScenarioComparison({ scenarios, recommendedScenario }: S
                 </td>
               ))}
             </tr>
+
+            {/* Timeline Estimate */}
+            <tr className="bg-blue-50 hover:bg-blue-100">
+              <td className="px-6 py-4 text-sm font-medium text-gray-900 sticky left-0 bg-blue-50">
+                <div className="flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-blue-600" />
+                  Approval Timeline
+                </div>
+              </td>
+              {scenarios.map((scenario, idx) => {
+                const timeline = scenario.estimated_timeline;
+                if (!timeline) {
+                  return (
+                    <td key={idx} className="px-6 py-4 text-sm text-gray-500">
+                      Not estimated
+                    </td>
+                  );
+                }
+
+                const monthsMin = Math.ceil(timeline.total_days_min / 30);
+                const monthsMax = Math.ceil(timeline.total_days_max / 30);
+
+                // Color coding based on pathway type
+                const pathwayColors = {
+                  'Ministerial': 'text-green-700 bg-green-100 border-green-300',
+                  'Administrative': 'text-yellow-700 bg-yellow-100 border-yellow-300',
+                  'Discretionary': 'text-red-700 bg-red-100 border-red-300',
+                };
+                const badgeColor = pathwayColors[timeline.pathway_type as keyof typeof pathwayColors] || 'text-gray-700 bg-gray-100 border-gray-300';
+
+                return (
+                  <td key={idx} className="px-6 py-4">
+                    <div className="space-y-2">
+                      <div className="font-semibold text-gray-900">
+                        {timeline.total_days_min}-{timeline.total_days_max} days
+                      </div>
+                      <div className="text-xs text-gray-600">
+                        ({monthsMin}-{monthsMax} {monthsMax === 1 ? 'month' : 'months'})
+                      </div>
+                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${badgeColor}`}>
+                        {timeline.pathway_type}
+                      </span>
+                      {timeline.statutory_deadline && (
+                        <div className="text-xs text-blue-600 font-medium mt-1">
+                          Max: {timeline.statutory_deadline} days (statutory)
+                        </div>
+                      )}
+                      <button
+                        onClick={() => toggleTimeline(idx)}
+                        className="text-xs text-blue-600 hover:text-blue-700 font-medium underline mt-2"
+                      >
+                        {expandedTimeline === idx ? 'Hide' : 'View'} Timeline
+                      </button>
+                    </div>
+                  </td>
+                );
+              })}
+            </tr>
           </tbody>
         </table>
       </div>
+
+      {/* Expanded Timeline Visualization */}
+      {expandedTimeline !== null && scenarios[expandedTimeline]?.estimated_timeline && (
+        <div className="px-6 py-4 border-t border-gray-200">
+          <TimelineVisualization
+            timeline={scenarios[expandedTimeline].estimated_timeline!}
+            scenarioName={scenarios[expandedTimeline].scenario_name}
+          />
+        </div>
+      )}
 
       {/* Scenario Details */}
       <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">

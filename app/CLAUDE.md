@@ -36,6 +36,8 @@ app/
 ├── services/               # Business logic services
 │   ├── arcgis_client.py    # ArcGIS REST API client
 │   ├── rent_control_api.py # Santa Monica rent control
+│   ├── timeline_estimator.py # Entitlement timeline estimation
+│   ├── comprehensive_analysis.py # Comprehensive scenario analysis
 │   └── __init__.py
 ├── utils/                  # Utilities
 │   ├── logging.py          # Structured logging setup
@@ -489,6 +491,198 @@ Available fixtures:
 - `commercial_parcel`: Commercial zoning
 - `small_r1_parcel`: Below minimums
 - `large_r4_parcel`: High-density multi-family
+
+## Entitlement Timeline Estimation (app/services/timeline_estimator.py)
+
+### Overview
+
+The timeline estimator provides approval timeline estimates for different development pathways, helping developers understand "How long will this take?" - the #1 question for financing decisions.
+
+**Key Features**:
+- Ministerial vs. discretionary pathway detection
+- Statutory deadline compliance (SB 9: 60 days, SB 35: 90 days, ADU: 60 days)
+- Step-by-step timeline breakdown with required submittals
+- Color-coded visualization (Green: ministerial/fast, Yellow: administrative/medium, Red: discretionary/slow)
+
+### Timeline Models
+
+```python
+from app.services.timeline_estimator import (
+    estimate_timeline,
+    EntitlementTimeline,
+    TimelineStep,
+)
+
+class TimelineStep(BaseModel):
+    step_name: str                    # e.g., "Application Submittal"
+    days_min: int                     # Minimum days for this step
+    days_max: int                     # Maximum days for this step
+    description: str                  # What happens in this step
+    required_submittals: List[str]    # Required documents
+
+class EntitlementTimeline(BaseModel):
+    pathway_type: str                 # "Ministerial", "Administrative", "Discretionary"
+    total_days_min: int               # Total minimum days
+    total_days_max: int               # Total maximum days
+    steps: List[TimelineStep]         # Timeline steps in order
+    statutory_deadline: Optional[int] # Statutory deadline (if applicable)
+    notes: List[str]                  # Important notes
+```
+
+### Usage
+
+```python
+from app.services.timeline_estimator import estimate_timeline
+
+# Estimate timeline for a scenario
+timeline = estimate_timeline(
+    scenario_name="SB 9 Lot Split",
+    legal_basis="SB 9 (Gov. Code § 65852.21)",
+    max_units=4,
+    parcel=parcel  # Optional
+)
+
+# Check pathway type
+if timeline.pathway_type == "Ministerial":
+    print(f"Fast-track approval: {timeline.total_days_min}-{timeline.total_days_max} days")
+    if timeline.statutory_deadline:
+        print(f"Statutory deadline: {timeline.statutory_deadline} days")
+
+# Iterate through steps
+for step in timeline.steps:
+    print(f"{step.step_name}: {step.days_min}-{step.days_max} days")
+    print(f"Description: {step.description}")
+    if step.required_submittals:
+        print(f"Required: {', '.join(step.required_submittals)}")
+```
+
+### Pathway Detection
+
+```python
+from app.services.timeline_estimator import detect_pathway_type
+
+# Automatically detect pathway from legal basis
+pathway = detect_pathway_type("SB 9 (Gov. Code § 65852.21)")
+# Returns: "Ministerial"
+
+pathway = detect_pathway_type("Conditional Use Permit")
+# Returns: "Discretionary"
+
+# Ministerial keywords: sb 9, sb 35, ab 2011, adu, jadu, ministerial, by-right
+# Administrative keywords: administrative, arp, director approval
+# Default: Discretionary
+```
+
+### Timeline Ranges by Pathway
+
+**Ministerial** (State-mandated by-right approval):
+- SB 9: 36-60 days (statutory deadline: 60 days)
+- SB 35: 52-81 days (statutory deadline: 90 days)
+- ADU/JADU: 36-60 days (statutory deadline: 60 days)
+- AB 2011: 87-156 days (no statutory deadline, but ministerial)
+- No public hearing required
+- Must meet objective standards
+
+**Administrative** (Staff-level approval):
+- 109-193 days (~3.5-6.5 months)
+- No public hearing required
+- Subject to 15-day appeal period
+- May require design review
+
+**Discretionary** (Public hearing required):
+- Small projects (<10 units): 268-516 days (~9-17 months)
+- Large projects (≥10 units): 298-606 days (~10-20 months)
+- Requires CEQA review
+- Planning Commission and/or City Council hearing
+- Community input and design revisions
+
+### Integration with Comprehensive Analysis
+
+Timeline estimation is automatically integrated into `comprehensive_analysis.py`:
+
+```python
+from app.services.comprehensive_analysis import generate_comprehensive_scenarios
+
+# Generate scenarios with timeline estimates
+results = generate_comprehensive_scenarios(
+    parcel=parcel,
+    include_sb35=True,
+    include_ab2011=True,
+    include_density_bonus=True,
+    include_timeline=True  # Enable timeline estimation (default)
+)
+
+# Each scenario will have estimated_timeline field
+for scenario in results['scenarios']:
+    if scenario.estimated_timeline:
+        timeline = scenario.estimated_timeline
+        print(f"{scenario.scenario_name}: {timeline['total_days_min']}-{timeline['total_days_max']} days")
+        print(f"Pathway: {timeline['pathway_type']}")
+```
+
+### Adding Timeline to DevelopmentScenario
+
+```python
+from app.models.analysis import DevelopmentScenario
+
+# Timeline is optional on DevelopmentScenario
+scenario = DevelopmentScenario(
+    scenario_name="SB 9 Lot Split",
+    legal_basis="SB 9 (Gov. Code § 65852.21)",
+    max_units=4,
+    # ... other fields
+    estimated_timeline={
+        "pathway_type": "Ministerial",
+        "total_days_min": 36,
+        "total_days_max": 60,
+        "statutory_deadline": 60,
+        # ... timeline details
+    }
+)
+```
+
+### Timeline Notes Structure
+
+Each timeline includes notes explaining key requirements:
+
+```python
+# SB 9 timeline notes
+[
+    "SB 9 requires ministerial approval within 60 days (Gov. Code § 65852.21(k))",
+    "No public hearing or CEQA review required",
+    "Must meet all objective design standards",
+    "Timeline may be extended if application is incomplete"
+]
+
+# Discretionary timeline notes
+[
+    "Discretionary approval requires public hearing(s)",
+    "CEQA environmental review typically required",
+    "Timeline includes Planning Commission and may include City Council",
+    "Large or controversial projects may take longer",
+    "Community input and design revisions can extend timeline",
+    "Estimated total: 9-17 months"
+]
+```
+
+### Testing
+
+See `tests/test_timeline_estimator.py` for comprehensive test coverage:
+
+```python
+def test_sb9_timeline_within_60_days():
+    """SB 9 timeline should be within statutory 60-day deadline."""
+    timeline = estimate_timeline(
+        scenario_name="SB 9 Lot Split",
+        legal_basis="SB 9 (Gov. Code § 65852.21)",
+        max_units=4,
+    )
+
+    assert timeline.total_days_min <= 60
+    assert timeline.total_days_max <= 60
+    assert timeline.statutory_deadline == 60
+    assert timeline.pathway_type == "Ministerial"
+```
 
 ## Common Patterns
 

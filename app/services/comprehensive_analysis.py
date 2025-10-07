@@ -20,6 +20,8 @@ from app.rules.bergamot_scenarios import is_in_bergamot_area, generate_all_berga
 from app.rules.state_law.sb35 import analyze_sb35, can_apply_sb35
 from app.rules.state_law.ab2011 import analyze_ab2011, can_apply_ab2011
 from app.rules.state_law.density_bonus import apply_density_bonus
+from app.rules.state_law.adu import analyze_adu
+from app.services.timeline_estimator import estimate_timeline
 from app.utils.logging import get_logger
 
 logger = get_logger(__name__)
@@ -42,7 +44,9 @@ class ComprehensiveAnalysis:
         include_sb35: bool = True,
         include_ab2011: bool = True,
         include_density_bonus: bool = True,
-        target_affordability_pct: Optional[float] = None
+        include_adu: bool = True,
+        target_affordability_pct: Optional[float] = None,
+        include_timeline: bool = True
     ) -> Dict:
         """
         Run comprehensive analysis combining all applicable programs.
@@ -69,12 +73,19 @@ class ComprehensiveAnalysis:
         if include_ab2011:
             self._analyze_ab2011()
 
+        if include_adu:
+            self._analyze_adu()
+
         # 4. Generate density bonus variants for applicable scenarios
         if include_density_bonus and target_affordability_pct:
             self._apply_density_bonus_to_scenarios(target_affordability_pct)
 
         # 5. Analyze interactions and add warnings
         self._analyze_interactions()
+
+        # 6. Add timeline estimates to all scenarios
+        if include_timeline:
+            self._add_timeline_estimates()
 
         return {
             "scenarios": self.scenarios,
@@ -139,6 +150,20 @@ class ComprehensiveAnalysis:
             if 'commercial' in self.parcel.zoning_code.lower() or 'office' in self.parcel.zoning_code.lower():
                 if eligibility.get('reasons'):
                     self.warnings.append(f"AB 2011 not applicable: {eligibility['reasons'][0]}")
+
+    def _analyze_adu(self):
+        """
+        Generate ADU/JADU scenarios (Gov Code § 65852.2 & § 65852.22).
+
+        ADUs are allowed on ALL residential parcels per state law.
+        State law preempts local restrictions.
+        """
+        adu_scenarios = analyze_adu(self.parcel)
+
+        if adu_scenarios:
+            self.scenarios.extend(adu_scenarios)
+            self.applicable_programs.append("ADU/JADU - Accessory Dwelling Units (Gov Code § 65852.2 & § 65852.22)")
+            logger.info(f"Generated {len(adu_scenarios)} ADU/JADU scenarios for {self.parcel.apn}")
 
     def _apply_density_bonus_to_scenarios(self, affordability_pct: float):
         """
@@ -223,6 +248,27 @@ class ComprehensiveAnalysis:
                     "view impact analysis. State law density bonus may not override coastal height limits."
                 )
 
+    def _add_timeline_estimates(self):
+        """Add timeline estimates to all scenarios."""
+        for scenario in self.scenarios:
+            try:
+                timeline = estimate_timeline(
+                    scenario_name=scenario.scenario_name,
+                    legal_basis=scenario.legal_basis,
+                    max_units=scenario.max_units,
+                    parcel=self.parcel
+                )
+                # Convert to dict for JSON serialization
+                scenario.estimated_timeline = timeline.model_dump()
+                logger.info(
+                    f"Added timeline estimate for {scenario.scenario_name}: "
+                    f"{timeline.total_days_min}-{timeline.total_days_max} days ({timeline.pathway_type})"
+                )
+            except Exception as e:
+                logger.error(f"Failed to estimate timeline for {scenario.scenario_name}: {e}")
+                # Continue without timeline for this scenario
+                pass
+
     def _get_analysis_type(self) -> str:
         """Return a description of the analysis type performed."""
         if is_in_bergamot_area(self.parcel):
@@ -239,7 +285,9 @@ def generate_comprehensive_scenarios(
     include_sb35: bool = True,
     include_ab2011: bool = True,
     include_density_bonus: bool = True,
-    target_affordability_pct: Optional[float] = 15.0
+    include_adu: bool = True,
+    target_affordability_pct: Optional[float] = 15.0,
+    include_timeline: bool = True
 ) -> Dict:
     """
     Convenience function to generate comprehensive development scenarios.
@@ -249,7 +297,9 @@ def generate_comprehensive_scenarios(
         include_sb35: Include SB35 streamlining if applicable
         include_ab2011: Include AB2011 office conversion if applicable
         include_density_bonus: Generate density bonus scenarios
+        include_adu: Include ADU/JADU scenarios (default True)
         target_affordability_pct: Affordability % for density bonus (default 15%)
+        include_timeline: Include timeline estimates for each scenario (default True)
 
     Returns:
         Dict with scenarios, programs, warnings, and analysis metadata
@@ -259,5 +309,7 @@ def generate_comprehensive_scenarios(
         include_sb35=include_sb35,
         include_ab2011=include_ab2011,
         include_density_bonus=include_density_bonus,
-        target_affordability_pct=target_affordability_pct
+        include_adu=include_adu,
+        target_affordability_pct=target_affordability_pct,
+        include_timeline=include_timeline
     )

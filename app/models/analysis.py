@@ -88,6 +88,9 @@ class DevelopmentScenario(BaseModel):
     concessions_applied: Optional[List[str]] = Field(None, description="Concessions applied (§ 65915(d))")
     waivers_applied: Optional[List[str]] = Field(None, description="Waivers applied (§ 65915(e))")
 
+    # Timeline estimation (optional)
+    estimated_timeline: Optional[Dict[str, Any]] = Field(None, description="Entitlement timeline estimation")
+
 
 class AnalysisResponse(BaseModel):
     """Response model for parcel feasibility analysis."""

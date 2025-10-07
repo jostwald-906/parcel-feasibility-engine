@@ -53,6 +53,23 @@ export interface AnalysisRequest {
   prefer_max_density?: boolean;
 }
 
+export interface TimelineStep {
+  step_name: string;
+  days_min: number;
+  days_max: number;
+  description: string;
+  required_submittals: string[];
+}
+
+export interface EntitlementTimeline {
+  pathway_type: string;
+  total_days_min: number;
+  total_days_max: number;
+  steps: TimelineStep[];
+  statutory_deadline: number | null;
+  notes: string[];
+}
+
 export interface DevelopmentScenario {
   scenario_name: string;
   legal_basis: string;
@@ -70,6 +87,7 @@ export interface DevelopmentScenario {
   lot_coverage_pct: number;
   estimated_buildable_sqft?: number;
   notes: string[];
+  estimated_timeline?: EntitlementTimeline;
 }
 
 export interface RentControlUnit {
