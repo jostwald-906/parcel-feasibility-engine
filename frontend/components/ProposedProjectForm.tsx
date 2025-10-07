@@ -102,7 +102,7 @@ export default function ProposedProjectForm({ value, onChange }: ProposedProject
                 const val = e.target.value;
                 updateProject({ ownership_type: val === '' ? undefined : val as 'for-sale' | 'rental' | 'mixed' });
               }}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
             >
               <option value="">Select...</option>
               <option value="for-sale">For-Sale</option>
@@ -135,7 +135,7 @@ export default function ProposedProjectForm({ value, onChange }: ProposedProject
                     const val = e.target.value;
                     updateProject({ ground_floor_use: val === '' ? undefined : val as 'retail' | 'office' | 'commercial' | 'live-work' });
                   }}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
                 >
                   <option value="">Select...</option>
                   <option value="retail">Retail</option>
@@ -153,7 +153,7 @@ export default function ProposedProjectForm({ value, onChange }: ProposedProject
                   type="number"
                   value={project.commercial_sqft || ''}
                   onChange={(e) => updateProject({ commercial_sqft: Number(e.target.value) })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
                   placeholder="0"
                   min="0"
                 />
@@ -174,7 +174,7 @@ export default function ProposedProjectForm({ value, onChange }: ProposedProject
               type="number"
               value={project.proposed_stories || ''}
               onChange={(e) => updateProject({ proposed_stories: Number(e.target.value) })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
               placeholder="0"
               min="1"
             />
@@ -188,7 +188,7 @@ export default function ProposedProjectForm({ value, onChange }: ProposedProject
               type="number"
               value={project.proposed_height_ft || ''}
               onChange={(e) => updateProject({ proposed_height_ft: Number(e.target.value) })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
               placeholder="0"
               min="0"
               step="0.1"
@@ -203,7 +203,7 @@ export default function ProposedProjectForm({ value, onChange }: ProposedProject
               type="number"
               value={project.proposed_units || ''}
               onChange={(e) => updateProject({ proposed_units: Number(e.target.value) })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
               placeholder="0"
               min="1"
             />
@@ -217,7 +217,7 @@ export default function ProposedProjectForm({ value, onChange }: ProposedProject
               type="number"
               value={project.average_unit_size_sqft || ''}
               onChange={(e) => updateProject({ average_unit_size_sqft: Number(e.target.value) })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
               placeholder="0"
               min="0"
             />
@@ -231,7 +231,7 @@ export default function ProposedProjectForm({ value, onChange }: ProposedProject
               type="number"
               value={project.total_building_sqft || ''}
               onChange={(e) => updateProject({ total_building_sqft: Number(e.target.value) })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
               placeholder="0"
               min="0"
             />
@@ -245,7 +245,7 @@ export default function ProposedProjectForm({ value, onChange }: ProposedProject
               type="number"
               value={project.average_bedrooms_per_unit || ''}
               onChange={(e) => updateProject({ average_bedrooms_per_unit: Number(e.target.value) })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
               placeholder="0"
               min="0"
               step="0.1"
@@ -266,7 +266,7 @@ export default function ProposedProjectForm({ value, onChange }: ProposedProject
                 type="number"
                 value={project.unit_mix?.studio || ''}
                 onChange={(e) => updateUnitMix({ studio: Number(e.target.value) })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
                 placeholder="0"
                 min="0"
               />
@@ -280,7 +280,7 @@ export default function ProposedProjectForm({ value, onChange }: ProposedProject
                 type="number"
                 value={project.unit_mix?.one_bedroom || ''}
                 onChange={(e) => updateUnitMix({ one_bedroom: Number(e.target.value) })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
                 placeholder="0"
                 min="0"
               />
@@ -294,7 +294,7 @@ export default function ProposedProjectForm({ value, onChange }: ProposedProject
                 type="number"
                 value={project.unit_mix?.two_bedroom || ''}
                 onChange={(e) => updateUnitMix({ two_bedroom: Number(e.target.value) })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
                 placeholder="0"
                 min="0"
               />
@@ -308,7 +308,7 @@ export default function ProposedProjectForm({ value, onChange }: ProposedProject
                 type="number"
                 value={project.unit_mix?.three_plus_bedroom || ''}
                 onChange={(e) => updateUnitMix({ three_plus_bedroom: Number(e.target.value) })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
                 placeholder="0"
                 min="0"
               />
@@ -342,7 +342,7 @@ export default function ProposedProjectForm({ value, onChange }: ProposedProject
                 type="number"
                 value={project.affordable_housing?.very_low_income_units || ''}
                 onChange={(e) => updateAffordableHousing({ very_low_income_units: Number(e.target.value) })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
                 placeholder="0"
                 min="0"
               />
@@ -356,7 +356,7 @@ export default function ProposedProjectForm({ value, onChange }: ProposedProject
                 type="number"
                 value={project.affordable_housing?.low_income_units || ''}
                 onChange={(e) => updateAffordableHousing({ low_income_units: Number(e.target.value) })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
                 placeholder="0"
                 min="0"
               />
@@ -370,7 +370,7 @@ export default function ProposedProjectForm({ value, onChange }: ProposedProject
                 type="number"
                 value={project.affordable_housing?.moderate_income_units || ''}
                 onChange={(e) => updateAffordableHousing({ moderate_income_units: Number(e.target.value) })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
                 placeholder="0"
                 min="0"
               />
@@ -384,7 +384,7 @@ export default function ProposedProjectForm({ value, onChange }: ProposedProject
                 type="number"
                 value={project.affordable_housing?.affordability_duration_years || 55}
                 onChange={(e) => updateAffordableHousing({ affordability_duration_years: Number(e.target.value) })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
                 placeholder="55"
                 min="1"
               />
@@ -417,7 +417,7 @@ export default function ProposedProjectForm({ value, onChange }: ProposedProject
               type="number"
               value={project.parking?.proposed_spaces || ''}
               onChange={(e) => updateParking({ proposed_spaces: Number(e.target.value) })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
               placeholder="0"
               min="0"
             />
@@ -430,7 +430,7 @@ export default function ProposedProjectForm({ value, onChange }: ProposedProject
             <select
               value={project.parking?.parking_type || 'surface'}
               onChange={(e) => updateParking({ parking_type: e.target.value as 'surface' | 'underground' | 'structured' | 'mixed' })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
             >
               <option value="surface">Surface</option>
               <option value="underground">Underground</option>
@@ -447,7 +447,7 @@ export default function ProposedProjectForm({ value, onChange }: ProposedProject
               type="number"
               value={project.parking?.bicycle_spaces || ''}
               onChange={(e) => updateParking({ bicycle_spaces: Number(e.target.value) })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
               placeholder="0"
               min="0"
             />
@@ -467,7 +467,7 @@ export default function ProposedProjectForm({ value, onChange }: ProposedProject
                 type="number"
                 value={project.site_configuration?.lot_coverage_pct || ''}
                 onChange={(e) => updateSiteConfig({ lot_coverage_pct: Number(e.target.value) })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
                 placeholder="0"
                 min="0"
                 max="100"
@@ -483,7 +483,7 @@ export default function ProposedProjectForm({ value, onChange }: ProposedProject
                 type="number"
                 value={project.site_configuration?.open_space_sqft || ''}
                 onChange={(e) => updateSiteConfig({ open_space_sqft: Number(e.target.value) })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
                 placeholder="0"
                 min="0"
               />
@@ -501,7 +501,7 @@ export default function ProposedProjectForm({ value, onChange }: ProposedProject
                   type="number"
                   value={project.site_configuration?.setbacks?.front_ft || ''}
                   onChange={(e) => updateSetbacks({ front_ft: Number(e.target.value) })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
                   placeholder="0"
                   min="0"
                   step="0.1"
@@ -514,7 +514,7 @@ export default function ProposedProjectForm({ value, onChange }: ProposedProject
                   type="number"
                   value={project.site_configuration?.setbacks?.rear_ft || ''}
                   onChange={(e) => updateSetbacks({ rear_ft: Number(e.target.value) })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
                   placeholder="0"
                   min="0"
                   step="0.1"
@@ -527,7 +527,7 @@ export default function ProposedProjectForm({ value, onChange }: ProposedProject
                   type="number"
                   value={project.site_configuration?.setbacks?.side_ft || ''}
                   onChange={(e) => updateSetbacks({ side_ft: Number(e.target.value) })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
                   placeholder="0"
                   min="0"
                   step="0.1"

@@ -206,10 +206,7 @@ def apply_density_bonus(
         notes.append(f"Fourth concession FAR increase: +{far_increase} FAR = +{far_bonus_sqft:,.0f} sq ft")
 
     notes.append("Ministerial approval required for concessions (§ 65915(d)(1))")
-    notes.append("")
-    notes.append("Note: Waivers (§ 65915(e)) are tracked separately from concessions.")
-    notes.append("Waivers are unlimited but require demonstrating that a standard")
-    notes.append("physically precludes construction of the affordable housing project.")
+    notes.append("Note: Waivers (§ 65915(e)) are tracked separately from concessions. Waivers are unlimited but require demonstrating that a standard physically precludes construction of the affordable housing project.")
 
     # Calculate lot coverage (greater flexibility for 100% affordable)
     allowance_multiplier = 1.3 if affordability_pct >= 100 else 1.2
