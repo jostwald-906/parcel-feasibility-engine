@@ -24,6 +24,7 @@ app/rules/
     ├── sb9.py                  # SB 9 - Lot splits & duplexes
     ├── sb35.py                 # SB 35 - Streamlined approval
     ├── ab2011.py               # AB 2011 - Affordable corridors
+    ├── adu.py                  # ADU/JADU - Accessory Dwelling Units
     └── density_bonus.py        # Density Bonus Law
 ```
 
@@ -503,6 +504,132 @@ def calculate_concessions(affordability_pct: float) -> int:
         return 1
     else:
         return 0
+```
+
+### ADU/JADU (Gov. Code § 65852.2 & § 65852.22) - `adu.py`
+
+**Purpose**: Enable Accessory Dwelling Units (ADUs) and Junior ADUs (JADUs) on all residential parcels.
+
+**Key Provisions**:
+- **Always eligible** on residential parcels (state law preempts local restrictions)
+- **Size limits** (§ 65852.2(a)(1)):
+  - Studio/1-BR: 850 sq ft
+  - 2-BR: 1,000 sq ft
+  - 3+ BR: 1,200 sq ft
+- **JADU** (§ 65852.22): 500 sq ft max, within existing structure
+- **Parking**: ZERO required (AB 68, AB 681, AB 671)
+- **Setbacks**: 4 ft side/rear (new), 0 ft (conversions)
+- **Height**: 16 ft (1-story), 25 ft (2-story)
+- **Ministerial approval** (no discretionary review)
+
+**Implementation Pattern**:
+
+```python
+def analyze_adu(parcel: ParcelBase) -> List[DevelopmentScenario]:
+    """
+    Analyze ADU/JADU eligibility and generate scenarios.
+
+    Returns up to 4 scenarios:
+    1. Detached ADU (max size based on bedrooms)
+    2. Attached ADU (can match primary dwelling)
+    3. JADU (500 sq ft within existing structure)
+    4. Combo: ADU + JADU (both allowed per statute)
+    """
+    scenarios = []
+
+    # ADUs are allowed on ALL residential parcels per state law
+    # State law preempts local restrictions (§ 65852.2(a))
+    if not _is_residential_zoning(parcel.zoning_code):
+        return scenarios
+
+    # Check for Coastal Zone (different process, still allowed)
+    coastal_note = None
+    if getattr(parcel, 'in_coastal_zone', False):
+        coastal_note = "⚠️ Coastal Zone: Coastal Development Permit (CDP) required but ADU allowed per state law"
+
+    # Scenario 1: Detached ADU
+    detached_adu = _create_detached_adu_scenario(parcel, coastal_note)
+    if detached_adu:
+        scenarios.append(detached_adu)
+
+    # Scenario 2: Attached ADU (if existing structure present)
+    if parcel.existing_building_sqft > 0:
+        attached_adu = _create_attached_adu_scenario(parcel, coastal_note)
+        if attached_adu:
+            scenarios.append(attached_adu)
+
+    # Scenario 3: JADU (if existing or proposed single-family structure)
+    if parcel.existing_units >= 1 or parcel.existing_building_sqft > 0:
+        jadu = _create_jadu_scenario(parcel, coastal_note)
+        if jadu:
+            scenarios.append(jadu)
+
+    # Scenario 4: Combo ADU + JADU
+    if len(scenarios) >= 2:
+        combo = _create_combo_scenario(parcel, coastal_note)
+        if combo:
+            scenarios.append(combo)
+
+    return scenarios
+```
+
+**Size Calculation**:
+
+```python
+def _calculate_max_adu_size(parcel: ParcelBase) -> int:
+    """
+    Calculate max ADU size based on bedrooms (§ 65852.2(a)(1)).
+
+    Size limits:
+    - Studio/1-BR: 850 sq ft
+    - 2-BR: 1,000 sq ft
+    - 3+ BR: 1,200 sq ft
+    """
+    avg_bedrooms = getattr(parcel, 'avg_bedrooms_per_unit', None)
+
+    if avg_bedrooms is None:
+        return 1000  # Default to 2-BR size
+
+    if avg_bedrooms <= 1:
+        return 850
+    elif avg_bedrooms < 2.5:
+        return 1000
+    else:  # 2.5+ bedrooms
+        return 1200
+```
+
+**Key Notes in Scenarios**:
+
+```python
+notes = [
+    "Detached ADU - Ministerial Approval (Gov. Code § 65852.2)",
+    f"Max size: {max_adu_size} sq ft (based on bedroom count per § 65852.2(a)(1))",
+    "Height: 16 ft (1-story) or 25 ft (2-story) maximum",
+    "Setbacks: 4 ft side/rear (§ 65852.2(d)(1))",
+    "Parking: ZERO spaces required (AB 68, AB 681, AB 671)",
+    "No discretionary review - ministerial approval required",
+    "Cannot be sold separately from primary residence",
+]
+
+# JADU-specific notes
+jadu_notes = [
+    "Junior ADU (JADU) - Ministerial Approval (Gov. Code § 65852.22)",
+    "Max size: 500 sq ft (statutory maximum)",
+    "Must be within existing or proposed single-family structure",
+    "Efficiency kitchen allowed (with sink, cooking surface, food storage)",
+    "Parking: ZERO spaces required",
+    "Owner-occupancy required (either primary dwelling or JADU)",
+]
+```
+
+**Coastal Zone Handling**:
+
+ADUs are still allowed in Coastal Zones, but may require CDP:
+
+```python
+# Check for Coastal Zone (different process, still allowed)
+if getattr(parcel, 'in_coastal_zone', False):
+    notes.insert(1, "⚠️ Coastal Zone: Coastal Development Permit (CDP) required but ADU allowed per state law")
 ```
 
 ## Base Zoning (base_zoning.py)
