@@ -97,12 +97,11 @@ export default function ParcelInfoPanel({ analysis, isLoading }: ParcelInfoPanel
 
           {(parcel.useType || parcel.useDescription) && (
             <div>
-              <dt className="text-xs font-medium text-gray-500 uppercase">Use Type</dt>
               {parcel.useType && (
-                <dd className="text-sm font-semibold text-gray-900">{parcel.useType}</dd>
+                <div className="text-sm font-semibold text-gray-900">{parcel.useType}</div>
               )}
               {parcel.useDescription && (
-                <dd className="text-sm text-gray-700">{parcel.useDescription}</dd>
+                <div className="text-sm text-gray-700">{parcel.useDescription}</div>
               )}
             </div>
           )}
