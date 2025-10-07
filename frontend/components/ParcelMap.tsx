@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { MapContainer, TileLayer, Polygon, Popup, CircleMarker, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { MapPin, Loader2, AlertCircle, Info } from 'lucide-react';
+import { MapPin, Loader2, AlertCircle } from 'lucide-react';
 import { analyzeParcel, type ParcelAnalysis } from '@/lib/arcgis-client';
 import { SANTA_MONICA_BOUNDS } from '@/lib/gis-config';
 import { transformParcelGeometry, getPolygonCenter } from '@/lib/coordinate-transform';
@@ -49,7 +49,6 @@ export default function ParcelMap({ onParcelSelected, onLoadingChange, height = 
   const [clickLocation, setClickLocation] = useState<[number, number] | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [overlayInfo, setOverlayInfo] = useState<string | null>(null);
 
   // Handle map click
   const handleMapClick = async (lat: number, lng: number) => {
@@ -58,7 +57,6 @@ export default function ParcelMap({ onParcelSelected, onLoadingChange, height = 
     setIsLoading(true);
     onLoadingChange?.(true);
     setError(null);
-    setOverlayInfo(null);
     setSelectedParcel(null);
 
     try {
@@ -180,10 +178,6 @@ export default function ParcelMap({ onParcelSelected, onLoadingChange, height = 
         useDescription: analysis.parcel.useDescription,
       });
 
-      // Display parcel info with zoning
-      const infoText = `APN: ${analysis.parcel.apn} • ${analysis.parcel.address}${analysis.parcel.lotSizeSqft ? ` • ${analysis.parcel.lotSizeSqft.toLocaleString()} sq ft` : ''}${analysis.zoning.zoneCode ? ` • ${analysis.zoning.zoneCode}` : ''}`;
-      setOverlayInfo(infoText);
-
       // Callback to parent component with full analysis
       if (onParcelSelected) {
         onParcelSelected(analysis);
@@ -287,14 +281,6 @@ export default function ParcelMap({ onParcelSelected, onLoadingChange, height = 
             <h4 className="text-sm font-semibold text-red-900">Error</h4>
             <p className="text-sm text-red-800">{error}</p>
           </div>
-        </div>
-      )}
-
-      {/* Overlay Info */}
-      {overlayInfo && !isLoading && (
-        <div className="absolute bottom-4 left-4 right-4 bg-white rounded-lg shadow-lg p-3 flex items-start gap-2 z-[1000]">
-          <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-          <p className="text-sm text-gray-700">{overlayInfo}</p>
         </div>
       )}
 
