@@ -299,7 +299,7 @@ export default function ParcelMap({ onParcelSelected, onLoadingChange, height = 
       )}
 
       {/* Instructions */}
-      <div className="mt-3 flex items-start gap-2 text-sm text-gray-600">
+      <div className="mt-3 flex items-start gap-2 text-sm text-gray-600 relative z-10 bg-white">
         <MapPin className="w-4 h-4 mt-0.5 text-blue-600" />
         <p>Click anywhere on the map to select a parcel and view its zoning, overlays, and development potential</p>
       </div>
