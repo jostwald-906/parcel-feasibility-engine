@@ -273,7 +273,7 @@ export default function ParcelMap({ onParcelSelected, onLoadingChange, height = 
 
       {/* Loading Indicator */}
       {isLoading && (
-        <div className="absolute top-4 right-4 bg-white rounded-lg shadow-lg p-3 flex items-center gap-2">
+        <div className="absolute top-4 right-4 bg-white rounded-lg shadow-lg p-3 flex items-center gap-2 z-[1000]">
           <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
           <span className="text-sm font-medium text-gray-700">Querying GIS data...</span>
         </div>
@@ -281,7 +281,7 @@ export default function ParcelMap({ onParcelSelected, onLoadingChange, height = 
 
       {/* Error Message */}
       {error && (
-        <div className="absolute top-4 right-4 bg-red-50 border-l-4 border-red-500 rounded-lg p-3 flex items-start gap-2 max-w-sm">
+        <div className="absolute top-4 right-4 bg-red-50 border-l-4 border-red-500 rounded-lg p-3 flex items-start gap-2 max-w-sm z-[1000]">
           <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
           <div>
             <h4 className="text-sm font-semibold text-red-900">Error</h4>
@@ -292,7 +292,7 @@ export default function ParcelMap({ onParcelSelected, onLoadingChange, height = 
 
       {/* Overlay Info */}
       {overlayInfo && !isLoading && (
-        <div className="absolute bottom-4 left-4 right-4 bg-white rounded-lg shadow-lg p-3 flex items-start gap-2">
+        <div className="absolute bottom-4 left-4 right-4 bg-white rounded-lg shadow-lg p-3 flex items-start gap-2 z-[1000]">
           <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
           <p className="text-sm text-gray-700">{overlayInfo}</p>
         </div>
