@@ -546,6 +546,19 @@ export default function ParcelForm({ onSubmit, isLoading = false, initialData = 
         </div>
         <p className="text-sm text-gray-600 mb-4">Current development on the site</p>
 
+        {/* Current Use Information */}
+        {(initialData?.parcel?.useDescription || initialData?.parcel?.useCode) && (
+          <div className="mb-4 p-3 bg-gray-50 border border-gray-200 rounded-lg">
+            <div className="text-xs font-semibold text-gray-600 mb-1">Current Use</div>
+            {initialData.parcel.useDescription && (
+              <div className="text-sm font-medium text-gray-900">{initialData.parcel.useDescription}</div>
+            )}
+            {initialData.parcel.useCode && (
+              <div className="text-xs text-gray-500 mt-0.5">Code: {initialData.parcel.useCode}</div>
+            )}
+          </div>
+        )}
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">

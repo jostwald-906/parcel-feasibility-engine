@@ -42,6 +42,8 @@ export default function ParcelMap({ onParcelSelected, onLoadingChange, height = 
     units?: number;
     sqft?: number;
     yearBuilt?: string;
+    useCode?: string;
+    useDescription?: string;
   } | null>(null);
   const [clickLocation, setClickLocation] = useState<[number, number] | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -172,6 +174,8 @@ export default function ParcelMap({ onParcelSelected, onLoadingChange, height = 
         units: analysis.parcel.units,
         sqft: analysis.parcel.sqft,
         yearBuilt: analysis.parcel.yearBuilt,
+        useCode: analysis.parcel.useCode,
+        useDescription: analysis.parcel.useDescription,
       });
 
       // Display parcel info with zoning
@@ -238,9 +242,15 @@ export default function ParcelMap({ onParcelSelected, onLoadingChange, height = 
                   <div className="font-bold text-gray-900 mb-1">{selectedParcel.apn}</div>
                   <div className="text-gray-700 mb-2">{selectedParcel.address}</div>
 
-                  {(selectedParcel.units !== undefined || selectedParcel.sqft !== undefined || selectedParcel.yearBuilt) && (
+                  {(selectedParcel.useDescription || selectedParcel.units !== undefined || selectedParcel.sqft !== undefined || selectedParcel.yearBuilt) && (
                     <div className="border-t border-gray-200 pt-2 mt-2">
                       <div className="text-xs font-semibold text-gray-600 mb-1">Current Use</div>
+                      {selectedParcel.useDescription && (
+                        <div className="text-gray-900 font-medium mb-1">{selectedParcel.useDescription}</div>
+                      )}
+                      {selectedParcel.useCode && (
+                        <div className="text-xs text-gray-500 mb-1">Code: {selectedParcel.useCode}</div>
+                      )}
                       {selectedParcel.units !== undefined && selectedParcel.units > 0 && (
                         <div className="text-gray-700">{selectedParcel.units} {selectedParcel.units === 1 ? 'unit' : 'units'}</div>
                       )}

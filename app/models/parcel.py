@@ -28,6 +28,10 @@ class ParcelBase(BaseModel):
     existing_building_sqft: float = Field(0, ge=0, description="Existing building square footage")
     year_built: Optional[int] = Field(None, description="Year existing structure was built")
 
+    # Current use information
+    use_code: Optional[str] = Field(None, description="Property use code from assessor data")
+    use_description: Optional[str] = Field(None, description="Property use description (e.g., 'Single Family Residence', 'Super Market')")
+
     # Geographic coordinates
     latitude: Optional[float] = Field(None, description="Latitude")
     longitude: Optional[float] = Field(None, description="Longitude")
