@@ -7,9 +7,9 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 // Define public routes that don't require authentication
-const publicRoutes = ['/auth/login', '/auth/register', '/pricing'];
+const publicRoutes = ['/auth/login', '/auth/register', '/pricing', '/landing'];
 
-// Define auth routes (redirect to dashboard if already logged in)
+// Define auth routes (redirect to / if already logged in)
 const authRoutes = ['/auth/login', '/auth/register'];
 
 export function middleware(request: NextRequest) {
@@ -27,17 +27,17 @@ export function middleware(request: NextRequest) {
   // Check if route is an auth route
   const isAuthRoute = authRoutes.some((route) => pathname.startsWith(route));
 
-  // Redirect unauthenticated users to login for ALL non-public routes
+  // Redirect unauthenticated users to /landing for ALL non-public routes
   // This protects the homepage (/) and all tool routes by default
   if (!isPublicRoute && !isAuthenticated) {
-    const loginUrl = new URL('/auth/login', request.url);
-    loginUrl.searchParams.set('redirect', pathname);
-    return NextResponse.redirect(loginUrl);
+    // Redirect to landing page instead of login
+    const landingUrl = new URL('/landing', request.url);
+    return NextResponse.redirect(landingUrl);
   }
 
-  // Redirect authenticated users away from auth pages to dashboard
+  // Redirect authenticated users away from auth pages to the tool (/)
   if (isAuthRoute && isAuthenticated) {
-    return NextResponse.redirect(new URL('/dashboard', request.url));
+    return NextResponse.redirect(new URL('/', request.url));
   }
 
   return NextResponse.next();
