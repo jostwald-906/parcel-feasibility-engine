@@ -36,6 +36,7 @@ export interface ParcelData {
   city: string;
   zip: string;
   useCode: string;
+  useType: string;
   useDescription: string;
   yearBuilt?: string;
   units?: number;
@@ -251,6 +252,7 @@ export async function getParcelAtPoint(lon: number, lat: number): Promise<Parcel
     city: String(attrs.situscity || attrs.SITUSCITY || 'Santa Monica'),
     zip: String(attrs.situszip || attrs.SITUSZIP || ''),
     useCode: String(attrs.usecode || attrs.USECODE || ''),
+    useType: String(attrs.usetype || attrs.UseType || attrs.USETYPE || ''),
     useDescription: String(attrs.usedescription || attrs.USEDESCRIPTION || ''),
     yearBuilt: attrs.yearbuilt1 ? String(attrs.yearbuilt1) : attrs.YEARBUILT1 ? String(attrs.YEARBUILT1) : undefined,
     units: typeof attrs.units1 === 'number' ? attrs.units1 : typeof attrs.UNITS1 === 'number' ? attrs.UNITS1 : undefined,
@@ -1286,6 +1288,7 @@ export async function getParcelByAPN(apn: string): Promise<ParcelAnalysis | null
       city: String(attrs.situscity || attrs.SitusCity || 'Santa Monica'),
       zip: String(attrs.situszip || attrs.SitusZip || ''),
       useCode: String(attrs.usecode || attrs.UseCode || ''),
+      useType: String(attrs.usetype || attrs.UseType || attrs.USETYPE || ''),
       useDescription: String(attrs.usedescription || attrs.UseDescription || ''),
       yearBuilt: attrs.yearbuilt1 || attrs.YearBuilt1 ? String(attrs.yearbuilt1 || attrs.YearBuilt1) : undefined,
       units: Number(attrs.units1 || attrs.Units1 || 0),

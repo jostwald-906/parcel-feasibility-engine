@@ -547,14 +547,14 @@ export default function ParcelForm({ onSubmit, isLoading = false, initialData = 
         <p className="text-sm text-gray-600 mb-4">Current development on the site</p>
 
         {/* Current Use Information */}
-        {(initialData?.parcel?.useDescription || initialData?.parcel?.useCode) && (
+        {(initialData?.parcel?.useType || initialData?.parcel?.useDescription) && (
           <div className="mb-4 p-3 bg-gray-50 border border-gray-200 rounded-lg">
             <div className="text-xs font-semibold text-gray-600 mb-1">Current Use</div>
-            {initialData.parcel.useDescription && (
-              <div className="text-sm font-medium text-gray-900">{initialData.parcel.useDescription}</div>
+            {initialData.parcel.useType && (
+              <div className="text-sm font-semibold text-gray-900">{initialData.parcel.useType}</div>
             )}
-            {initialData.parcel.useCode && (
-              <div className="text-xs text-gray-500 mt-0.5">Code: {initialData.parcel.useCode}</div>
+            {initialData.parcel.useDescription && (
+              <div className="text-sm text-gray-700 mt-0.5">{initialData.parcel.useDescription}</div>
             )}
           </div>
         )}

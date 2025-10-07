@@ -43,6 +43,7 @@ export default function ParcelMap({ onParcelSelected, onLoadingChange, height = 
     sqft?: number;
     yearBuilt?: string;
     useCode?: string;
+    useType?: string;
     useDescription?: string;
   } | null>(null);
   const [clickLocation, setClickLocation] = useState<[number, number] | null>(null);
@@ -175,6 +176,7 @@ export default function ParcelMap({ onParcelSelected, onLoadingChange, height = 
         sqft: analysis.parcel.sqft,
         yearBuilt: analysis.parcel.yearBuilt,
         useCode: analysis.parcel.useCode,
+        useType: analysis.parcel.useType,
         useDescription: analysis.parcel.useDescription,
       });
 
@@ -242,14 +244,14 @@ export default function ParcelMap({ onParcelSelected, onLoadingChange, height = 
                   <div className="font-bold text-gray-900 mb-1">{selectedParcel.apn}</div>
                   <div className="text-gray-700 mb-2">{selectedParcel.address}</div>
 
-                  {(selectedParcel.useDescription || selectedParcel.units !== undefined || selectedParcel.sqft !== undefined || selectedParcel.yearBuilt) && (
+                  {(selectedParcel.useType || selectedParcel.useDescription || selectedParcel.units !== undefined || selectedParcel.sqft !== undefined || selectedParcel.yearBuilt) && (
                     <div className="border-t border-gray-200 pt-2 mt-2">
                       <div className="text-xs font-semibold text-gray-600 mb-1">Current Use</div>
-                      {selectedParcel.useDescription && (
-                        <div className="text-gray-900 font-medium mb-1">{selectedParcel.useDescription}</div>
+                      {selectedParcel.useType && (
+                        <div className="text-gray-900 font-semibold mb-1">{selectedParcel.useType}</div>
                       )}
-                      {selectedParcel.useCode && (
-                        <div className="text-xs text-gray-500 mb-1">Code: {selectedParcel.useCode}</div>
+                      {selectedParcel.useDescription && (
+                        <div className="text-gray-700 text-sm mb-1">{selectedParcel.useDescription}</div>
                       )}
                       {selectedParcel.units !== undefined && selectedParcel.units > 0 && (
                         <div className="text-gray-700">{selectedParcel.units} {selectedParcel.units === 1 ? 'unit' : 'units'}</div>

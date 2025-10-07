@@ -20,6 +20,7 @@ export interface Parcel {
   longitude?: number;
   // Current use information
   use_code?: string;
+  use_type?: string;
   use_description?: string;
   // Density Bonus fields
   for_sale?: boolean;

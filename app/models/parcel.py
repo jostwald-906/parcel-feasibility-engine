@@ -30,6 +30,7 @@ class ParcelBase(BaseModel):
 
     # Current use information
     use_code: Optional[str] = Field(None, description="Property use code from assessor data")
+    use_type: Optional[str] = Field(None, description="Property use type (e.g., 'Residential', 'Commercial')")
     use_description: Optional[str] = Field(None, description="Property use description (e.g., 'Single Family Residence', 'Super Market')")
 
     # Geographic coordinates
