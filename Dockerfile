@@ -25,8 +25,11 @@ COPY alembic.ini .
 # Create cache directory
 RUN mkdir -p .cache/rent_control
 
+# Make startup script executable
+RUN chmod +x scripts/startup.sh
+
 # Expose port (Railway will set $PORT dynamically)
 EXPOSE 8000
 
-# Run migrations then start server
-CMD ["sh", "-c", "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
+# Run startup script
+CMD ["bash", "scripts/startup.sh"]
