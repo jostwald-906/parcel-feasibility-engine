@@ -415,16 +415,36 @@ async def get_market_rents(
                 detail=f"No FMR data found for ZIP code {zip_code}"
             )
 
+        # Convert FMRData to MarketRentResponse
+        fmr_type = "SAFMR" if rent_data.smallarea_status == 1 else "Metro FMR"
+
         logger.info(
             "Market rents retrieved successfully",
             extra={
                 "zip_code": zip_code,
-                "fmr_type": rent_data.fmr_type,
-                "metro_area": rent_data.metro_area
+                "fmr_type": fmr_type,
+                "metro_name": rent_data.metro_name
             }
         )
 
-        return rent_data
+        # Build response
+        response = MarketRentResponse(
+            zip_code=rent_data.zip_code,
+            year=rent_data.year,
+            rents_by_bedroom={
+                "0br": rent_data.fmr_0br,
+                "1br": rent_data.fmr_1br,
+                "2br": rent_data.fmr_2br,
+                "3br": rent_data.fmr_3br,
+                "4br": rent_data.fmr_4br
+            },
+            fmr_type=fmr_type,
+            metro_area=rent_data.metro_name,
+            data_source="HUD Fair Market Rents API",
+            effective_date=f"{rent_data.year}-01-01"
+        )
+
+        return response
 
     except HTTPException:
         raise

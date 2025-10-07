@@ -69,3 +69,4 @@ frontend/.turbo/
 .DS_Store
 Thumbs.db
 .vercel
+.claude-agents-library/
