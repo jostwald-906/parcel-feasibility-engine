@@ -829,7 +829,7 @@ def get_available_ami_percentages() -> dict:
 
 
 @router.post("/export/pdf")
-async def export_feasibility_report(request: AnalysisRequest) -> Response:
+async def export_feasibility_report(analysis: AnalysisResponse) -> Response:
     """
     Generate PDF report for parcel feasibility analysis.
 
@@ -844,7 +844,7 @@ async def export_feasibility_report(request: AnalysisRequest) -> Response:
     - Recommendations
 
     Args:
-        request: Analysis request with parcel data and analysis options
+        analysis: Complete analysis response to export as PDF
 
     Returns:
         PDF file with content-type: application/pdf
@@ -852,26 +852,33 @@ async def export_feasibility_report(request: AnalysisRequest) -> Response:
     Example:
         POST /api/v1/export/pdf
         {
-            "parcel": {
-                "apn": "4291-012-023",
-                "address": "123 Main St",
-                "lot_size_sqft": 7500,
-                "zoning_code": "R2"
-            }
+            "parcel_apn": "4291-012-023",
+            "base_scenario": {...},
+            "alternative_scenarios": [...]
         }
     """
     from fastapi.responses import Response
     from app.services.report_generator import generate_pdf_report
+    from app.models.parcel import ParcelBase
 
     try:
-        # Run full analysis
-        analysis = await analyze_parcel(request)
+        # Extract parcel data from analysis
+        # Create minimal ParcelBase object for report generation
+        parcel = ParcelBase(
+            apn=analysis.parcel_apn,
+            address=getattr(analysis, 'parcel_address', ''),
+            city=getattr(analysis, 'parcel_city', 'Santa Monica'),
+            county=getattr(analysis, 'parcel_county', 'Los Angeles'),
+            zip_code=getattr(analysis, 'parcel_zip', '90401'),
+            lot_size_sqft=analysis.base_scenario.lot_size_sqft if analysis.base_scenario else 0,
+            zoning_code=analysis.base_scenario.zoning_code if analysis.base_scenario else '',
+        )
 
         # Generate PDF report
-        pdf_bytes = generate_pdf_report(analysis, request.parcel)
+        pdf_bytes = generate_pdf_report(analysis, parcel)
 
-        # Build filename from parcel address or APN
-        safe_name = request.parcel.apn.replace("/", "-").replace("\\", "-")
+        # Build filename from parcel APN
+        safe_name = analysis.parcel_apn.replace("/", "-").replace("\\", "-")
         filename = f"feasibility_report_{safe_name}.pdf"
 
         # Return PDF with appropriate headers
