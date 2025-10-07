@@ -36,7 +36,7 @@ export interface ParcelData {
   city: string;
   zip: string;
   useCode: string;
-  useType: string;
+  useType?: string;
   useDescription: string;
   yearBuilt?: string;
   units?: number;
