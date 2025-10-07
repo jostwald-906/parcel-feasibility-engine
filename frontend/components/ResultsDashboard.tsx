@@ -1,9 +1,11 @@
 'use client';
 
+import { useState } from 'react';
 import { AlertCircle, CheckCircle, Home, Building, Scale, FileText } from 'lucide-react';
-import type { AnalysisResponse } from '@/lib/types';
+import type { AnalysisResponse, Parcel } from '@/lib/types';
 import { formatDate, formatNumber } from '@/lib/utils';
 import ScenarioComparison from './ScenarioComparison';
+import ScenarioComparisonMatrix from './ScenarioComparisonMatrix';
 import CNELDisplayCard from './CNELDisplayCard';
 import CommunityBenefitsCard from './CommunityBenefitsCard';
 import {
@@ -20,9 +22,12 @@ import {
 interface ResultsDashboardProps {
   analysis: AnalysisResponse;
   onReset: () => void;
+  parcel?: Parcel;
 }
 
-export default function ResultsDashboard({ analysis, onReset }: ResultsDashboardProps) {
+export default function ResultsDashboard({ analysis, onReset, parcel }: ResultsDashboardProps) {
+  const [activeTab, setActiveTab] = useState<'overview' | 'comparison' | 'details'>('overview');
+
   // Prepare chart data
   const chartData = [
     {
@@ -46,6 +51,22 @@ export default function ResultsDashboard({ analysis, onReset }: ResultsDashboard
   const increasePercentage = analysis.base_scenario.max_units > 0
     ? ((unitIncrease / analysis.base_scenario.max_units) * 100).toFixed(0)
     : 0;
+
+  // All scenarios for matrix
+  const allScenarios = [analysis.base_scenario, ...analysis.alternative_scenarios];
+
+  // Create a fallback parcel object if not provided
+  const parcelForMatrix: Parcel = parcel || {
+    apn: analysis.parcel_apn,
+    address: '',
+    city: 'Santa Monica',
+    county: 'Los Angeles',
+    zip_code: '',
+    lot_size_sqft: 0,
+    zoning_code: '',
+    existing_units: 0,
+    existing_building_sqft: 0,
+  };
 
   return (
     <div className="space-y-6">
@@ -87,7 +108,52 @@ export default function ResultsDashboard({ analysis, onReset }: ResultsDashboard
         </div>
       )}
 
-      {/* Key Metrics */}
+      {/* Tab Navigation */}
+      <div className="border-b border-gray-200">
+        <nav className="flex gap-4" role="tablist">
+          <button
+            role="tab"
+            aria-selected={activeTab === 'overview'}
+            onClick={() => setActiveTab('overview')}
+            className={`px-4 py-2 border-b-2 font-medium transition-colors ${
+              activeTab === 'overview'
+                ? 'border-blue-600 text-blue-600'
+                : 'border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-300'
+            }`}
+          >
+            Overview
+          </button>
+          <button
+            role="tab"
+            aria-selected={activeTab === 'comparison'}
+            onClick={() => setActiveTab('comparison')}
+            className={`px-4 py-2 border-b-2 font-medium transition-colors ${
+              activeTab === 'comparison'
+                ? 'border-blue-600 text-blue-600'
+                : 'border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-300'
+            }`}
+          >
+            Comparison Table
+          </button>
+          <button
+            role="tab"
+            aria-selected={activeTab === 'details'}
+            onClick={() => setActiveTab('details')}
+            className={`px-4 py-2 border-b-2 font-medium transition-colors ${
+              activeTab === 'details'
+                ? 'border-blue-600 text-blue-600'
+                : 'border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-300'
+            }`}
+          >
+            Details
+          </button>
+        </nav>
+      </div>
+
+      {/* Overview Tab */}
+      {activeTab === 'overview' && (
+        <div className="space-y-6">
+          {/* Key Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <div className="flex items-center justify-between">
@@ -271,21 +337,128 @@ export default function ResultsDashboard({ analysis, onReset }: ResultsDashboard
         </div>
       )}
 
-      {/* CNEL Analysis Section */}
-      {analysis.cnel_analysis && (
-        <CNELDisplayCard cnel={analysis.cnel_analysis} />
+          {/* CNEL Analysis Section */}
+          {analysis.cnel_analysis && (
+            <CNELDisplayCard cnel={analysis.cnel_analysis} />
+          )}
+
+          {/* Community Benefits Section */}
+          {analysis.community_benefits && (
+            <CommunityBenefitsCard benefits={analysis.community_benefits} />
+          )}
+
+          {/* Scenario Comparison Cards */}
+          <ScenarioComparison
+            scenarios={[analysis.base_scenario, ...analysis.alternative_scenarios]}
+            recommendedScenario={analysis.recommended_scenario}
+          />
+        </div>
       )}
 
-      {/* Community Benefits Section */}
-      {analysis.community_benefits && (
-        <CommunityBenefitsCard benefits={analysis.community_benefits} />
+      {/* Comparison Table Tab */}
+      {activeTab === 'comparison' && (
+        <ScenarioComparisonMatrix
+          scenarios={allScenarios}
+          parcel={parcelForMatrix}
+          recommendedScenario={analysis.recommended_scenario}
+        />
       )}
 
-      {/* Scenario Comparison */}
-      <ScenarioComparison
-        scenarios={[analysis.base_scenario, ...analysis.alternative_scenarios]}
-        recommendedScenario={analysis.recommended_scenario}
-      />
+      {/* Details Tab */}
+      {activeTab === 'details' && (
+        <div className="space-y-6">
+          {/* Applicable Laws */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Applicable State Housing Laws</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {analysis.applicable_laws.map((law, idx) => (
+                <div key={idx} className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg">
+                  <Scale className="w-5 h-5 text-blue-600" />
+                  <span className="text-sm font-medium text-gray-900">{law}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Potential Incentives */}
+          {analysis.potential_incentives.length > 0 && (
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Potential Incentives & Opportunities</h3>
+              <div className="space-y-2">
+                {analysis.potential_incentives.map((incentive, idx) => (
+                  <div key={idx} className="flex items-start gap-3 p-3 bg-purple-50 rounded-lg">
+                    <CheckCircle className="w-5 h-5 text-purple-600 flex-shrink-0 mt-0.5" />
+                    <span className="text-sm text-gray-900">{incentive}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Rent Control Information */}
+          {analysis.rent_control && analysis.rent_control.is_rent_controlled && (
+            <div className="bg-white rounded-lg shadow-sm border border-red-200 p-6">
+              <div className="flex items-start gap-3 mb-4">
+                <AlertCircle className="w-6 h-6 text-red-600 flex-shrink-0 mt-0.5" />
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">Rent Control Status</h3>
+                  <p className="text-sm text-red-700 mt-1">
+                    This property has {analysis.rent_control.total_units} rent-controlled unit{analysis.rent_control.total_units > 1 ? 's' : ''}.
+                    Development may require tenant protections and relocation assistance.
+                  </p>
+                  {analysis.rent_control.avg_mar && (
+                    <p className="text-sm text-gray-700 mt-2">
+                      Average Maximum Allowable Rent: <span className="font-semibold">${analysis.rent_control.avg_mar.toFixed(2)}</span>
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {/* Units Table */}
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Unit</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">MAR</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Bedrooms</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tenancy Date</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {analysis.rent_control.units.map((unit, idx) => (
+                      <tr key={idx} className="hover:bg-gray-50">
+                        <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">{unit.unit}</td>
+                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{unit.mar}</td>
+                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">{unit.bedrooms}</td>
+                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">{unit.tenancy_date}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="mt-4 p-4 bg-amber-50 border-l-4 border-amber-500 rounded">
+                <p className="text-sm text-amber-900">
+                  <span className="font-semibold">Important:</span> Santa Monica has strict tenant protection laws.
+                  Consult with legal counsel regarding relocation requirements, just cause eviction protections,
+                  and tenant buyout agreements before proceeding with development.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* CNEL Analysis Section */}
+          {analysis.cnel_analysis && (
+            <CNELDisplayCard cnel={analysis.cnel_analysis} />
+          )}
+
+          {/* Community Benefits Section */}
+          {analysis.community_benefits && (
+            <CommunityBenefitsCard benefits={analysis.community_benefits} />
+          )}
+        </div>
+      )}
     </div>
   );
 }

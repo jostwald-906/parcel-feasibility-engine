@@ -15,18 +15,19 @@ React components for the Parcel Feasibility Engine frontend. All components use 
 
 ```
 components/
-├── ParcelForm.tsx               # Main analysis form (multi-step)
-├── ParcelMap.tsx                # Interactive Leaflet map
-├── ParcelMapWrapper.tsx         # Client-side map loader
-├── ParcelInfoPanel.tsx          # GIS data display panel
-├── ParcelAutocomplete.tsx       # APN search with autocomplete
-├── MultiParcelSelector.tsx      # Multiple parcel selection UI
-├── ProposedProjectForm.tsx      # Proposed project details form
-├── ResultsDashboard.tsx         # Analysis results display
-├── ScenarioComparison.tsx       # Development scenario cards
-├── CNELDisplayCard.tsx          # Noise analysis visualization
-├── CommunityBenefitsCard.tsx    # Community benefits display
-└── OverlayDetailCard.tsx        # Overlay zone details
+├── ParcelForm.tsx                  # Main analysis form (multi-step)
+├── ParcelMap.tsx                   # Interactive Leaflet map
+├── ParcelMapWrapper.tsx            # Client-side map loader
+├── ParcelInfoPanel.tsx             # GIS data display panel
+├── ParcelAutocomplete.tsx          # APN search with autocomplete
+├── MultiParcelSelector.tsx         # Multiple parcel selection UI
+├── ProposedProjectForm.tsx         # Proposed project details form
+├── ResultsDashboard.tsx            # Analysis results display (tabbed)
+├── ScenarioComparison.tsx          # Development scenario cards
+├── ScenarioComparisonMatrix.tsx    # Scenario comparison table (NEW)
+├── CNELDisplayCard.tsx             # Noise analysis visualization
+├── CommunityBenefitsCard.tsx       # Community benefits display
+└── OverlayDetailCard.tsx           # Overlay zone details
 ```
 
 ## Critical Patterns
@@ -444,10 +445,11 @@ export default function ParcelAutocomplete({
 **Purpose**: Display analysis results with scenario comparison and recommendations.
 
 **Key Features**:
-- Tabbed interface (Overview, Scenarios, Constraints)
+- Tabbed interface (Overview, Comparison Table, Details)
 - Scenario comparison cards
+- Interactive comparison matrix (new Comparison Table tab)
 - Recommended scenario highlighting
-- Downloadable reports
+- Charts and visualizations
 
 **Structure**:
 ```typescript
@@ -583,6 +585,111 @@ function ScenarioCard({ scenario, isRecommended }: {
   );
 }
 ```
+
+### ScenarioComparisonMatrix.tsx
+
+**Purpose**: Interactive comparison table for side-by-side scenario analysis with decision support features.
+
+**Key Features**:
+- Scenarios as columns, metrics as rows
+- Highlight best value in each row (green with checkmark)
+- Color-code ministerial (green badge) vs. discretionary (yellow badge) approval types
+- Sortable columns (click header to reorder)
+- Show/hide metrics (user preference checkboxes)
+- Mobile responsive (card view on small screens, table on desktop)
+- Export to CSV functionality
+- "Recommended" badge on best overall scenario
+
+**Props**:
+```typescript
+interface ScenarioComparisonMatrixProps {
+  scenarios: DevelopmentScenario[];
+  parcel: Parcel;
+  onScenarioSelect?: (scenario: DevelopmentScenario) => void;
+  recommendedScenario?: string;
+}
+```
+
+**Key Metrics Displayed**:
+1. Legal Basis (state law)
+2. Max Units (highlighted best)
+3. Building Square Footage (highlighted best)
+4. Height (ft) (highlighted best)
+5. Stories (highlighted best)
+6. Parking Spaces Required (highlighted best - lowest)
+7. Affordable Units Required
+8. Lot Coverage (%)
+9. Approval Type (Ministerial/Discretionary badge)
+
+**Highlighting Logic**:
+```typescript
+// Example: Highlight best (maximum) units
+highlightBest: (scenarios) => {
+  const maxUnits = Math.max(...scenarios.map((s) => s.max_units));
+  return scenarios.findIndex((s) => s.max_units === maxUnits);
+}
+
+// For parking (lower is better)
+highlightBest: (scenarios) => {
+  const minParking = Math.min(...scenarios.map((s) => s.parking_spaces_required));
+  return scenarios.findIndex((s) => s.parking_spaces_required === minParking);
+}
+```
+
+**Approval Type Detection**:
+```typescript
+const getApprovalType = (scenario: DevelopmentScenario): 'ministerial' | 'discretionary' => {
+  const ministerialKeywords = ['ministerial', 'by-right', 'SB 9', 'SB 35', 'AB 2011'];
+  const isMinisterial = ministerialKeywords.some(
+    (keyword) =>
+      scenario.legal_basis.toLowerCase().includes(keyword.toLowerCase()) ||
+      scenario.notes.some((note) => note.toLowerCase().includes(keyword.toLowerCase()))
+  );
+  return isMinisterial ? 'ministerial' : 'discretionary';
+};
+```
+
+**CSV Export**:
+```typescript
+const exportToCSV = () => {
+  // Build CSV header
+  const header = ['Metric', ...sortedScenarios.map((s) => s.scenario_name)].join(',');
+
+  // Build CSV rows
+  const rows = displayedMetrics.map((metric) => {
+    const values = sortedScenarios.map((s) => {
+      const value = metric.format(s);
+      // Escape commas and quotes
+      return value.includes(',') || value.includes('"')
+        ? `"${value.replace(/"/g, '""')}"`
+        : value;
+    });
+    return [metric.label, ...values].join(',');
+  });
+
+  // Download CSV
+  const csv = [header, ...rows].join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  // ... trigger download
+};
+```
+
+**Responsive Design**:
+- Desktop (lg breakpoint): Full table with sticky first column, horizontal scroll
+- Mobile: Stacked cards with all metrics per scenario
+- Sticky metric selector and export buttons always accessible
+
+**Accessibility**:
+- ARIA labels on buttons (`aria-label="Export to CSV"`)
+- Tab navigation (`role="tab"`, `aria-selected`)
+- Keyboard sortable (click handlers on table headers)
+- Screen reader friendly table structure
+
+**Best Practices**:
+- Memoize expensive calculations (highlighting logic)
+- Use semantic HTML (`<table>`, `<thead>`, `<tbody>`)
+- Provide visual feedback (hover states, transition-colors)
+- Clear user guidance (footer info text)
 
 ## Tailwind CSS Patterns
 
