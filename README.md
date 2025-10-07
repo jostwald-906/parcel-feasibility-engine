@@ -2,9 +2,13 @@
 
 California housing development feasibility analysis platform for analyzing residential development opportunities under state housing laws (SB 9, SB 35, AB 2011, Density Bonus).
 
+🔗 **GitHub Repository**: https://github.com/jostwald-906/parcel-feasibility-engine
+
 ## Overview
 
 This application analyzes California residential parcels to determine feasibility for housing development under various state streamlining laws. It integrates multiple data sources including GIS services, rent control databases, RHNA performance metrics, and environmental constraints.
+
+**Monorepo Structure**: This repository contains both the FastAPI backend (`/app`) and Next.js frontend (`/frontend`) in a single codebase for easier development and deployment coordination.
 
 ## Architecture
 
