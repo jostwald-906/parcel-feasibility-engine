@@ -43,7 +43,8 @@ if settings.SENTRY_ENABLED and settings.SENTRY_DSN:
         send_default_pii=False,
         # Additional configuration
         attach_stacktrace=True,
-        before_send=lambda event, hint: event if settings.ENVIRONMENT != "development" else None,
+        # Only send events in production (filter out dev/staging/test environments)
+        before_send=lambda event, hint: event if settings.ENVIRONMENT == "production" else None,
     )
     logger.info("Sentry error monitoring initialized", extra={
         "environment": settings.SENTRY_ENVIRONMENT or settings.ENVIRONMENT,

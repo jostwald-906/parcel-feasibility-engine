@@ -30,11 +30,16 @@ if (SENTRY_DSN) {
       Sentry.browserTracingIntegration(),
     ],
 
-    // Don't send errors in development
+    // Only send errors in production environment
     beforeSend(event, hint) {
-      if (process.env.NODE_ENV === 'development') {
+      const environment = process.env.NEXT_PUBLIC_SENTRY_ENVIRONMENT || process.env.NODE_ENV;
+
+      // Only send to Sentry in production
+      if (environment !== 'production') {
+        console.log('[Sentry Dev] Error captured locally (not sent):', event.exception?.values?.[0]?.type);
         return null;
       }
+
       return event;
     },
 
@@ -50,3 +55,6 @@ if (SENTRY_DSN) {
     ],
   });
 }
+
+// Export router transition hook for navigation tracking
+export const onRouterTransitionStart = Sentry.captureRouterTransitionStart;
