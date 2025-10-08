@@ -11,10 +11,6 @@ const nextConfig: NextConfig = {
     // Only use during development - fix errors before production deployment
     ignoreBuildErrors: true,
   },
-  // Enable instrumentation for Sentry
-  experimental: {
-    instrumentationHook: true,
-  },
 };
 
 // Wrap the config with Sentry for error monitoring

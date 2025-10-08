@@ -7,7 +7,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 // Define public routes that don't require authentication
-const publicRoutes = ['/auth/login', '/auth/register', '/pricing', '/landing'];
+const publicRoutes = ['/auth/login', '/auth/register', '/pricing', '/landing', '/sentry-example-page'];
 
 // Define auth routes (redirect to / if already logged in)
 const authRoutes = ['/auth/login', '/auth/register'];
