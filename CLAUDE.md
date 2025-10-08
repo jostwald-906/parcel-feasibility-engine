@@ -34,6 +34,7 @@ California housing development feasibility analysis platform for analyzing resid
 - **Backend**: Railway (auto-deploy on push to main)
 - **Frontend**: Vercel (manual deployment)
 - **Docker**: Dockerfile available for containerized deployment
+- **Error Monitoring**: Sentry for production error tracking
 
 ## Project Structure
 
@@ -333,6 +334,151 @@ pytest tests/test_gis_integration.py -v -s
 # Frontend: Component tests
 cd frontend && npm test
 ```
+
+## Error Monitoring (Sentry)
+
+### Overview
+
+Production error monitoring is configured via Sentry with environment-based filtering. Only production errors are sent to Sentry; development, staging, and test errors are filtered out.
+
+**Sentry Projects**:
+- Backend: https://sentry.io/organizations/d3ai/issues/?project=4510146633072640
+- Frontend: https://sentry.io/organizations/d3ai/issues/?project=4510151500496896
+
+### Environment-Based Filtering
+
+All Sentry configurations use `beforeSend` hooks to filter events based on environment:
+
+**Backend** ([app/main.py:47](app/main.py#L47)):
+```python
+sentry_sdk.init(
+    dsn=settings.SENTRY_DSN,
+    environment=settings.SENTRY_ENVIRONMENT or settings.ENVIRONMENT,
+    before_send=lambda event, hint: event if settings.ENVIRONMENT == "production" else None,
+)
+```
+
+**Frontend Client** ([frontend/instrumentation-client.ts:34-44](frontend/instrumentation-client.ts#L34-L44)):
+```typescript
+Sentry.init({
+  beforeSend(event, hint) {
+    const environment = process.env.NEXT_PUBLIC_SENTRY_ENVIRONMENT || process.env.NODE_ENV;
+    if (environment !== 'production') {
+      console.log('[Sentry Dev] Error captured locally (not sent):', event.exception?.values?.[0]?.type);
+      return null;
+    }
+    return event;
+  },
+});
+```
+
+**Frontend Server** ([frontend/sentry.server.config.ts:26-32](frontend/sentry.server.config.ts#L26-L32)):
+```typescript
+Sentry.init({
+  beforeSend(event, hint) {
+    if (SENTRY_ENVIRONMENT !== 'production') {
+      console.log('[Sentry Server Dev] Event captured locally (not sent)');
+      return null;
+    }
+    return event;
+  },
+});
+```
+
+### Environment Strategy
+
+| Environment | Backend Filter | Frontend Filter | Sent to Sentry? |
+|-------------|---------------|-----------------|-----------------|
+| Local dev   | `ENVIRONMENT=development` | `NEXT_PUBLIC_SENTRY_ENVIRONMENT=development` | ❌ No (logged locally) |
+| GitHub Actions | `ENVIRONMENT=test` | `NEXT_PUBLIC_SENTRY_ENVIRONMENT=test` | ❌ No |
+| Staging     | `ENVIRONMENT=staging` | `NEXT_PUBLIC_SENTRY_ENVIRONMENT=staging` | ❌ No |
+| Production  | `ENVIRONMENT=production` | `NEXT_PUBLIC_SENTRY_ENVIRONMENT=production` | ✅ Yes |
+
+### Local Development Configuration
+
+**Backend** (`.env` in project root):
+```bash
+SENTRY_DSN=https://e2d8a4e6cf15c114a1de078a757fad6e@o4510146612101120.ingest.us.sentry.io/4510146633072640
+SENTRY_ENABLED=true
+SENTRY_TRACES_SAMPLE_RATE=0.1
+SENTRY_ENVIRONMENT=development  # Filters out events
+```
+
+**Frontend** (`.env.local` in frontend/):
+```bash
+NEXT_PUBLIC_SENTRY_DSN=https://6afbe26ee5c14d5a0416ebb6a5658aa3@o4510146612101120.ingest.us.sentry.io/4510151500496896
+SENTRY_ORG=d3ai
+SENTRY_PROJECT=parcel-feasibility-frontend
+NEXT_PUBLIC_SENTRY_ENVIRONMENT=development  # Filters out events
+```
+
+### Production Configuration
+
+Set these environment variables once on deployment platforms:
+
+**Railway (Backend)**:
+- `ENVIRONMENT=production` (enables Sentry)
+- `SENTRY_DSN` (same as development DSN)
+- `SENTRY_ENABLED=true`
+- `SENTRY_TRACES_SAMPLE_RATE=0.1`
+
+**Vercel (Frontend)**:
+- `NEXT_PUBLIC_SENTRY_ENVIRONMENT=production` (enables Sentry)
+- `NEXT_PUBLIC_SENTRY_DSN` (same as development DSN)
+- `SENTRY_ORG=d3ai`
+- `SENTRY_PROJECT=parcel-feasibility-frontend`
+
+### Testing Sentry
+
+**Backend Test Endpoint**:
+```bash
+curl http://localhost:8000/sentry-debug
+# Or visit http://localhost:8000/sentry-debug in browser
+```
+
+**Frontend Test Page**:
+```
+http://localhost:3000/sentry-test-simple
+```
+
+In development, errors are logged to console but NOT sent to Sentry. In production, errors are automatically sent to Sentry.
+
+### File Structure
+
+```
+# Backend
+app/main.py                     # Sentry initialization with production filter
+
+# Frontend
+frontend/instrumentation.ts            # Instrumentation hook loader
+frontend/instrumentation-client.ts     # Client-side Sentry config
+frontend/sentry.server.config.ts       # Server-side Sentry config
+frontend/sentry.edge.config.ts         # Edge runtime Sentry config
+frontend/app/sentry-test-simple/       # Test page
+```
+
+### Key Configuration Details
+
+1. **Session Replay**: 10% sample rate, 100% on errors, with privacy masking
+2. **Performance Monitoring**: 10% traces sample rate
+3. **No Manual Intervention**: Environment variables set once, persist across deployments
+4. **Privacy**: PII sending disabled (`send_default_pii=False`)
+5. **Stack Traces**: Attached to all errors (`attach_stacktrace=True`)
+
+### Common Issues
+
+**Issue**: Rate limiting (429 errors) during testing
+**Solution**: Wait 30 minutes for rate limit to reset. Use production filter to prevent excessive test events.
+
+**Issue**: Events not appearing in Sentry dashboard
+**Solution**: Check `ENVIRONMENT` or `NEXT_PUBLIC_SENTRY_ENVIRONMENT` is set to `production`
+
+**Issue**: Frontend Sentry not initializing
+**Solution**: Verify `instrumentation-client.ts` exists (not `sentry.client.config.ts`). Next.js requires specific instrumentation filenames.
+
+### Reference Documentation
+
+See [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) for comprehensive deployment workflow and [SENTRY_SETUP_COMPLETE.md](SENTRY_SETUP_COMPLETE.md) for setup summary.
 
 ## Deployment
 
