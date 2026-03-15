@@ -56,14 +56,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     Cookies.set(ACCESS_TOKEN_KEY, accessToken, {
       expires: 1/96,  // 15 minutes
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict'
+      sameSite: 'lax'
     });
 
     // Refresh token expires in 7 days
     Cookies.set(REFRESH_TOKEN_KEY, refreshToken, {
       expires: 7,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict'
+      sameSite: 'lax'
     });
   }, []);
 
