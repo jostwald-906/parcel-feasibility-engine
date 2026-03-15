@@ -9,11 +9,26 @@ from typing import Generator
 from app.core.config import settings
 
 # Create database engine
-engine = create_engine(
-    settings.DATABASE_URL,
-    echo=settings.DEBUG,  # Log SQL queries in debug mode
-    connect_args={"check_same_thread": False} if "sqlite" in settings.DATABASE_URL else {}
-)
+_is_sqlite = "sqlite" in settings.DATABASE_URL
+
+_engine_kwargs = {
+    "echo": settings.DEBUG,
+}
+
+if _is_sqlite:
+    _engine_kwargs["connect_args"] = {"check_same_thread": False}
+else:
+    # PostgreSQL connection pool health settings to prevent
+    # "SSL SYSCALL error: EOF detected" from stale connections
+    _engine_kwargs.update({
+        "pool_pre_ping": True,         # Test connections before use
+        "pool_recycle": 300,           # Recycle connections every 5 minutes
+        "pool_size": 5,               # Maintain 5 connections in pool
+        "max_overflow": 10,           # Allow up to 10 overflow connections
+        "pool_timeout": 30,           # Wait 30s for a connection from pool
+    })
+
+engine = create_engine(settings.DATABASE_URL, **_engine_kwargs)
 
 # Create SessionLocal class (for backwards compatibility)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
