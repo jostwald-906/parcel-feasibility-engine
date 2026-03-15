@@ -263,6 +263,8 @@ export async function getParcelAtPoint(lon: number, lat: number): Promise<Parcel
     lotWidth,
     lotDepth,
     geometry,
+    latitude: attrs.center_lat !== null && attrs.center_lat !== undefined ? Number(attrs.center_lat) : undefined,
+    longitude: attrs.center_lon !== null && attrs.center_lon !== undefined ? Number(attrs.center_lon) : undefined,
   };
 }
 

@@ -3,6 +3,7 @@
  */
 
 import axios from 'axios';
+import Cookies from 'js-cookie';
 import type { AnalysisRequest, AnalysisResponse, StateLawInfo, HealthCheck } from './types';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
@@ -14,6 +15,36 @@ const api = axios.create({
   },
   timeout: 30000,
 });
+
+// Add auth token to all requests
+api.interceptors.request.use((config) => {
+  if (typeof window !== 'undefined') {
+    const token = Cookies.get('access_token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+  }
+  return config;
+}, (error) => {
+  return Promise.reject(error);
+});
+
+// Handle authentication errors
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      // Clear invalid token
+      if (typeof window !== 'undefined') {
+        Cookies.remove('access_token');
+        Cookies.remove('refresh_token');
+        // Redirect to login page
+        window.location.href = '/login';
+      }
+    }
+    return Promise.reject(error);
+  }
+);
 
 export class ParcelAPI {
   /**

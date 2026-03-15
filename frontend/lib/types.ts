@@ -158,6 +158,7 @@ export interface AnalysisResponse {
   rent_control?: RentControlData;
   cnel_analysis?: CNELAnalysis;
   community_benefits?: CommunityBenefitsAnalysis;
+  economic_feasibility?: import('./types/economic-feasibility').FeasibilityAnalysis;
 }
 
 export interface StateLawInfo {
@@ -237,4 +238,23 @@ export interface ProposedProject {
 
   // Site Configuration
   site_configuration?: SiteConfiguration;
+}
+
+/**
+ * RHNA (Regional Housing Needs Allocation) Types
+ */
+
+export interface RHNADetermination {
+  jurisdiction: string;
+  county: string;
+  affordability_requirement: number;  // 0, 10, or 50
+  income_levels: string[];
+  is_exempt: boolean;
+  above_moderate_progress: number;
+  notes: string;
+}
+
+export interface JurisdictionInfo {
+  jurisdiction: string;
+  county: string;
 }
