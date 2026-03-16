@@ -284,6 +284,11 @@ async def require_auth_with_usage_limit(
     from sqlmodel import func
     from dateutil.relativedelta import relativedelta
 
+    # Admin emails bypass usage limits
+    admin_emails = [e.strip().lower() for e in app_settings.ADMIN_EMAILS.split(",") if e.strip()]
+    if current_user.email.lower() in admin_emails:
+        return current_user
+
     # Check if user has active subscription
     subscription_statement = select(Subscription).where(
         Subscription.user_id == current_user.id,

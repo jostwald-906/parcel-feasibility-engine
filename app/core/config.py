@@ -117,6 +117,9 @@ class Settings(BaseSettings):
     FREE_TIER_MONTHLY_LIMIT: int = 3
     REQUIRE_SUBSCRIPTION: bool = False  # Set to True to enforce subscriptions
 
+    # Admin emails bypass usage limits (comma-separated in env var)
+    ADMIN_EMAILS: str = "jostwald@gmail.com"
+
     # ============================================
     # Construction Cost Estimation
     # ============================================
