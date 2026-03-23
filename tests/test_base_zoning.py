@@ -4,11 +4,9 @@ Tests for base zoning analysis.
 Tests the base_zoning module which calculates development potential
 under standard local zoning regulations.
 """
+
 import pytest
-from app.rules.base_zoning import (
-    analyze_base_zoning,
-    check_dimensional_standards
-)
+from app.rules.base_zoning import analyze_base_zoning, check_dimensional_standards
 from app.models.parcel import ParcelBase
 
 
@@ -71,11 +69,14 @@ class TestBaseZoningAnalysis:
         assert scenario.max_height_ft >= 45.0
         assert scenario.max_far >= 1.5
 
-    @pytest.mark.parametrize("zoning_code,expected_units", [
-        ("R1", 1),
-        ("RS", 1),
-        ("R1-5000", 1),
-    ])
+    @pytest.mark.parametrize(
+        "zoning_code,expected_units",
+        [
+            ("R1", 1),
+            ("RS", 1),
+            ("R1-5000", 1),
+        ],
+    )
     def test_single_family_variations(self, zoning_code, expected_units):
         """Test various single-family zoning code formats."""
         parcel = ParcelBase(
@@ -87,7 +88,7 @@ class TestBaseZoningAnalysis:
             lot_size_sqft=6000.0,
             zoning_code=zoning_code,
             existing_units=0,
-            existing_building_sqft=0
+            existing_building_sqft=0,
         )
 
         scenario = analyze_base_zoning(parcel)
@@ -228,7 +229,7 @@ class TestDimensionalStandards:
             lot_width_ft=None,  # Missing width
             zoning_code="R1",
             existing_units=0,
-            existing_building_sqft=0
+            existing_building_sqft=0,
         )
 
         checks = check_dimensional_standards(parcel)
@@ -259,14 +260,17 @@ class TestExistingDevelopment:
 class TestZoningCodeVariations:
     """Tests for different zoning code formats and variations."""
 
-    @pytest.mark.parametrize("code,min_units,max_height", [
-        ("R1", 1, 35.0),
-        ("R2", 2, 40.0),
-        ("R3", 3, 55.0),
-        ("R4", 5, 75.0),
-        ("RM-2", 2, 40.0),
-        ("RH-3", 5, 55.0),
-    ])
+    @pytest.mark.parametrize(
+        "code,min_units,max_height",
+        [
+            ("R1", 1, 35.0),
+            ("R2", 2, 40.0),
+            ("R3", 3, 55.0),
+            ("R4", 5, 75.0),
+            ("RM-2", 2, 40.0),
+            ("RH-3", 5, 55.0),
+        ],
+    )
     def test_various_residential_codes(self, code, min_units, max_height):
         """Test various residential zoning code formats."""
         parcel = ParcelBase(
@@ -278,7 +282,7 @@ class TestZoningCodeVariations:
             lot_size_sqft=10000.0,
             zoning_code=code,
             existing_units=0,
-            existing_building_sqft=0
+            existing_building_sqft=0,
         )
 
         scenario = analyze_base_zoning(parcel)

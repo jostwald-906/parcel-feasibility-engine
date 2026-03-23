@@ -15,7 +15,7 @@ from app.services.ami_calculator import (
     get_ami_calculator,
     AffordableRent,
     AffordableSalesPrice,
-    AMILookup
+    AMILookup,
 )
 
 
@@ -238,13 +238,11 @@ class TestAffordableSalesPriceCalculation:
         """Test sales price with custom mortgage parameters."""
         # Higher interest rate should reduce max price
         price_high_rate = calculator.calculate_max_sales_price(
-            "Los Angeles", 80, 4,
-            interest_rate_pct=8.0  # Higher rate
+            "Los Angeles", 80, 4, interest_rate_pct=8.0  # Higher rate
         )
 
         price_low_rate = calculator.calculate_max_sales_price(
-            "Los Angeles", 80, 4,
-            interest_rate_pct=5.0  # Lower rate
+            "Los Angeles", 80, 4, interest_rate_pct=5.0  # Lower rate
         )
 
         # Lower interest rate should allow higher price
@@ -252,14 +250,10 @@ class TestAffordableSalesPriceCalculation:
 
     def test_sales_price_with_hoa(self, calculator):
         """Test that HOA fees reduce max affordable price."""
-        price_no_hoa = calculator.calculate_max_sales_price(
-            "Los Angeles", 80, 4,
-            hoa_monthly=0
-        )
+        price_no_hoa = calculator.calculate_max_sales_price("Los Angeles", 80, 4, hoa_monthly=0)
 
         price_with_hoa = calculator.calculate_max_sales_price(
-            "Los Angeles", 80, 4,
-            hoa_monthly=300  # $300/month HOA
+            "Los Angeles", 80, 4, hoa_monthly=300  # $300/month HOA
         )
 
         # HOA fees should reduce max price
@@ -348,20 +342,14 @@ class TestEdgeCases:
 
     def test_sales_price_zero_interest(self, calculator):
         """Test sales price calculation with zero interest rate."""
-        price = calculator.calculate_max_sales_price(
-            "Los Angeles", 80, 4,
-            interest_rate_pct=0.0
-        )
+        price = calculator.calculate_max_sales_price("Los Angeles", 80, 4, interest_rate_pct=0.0)
 
         # Should still calculate a price
         assert price.max_sales_price > 0
 
     def test_sales_price_100_percent_down(self, calculator):
         """Test sales price with 100% down payment (cash purchase)."""
-        price = calculator.calculate_max_sales_price(
-            "Los Angeles", 80, 4,
-            down_payment_pct=100.0
-        )
+        price = calculator.calculate_max_sales_price("Los Angeles", 80, 4, down_payment_pct=100.0)
 
         # Should still calculate (though unrealistic scenario)
         assert price.max_sales_price >= 0
@@ -373,10 +361,7 @@ class TestPydanticModels:
     def test_ami_lookup_model_validation(self):
         """Test AMILookup model validation."""
         lookup = AMILookup(
-            county="Los Angeles",
-            ami_pct=50.0,
-            household_size=2,
-            income_limit=42640.0
+            county="Los Angeles", ami_pct=50.0, household_size=2, income_limit=42640.0
         )
 
         assert lookup.county == "Los Angeles"
@@ -394,7 +379,7 @@ class TestPydanticModels:
             income_limit=47970.0,
             max_rent_with_utilities=1199.25,
             max_rent_no_utilities=1049.25,
-            utility_allowance=150.0
+            utility_allowance=150.0,
         )
 
         assert rent.bedrooms == 2
@@ -408,10 +393,7 @@ class TestPydanticModels:
             household_size=4,
             income_limit=85280.0,
             max_sales_price=425000.0,
-            assumptions={
-                "interest_rate_pct": 6.5,
-                "loan_term_years": 30
-            }
+            assumptions={"interest_rate_pct": 6.5, "loan_term_years": 30},
         )
 
         assert price.household_size == 4

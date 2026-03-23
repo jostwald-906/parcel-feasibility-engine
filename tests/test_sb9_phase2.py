@@ -3,7 +3,8 @@ SB9 Phase 2 accuracy tests
 
 Focus: Hazard overlays handled with mitigation, not categorical denial.
 """
-from app.rules import sb9
+
+from app.rules.state_law import sb9
 
 
 def base_parcel(**overrides):
@@ -25,7 +26,9 @@ def base_proposal(**overrides):
 
 
 def test_flood_zone_is_eligible_with_mitigation_flag():
-    parcel = base_parcel(overlays={"coastal": False, "historic": False, "very_high_fire": False, "flood": True})
+    parcel = base_parcel(
+        overlays={"coastal": False, "historic": False, "very_high_fire": False, "flood": True}
+    )
     proposal = base_proposal()
 
     res = sb9.can_apply(parcel, proposal)
@@ -35,11 +38,15 @@ def test_flood_zone_is_eligible_with_mitigation_flag():
     out = sb9.apply(parcel, proposal)
     assert out["eligible"] is True
     assert out["standards_overrides"].get("hazard_mitigation_required") is True
-    assert any("flood" in r.lower() and "mitigation" in r.lower() for r in out["reasons"])  # mitigation noted
+    assert any(
+        "flood" in r.lower() and "mitigation" in r.lower() for r in out["reasons"]
+    )  # mitigation noted
 
 
 def test_vhfhsz_is_eligible_with_mitigation_flag():
-    parcel = base_parcel(overlays={"coastal": False, "historic": False, "very_high_fire": True, "flood": False})
+    parcel = base_parcel(
+        overlays={"coastal": False, "historic": False, "very_high_fire": True, "flood": False}
+    )
     proposal = base_proposal()
 
     res = sb9.can_apply(parcel, proposal)
@@ -49,5 +56,6 @@ def test_vhfhsz_is_eligible_with_mitigation_flag():
     out = sb9.apply(parcel, proposal)
     assert out["eligible"] is True
     assert out["standards_overrides"].get("hazard_mitigation_required") is True
-    assert any("fire" in r.lower() and "mitigation" in r.lower() for r in out["reasons"])  # mitigation noted
-
+    assert any(
+        "fire" in r.lower() and "mitigation" in r.lower() for r in out["reasons"]
+    )  # mitigation noted

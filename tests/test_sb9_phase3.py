@@ -4,7 +4,8 @@ SB9 Phase 3 accuracy tests
 Focus: Lot split 40/60 ratio and 1,200 sf per child lot.
 Applies to proposal helpers (can_apply/apply) without altering legacy scenario tests.
 """
-from app.rules import sb9
+
+from app.rules.state_law import sb9
 
 
 def base_parcel(**overrides):
@@ -56,4 +57,3 @@ def test_narrow_lot_width_irrelevant_in_proposal_helpers():
     proposal = base_proposal(lot_split=True)
     res = sb9.can_apply(parcel, proposal)
     assert res["eligible"] is True
-

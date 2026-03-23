@@ -29,6 +29,7 @@ from app.models.economic_feasibility import (
 from app.clients.fred_client import FREDClient
 from app.clients.hud_fmr_client import HudFMRClient
 from app.services.ami_calculator import AMICalculator
+
 # from app.services.economic_feasibility import EconomicFeasibilityCalculator
 from app.core.dependencies import (
     get_fred_client,
@@ -85,11 +86,11 @@ logger = get_logger(__name__)
                         "data_sources": {
                             "construction_costs": "FRED API (PPI, ECI)",
                             "market_rents": "HUD FMR 2025",
-                            "affordable_rents": "HCD AMI 2025"
-                        }
+                            "affordable_rents": "HCD AMI 2025",
+                        },
                     }
                 }
-            }
+            },
         },
         422: {
             "description": "Invalid input parameters",
@@ -97,10 +98,10 @@ logger = get_logger(__name__)
                 "application/json": {
                     "example": {
                         "error": "Invalid assumptions",
-                        "detail": "Discount rate must be between 5% and 25%"
+                        "detail": "Discount rate must be between 5% and 25%",
                     }
                 }
-            }
+            },
         },
         503: {
             "description": "External data source unavailable",
@@ -109,20 +110,20 @@ logger = get_logger(__name__)
                     "example": {
                         "error": "Data source unavailable",
                         "detail": "FRED API temporarily unavailable",
-                        "retry_after": 60
+                        "retry_after": 60,
                     }
                 }
-            }
-        }
+            },
+        },
     },
-    tags=["Economic Feasibility"]
+    tags=["Economic Feasibility"],
 )
 async def compute_feasibility(
     request: FeasibilityRequest,
     fred_client: Annotated[FREDClient, Depends(get_fred_client)],
     hud_client: Annotated[HudFMRClient, Depends(get_hud_client)],
     ami_calculator: Annotated[AMICalculator, Depends(get_ami_calculator_dep)],
-    settings: Annotated[Settings, Depends(get_settings)]
+    settings: Annotated[Settings, Depends(get_settings)],
 ) -> FeasibilityAnalysis:
     """
     Compute comprehensive economic feasibility analysis.
@@ -160,15 +161,13 @@ async def compute_feasibility(
                 "scenario": request.scenario_name,
                 "units": request.units,
                 "run_sensitivity": request.run_sensitivity,
-                "run_monte_carlo": request.run_monte_carlo
-            }
+                "run_monte_carlo": request.run_monte_carlo,
+            },
         )
 
         # Initialize calculator
         calculator = EconomicFeasibilityCalculator(
-            fred_client=fred_client,
-            hud_client=hud_client,
-            ami_calculator=ami_calculator
+            fred_client=fred_client, hud_client=hud_client, ami_calculator=ami_calculator
         )
 
         # Run comprehensive analysis
@@ -180,8 +179,8 @@ async def compute_feasibility(
                 "parcel_apn": request.parcel_apn,
                 "npv": analysis.npv,
                 "irr": analysis.irr,
-                "recommendation": analysis.recommendation
-            }
+                "recommendation": analysis.recommendation,
+            },
         )
 
         return analysis
@@ -189,53 +188,39 @@ async def compute_feasibility(
     except DataSourceError as e:
         logger.error(
             f"Data source error during feasibility analysis: {e}",
-            extra={"parcel_apn": request.parcel_apn}
+            extra={"parcel_apn": request.parcel_apn},
         )
         raise HTTPException(
             status_code=503,
-            detail={
-                "error": "Data source unavailable",
-                "detail": str(e),
-                "retry_after": 60
-            }
+            detail={"error": "Data source unavailable", "detail": str(e), "retry_after": 60},
         )
 
     except InvalidAssumptionError as e:
         logger.warning(
-            f"Invalid assumptions provided: {e}",
-            extra={"parcel_apn": request.parcel_apn}
+            f"Invalid assumptions provided: {e}", extra={"parcel_apn": request.parcel_apn}
         )
         raise HTTPException(
-            status_code=422,
-            detail={
-                "error": "Invalid assumptions",
-                "detail": str(e)
-            }
+            status_code=422, detail={"error": "Invalid assumptions", "detail": str(e)}
         )
 
     except CalculationError as e:
         logger.error(
             f"Calculation error during feasibility analysis: {e}",
             extra={"parcel_apn": request.parcel_apn},
-            exc_info=True
+            exc_info=True,
         )
         raise HTTPException(
-            status_code=500,
-            detail={
-                "error": "Calculation failed",
-                "detail": str(e)
-            }
+            status_code=500, detail={"error": "Calculation failed", "detail": str(e)}
         )
 
     except Exception as e:
         logger.error(
             f"Unexpected error during feasibility analysis: {e}",
             extra={"parcel_apn": request.parcel_apn},
-            exc_info=True
+            exc_info=True,
         )
         raise HTTPException(
-            status_code=500,
-            detail="Internal server error during feasibility analysis"
+            status_code=500, detail="Internal server error during feasibility analysis"
         )
 
 
@@ -271,18 +256,18 @@ async def compute_feasibility(
                         "series_ids": {
                             "materials": "WPUSI012011",
                             "wages": "ECICONWAG",
-                            "risk_free_rate": "DGS10"
-                        }
+                            "risk_free_rate": "DGS10",
+                        },
                     }
                 }
-            }
+            },
         },
-        503: {"description": "FRED API unavailable"}
+        503: {"description": "FRED API unavailable"},
     },
-    tags=["Economic Feasibility"]
+    tags=["Economic Feasibility"],
 )
 async def get_current_cost_indices(
-    fred_client: Annotated[FREDClient, Depends(get_fred_client)]
+    fred_client: Annotated[FREDClient, Depends(get_fred_client)],
 ) -> CostIndicesResponse:
     """
     Get current construction cost indices from FRED.
@@ -312,8 +297,8 @@ async def get_current_cost_indices(
             extra={
                 "materials_ppi": indices.materials_ppi,
                 "wages_eci": indices.construction_wages_eci,
-                "risk_free_rate": indices.risk_free_rate_pct
-            }
+                "risk_free_rate": indices.risk_free_rate_pct,
+            },
         )
 
         return indices
@@ -325,8 +310,8 @@ async def get_current_cost_indices(
             detail={
                 "error": "Data source unavailable",
                 "detail": f"FRED API error: {str(e)}",
-                "retry_after": 60
-            }
+                "retry_after": 60,
+            },
         )
 
 
@@ -359,25 +344,25 @@ async def get_current_cost_indices(
                             "1": 2100.0,
                             "2": 2650.0,
                             "3": 3450.0,
-                            "4": 4100.0
+                            "4": 4100.0,
                         },
                         "fmr_type": "SAFMR",
                         "metro_area": "Los Angeles-Long Beach-Anaheim, CA",
                         "data_source": "HUD FMR 2025",
-                        "effective_date": "2024-10-01"
+                        "effective_date": "2024-10-01",
                     }
                 }
-            }
+            },
         },
         404: {"description": "ZIP code not found"},
-        503: {"description": "HUD API unavailable"}
+        503: {"description": "HUD API unavailable"},
     },
-    tags=["Economic Feasibility"]
+    tags=["Economic Feasibility"],
 )
 async def get_market_rents(
     zip_code: str,
     hud_client: Annotated[HudFMRClient, Depends(get_hud_client)],
-    year: Optional[int] = Query(None, description="FMR year (default: current year)")
+    year: Optional[int] = Query(None, description="FMR year (default: current year)"),
 ) -> MarketRentResponse:
     """
     Get HUD Fair Market Rents for a ZIP code.
@@ -401,18 +386,14 @@ async def get_market_rents(
 
         # Validate ZIP code format
         if not zip_code.isdigit() or len(zip_code) != 5:
-            raise HTTPException(
-                status_code=422,
-                detail="ZIP code must be 5 digits"
-            )
+            raise HTTPException(status_code=422, detail="ZIP code must be 5 digits")
 
         # Fetch FMR data
         rent_data = await hud_client.get_fmr_by_zip(zip_code, year)
 
         if not rent_data:
             raise HTTPException(
-                status_code=404,
-                detail=f"No FMR data found for ZIP code {zip_code}"
+                status_code=404, detail=f"No FMR data found for ZIP code {zip_code}"
             )
 
         # Convert FMRData to MarketRentResponse
@@ -420,11 +401,7 @@ async def get_market_rents(
 
         logger.info(
             "Market rents retrieved successfully",
-            extra={
-                "zip_code": zip_code,
-                "fmr_type": fmr_type,
-                "metro_name": rent_data.metro_name
-            }
+            extra={"zip_code": zip_code, "fmr_type": fmr_type, "metro_name": rent_data.metro_name},
         )
 
         # Build response
@@ -436,12 +413,12 @@ async def get_market_rents(
                 "1br": rent_data.fmr_1br,
                 "2br": rent_data.fmr_2br,
                 "3br": rent_data.fmr_3br,
-                "4br": rent_data.fmr_4br
+                "4br": rent_data.fmr_4br,
             },
             fmr_type=fmr_type,
             metro_area=rent_data.metro_name,
             data_source="HUD Fair Market Rents API",
-            effective_date=f"{rent_data.year}-01-01"
+            effective_date=f"{rent_data.year}-01-01",
         )
 
         return response
@@ -455,8 +432,8 @@ async def get_market_rents(
             detail={
                 "error": "Data source unavailable",
                 "detail": f"HUD API error: {str(e)}",
-                "retry_after": 60
-            }
+                "retry_after": 60,
+            },
         )
 
 
@@ -489,17 +466,15 @@ async def get_market_rents(
                         "errors": [],
                         "recommendations": [
                             "Consider using FRED DGS10 rate + 6-8% risk premium for discount rate"
-                        ]
+                        ],
                     }
                 }
-            }
+            },
         }
     },
-    tags=["Economic Feasibility"]
+    tags=["Economic Feasibility"],
 )
-async def validate_assumptions(
-    assumptions: EconomicAssumptions
-) -> ValidationResponse:
+async def validate_assumptions(assumptions: EconomicAssumptions) -> ValidationResponse:
     """
     Validate economic assumptions against reasonable bounds.
 
@@ -548,9 +523,13 @@ async def validate_assumptions(
 
     # Validate quality factor (0.8-1.2)
     if assumptions.quality_factor < 0.8:
-        warnings.append("Quality factor below 0.8 - verify this reflects actual construction quality")
+        warnings.append(
+            "Quality factor below 0.8 - verify this reflects actual construction quality"
+        )
     elif assumptions.quality_factor > 1.2:
-        warnings.append("Quality factor above 1.2 - verify this reflects actual construction quality")
+        warnings.append(
+            "Quality factor above 1.2 - verify this reflects actual construction quality"
+        )
 
     # Validate property tax rate (Prop 13: ~1.0-1.25% in CA)
     if assumptions.tax_rate:
@@ -584,18 +563,11 @@ async def validate_assumptions(
 
     logger.info(
         "Assumption validation completed",
-        extra={
-            "is_valid": is_valid,
-            "warnings_count": len(warnings),
-            "errors_count": len(errors)
-        }
+        extra={"is_valid": is_valid, "warnings_count": len(warnings), "errors_count": len(errors)},
     )
 
     return ValidationResponse(
-        is_valid=is_valid,
-        warnings=warnings,
-        errors=errors,
-        recommendations=recommendations
+        is_valid=is_valid, warnings=warnings, errors=errors, recommendations=recommendations
     )
 
 
@@ -636,20 +608,20 @@ async def validate_assumptions(
                         "notes": [
                             "Discount rate = DGS10 (4.15%) + MRP (6%) + Project Premium (2%) = 12.15%",
                             "Cap rate guidance: 4-6% for LA multifamily (using 5.0%)",
-                            "Property tax rate: LA County Prop 13 rate (1.25%)"
-                        ]
+                            "Property tax rate: LA County Prop 13 rate (1.25%)",
+                        ],
                     }
                 }
-            }
+            },
         },
-        503: {"description": "FRED API unavailable for risk-free rate"}
+        503: {"description": "FRED API unavailable for risk-free rate"},
     },
-    tags=["Economic Feasibility"]
+    tags=["Economic Feasibility"],
 )
 async def get_default_assumptions(
     fred_client: Annotated[FREDClient, Depends(get_fred_client)],
     settings: Annotated[Settings, Depends(get_settings)],
-    county: Optional[str] = Query("Los Angeles", description="County for tax rate defaults")
+    county: Optional[str] = Query("Los Angeles", description="County for tax rate defaults"),
 ) -> EconomicAssumptions:
     """
     Get smart defaults for economic assumptions.
@@ -688,7 +660,7 @@ async def get_default_assumptions(
 
         # Calculate discount rate: Risk-free + MRP + Project Premium
         market_risk_premium = 0.06  # 6% historical equity premium
-        project_premium = 0.02      # 2% for development risk
+        project_premium = 0.02  # 2% for development risk
         discount_rate = risk_free_rate + market_risk_premium + project_premium
 
         notes.append(
@@ -703,14 +675,16 @@ async def get_default_assumptions(
 
         # County-specific tax rates (Prop 13 base + local assessments)
         tax_rates = {
-            "Los Angeles": 0.0125,      # 1.25% typical
-            "Orange": 0.0110,            # 1.10% typical
-            "San Diego": 0.0115,         # 1.15% typical
-            "Santa Clara": 0.0120,       # 1.20% typical
-            "San Francisco": 0.0120,     # 1.20% typical
+            "Los Angeles": 0.0125,  # 1.25% typical
+            "Orange": 0.0110,  # 1.10% typical
+            "San Diego": 0.0115,  # 1.15% typical
+            "Santa Clara": 0.0120,  # 1.20% typical
+            "San Francisco": 0.0120,  # 1.20% typical
         }
         property_tax_rate = tax_rates.get(county, 0.0110)  # Default 1.10%
-        notes.append(f"Property tax rate: {county} County Prop 13 rate ({property_tax_rate*100:.2f}%)")
+        notes.append(
+            f"Property tax rate: {county} County Prop 13 rate ({property_tax_rate*100:.2f}%)"
+        )
 
         # Quality factor (1.0 = RS Means base)
         quality_factor = 1.0
@@ -729,12 +703,14 @@ async def get_default_assumptions(
         notes.append(f"Location factor: {location_factor} ({county} County multiplier)")
 
         # Operating assumptions (typical multifamily)
-        operating_expense_ratio = 0.35   # 35% typical for multifamily
-        vacancy_rate = 0.05               # 5% vacancy allowance
-        annual_rent_growth = 0.03         # 3% annual rent growth
-        annual_expense_growth = 0.025     # 2.5% annual expense growth
+        operating_expense_ratio = 0.35  # 35% typical for multifamily
+        vacancy_rate = 0.05  # 5% vacancy allowance
+        annual_rent_growth = 0.03  # 3% annual rent growth
+        annual_expense_growth = 0.025  # 2.5% annual expense growth
 
-        notes.append("Operating assumptions: 35% OpEx, 5% vacancy, 3% rent growth, 2.5% expense growth")
+        notes.append(
+            "Operating assumptions: 35% OpEx, 5% vacancy, 3% rent growth, 2.5% expense growth"
+        )
 
         logger.info(
             "Default assumptions generated",
@@ -742,8 +718,8 @@ async def get_default_assumptions(
                 "county": county,
                 "discount_rate": discount_rate,
                 "cap_rate": cap_rate,
-                "location_factor": location_factor
-            }
+                "location_factor": location_factor,
+            },
         )
 
         return EconomicAssumptions(
@@ -756,50 +732,32 @@ async def get_default_assumptions(
             vacancy_rate=vacancy_rate,
             annual_rent_growth=annual_rent_growth,
             annual_expense_growth=annual_expense_growth,
-            notes=notes
+            notes=notes,
         )
 
     except Exception as e:
         logger.error(f"Failed to generate default assumptions: {e}", exc_info=True)
-        raise HTTPException(
-            status_code=500,
-            detail="Failed to generate default assumptions"
-        )
+        raise HTTPException(status_code=500, detail="Failed to generate default assumptions")
 
-
-# Exception handlers for custom errors
-# @router.exception_handler(DataSourceError)
-# async def data_source_error_handler(request, exc):
+    # Exception handlers for custom errors
+    # @router.exception_handler(DataSourceError)
+    # async def data_source_error_handler(request, exc):
     """Handle data source unavailability errors."""
     return JSONResponse(
         status_code=503,
-        content={
-            "error": "Data source unavailable",
-            "detail": str(exc),
-            "retry_after": 60
-        }
+        content={"error": "Data source unavailable", "detail": str(exc), "retry_after": 60},
     )
 
-
-# @router.exception_handler(InvalidAssumptionError)
-# async def invalid_assumption_error_handler(request, exc):
+    # @router.exception_handler(InvalidAssumptionError)
+    # async def invalid_assumption_error_handler(request, exc):
     """Handle invalid assumption errors."""
     return JSONResponse(
-        status_code=422,
-        content={
-            "error": "Invalid assumptions",
-            "detail": str(exc)
-        }
+        status_code=422, content={"error": "Invalid assumptions", "detail": str(exc)}
     )
 
-
-# @router.exception_handler(CalculationError)
-# async def calculation_error_handler(request, exc):
+    # @router.exception_handler(CalculationError)
+    # async def calculation_error_handler(request, exc):
     """Handle calculation errors."""
     return JSONResponse(
-        status_code=500,
-        content={
-            "error": "Calculation failed",
-            "detail": str(exc)
-        }
+        status_code=500, content={"error": "Calculation failed", "detail": str(exc)}
     )

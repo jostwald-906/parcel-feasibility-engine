@@ -4,12 +4,13 @@ Tests for AB2097 (2022) parking reduction rules.
 AB2097 eliminates minimum parking requirements for residential and
 mixed-use projects within 0.5 miles of major transit.
 """
+
 import pytest
-from app.rules.ab2097 import (
+from app.rules.state_law.ab2097 import (
     apply_ab2097_parking_reduction,
     is_within_transit_area,
     get_transit_proximity_info,
-    calculate_optional_parking
+    calculate_optional_parking,
 )
 from app.rules.base_zoning import analyze_base_zoning
 from app.models.analysis import DevelopmentScenario
@@ -45,7 +46,7 @@ class TestTransitAreaIdentification:
             existing_units=0,
             existing_building_sqft=0,
             latitude=36.0,
-            longitude=-120.0
+            longitude=-120.0,
         )
 
         assert is_within_transit_area(small_city_parcel) is False
@@ -63,7 +64,7 @@ class TestTransitAreaIdentification:
             existing_units=0,
             existing_building_sqft=0,
             latitude=None,
-            longitude=None
+            longitude=None,
         )
 
         # Without coordinates, cannot confirm transit proximity
@@ -71,18 +72,21 @@ class TestTransitAreaIdentification:
         # Implementation may be conservative
         assert isinstance(result, bool)
 
-    @pytest.mark.parametrize("city_name,expected_transit", [
-        ("San Francisco", True),
-        ("Oakland", True),
-        ("Berkeley", True),
-        ("San Jose", True),
-        ("Los Angeles", True),
-        ("Long Beach", True),
-        ("San Diego", True),
-        ("Sacramento", True),
-        ("Fresno", False),
-        ("Bakersfield", False),
-    ])
+    @pytest.mark.parametrize(
+        "city_name,expected_transit",
+        [
+            ("San Francisco", True),
+            ("Oakland", True),
+            ("Berkeley", True),
+            ("San Jose", True),
+            ("Los Angeles", True),
+            ("Long Beach", True),
+            ("San Diego", True),
+            ("Sacramento", True),
+            ("Fresno", False),
+            ("Bakersfield", False),
+        ],
+    )
     def test_various_cities(self, city_name, expected_transit):
         """Test AB2097 applicability for various California cities."""
         parcel = ParcelBase(
@@ -96,7 +100,7 @@ class TestTransitAreaIdentification:
             existing_units=0,
             existing_building_sqft=0,
             latitude=37.0,
-            longitude=-122.0
+            longitude=-122.0,
         )
 
         assert is_within_transit_area(parcel) == expected_transit
@@ -112,10 +116,7 @@ class TestParkingReduction:
         original_parking = base_scenario.parking_spaces_required
 
         # Apply AB2097
-        modified_scenario = apply_ab2097_parking_reduction(
-            base_scenario,
-            transit_adjacent_parcel
-        )
+        modified_scenario = apply_ab2097_parking_reduction(base_scenario, transit_adjacent_parcel)
 
         assert modified_scenario.parking_spaces_required == 0
         # Should be less than original if original > 0
@@ -133,7 +134,7 @@ class TestParkingReduction:
             lot_size_sqft=5000.0,
             zoning_code="R2",
             existing_units=0,
-            existing_building_sqft=0
+            existing_building_sqft=0,
         )
 
         scenario = DevelopmentScenario(
@@ -145,7 +146,7 @@ class TestParkingReduction:
             max_stories=3,
             parking_spaces_required=8,
             setbacks={},
-            lot_coverage_pct=50
+            lot_coverage_pct=50,
         )
 
         modified_scenario = apply_ab2097_parking_reduction(scenario, non_transit_parcel)
@@ -157,10 +158,7 @@ class TestParkingReduction:
         """Test that AB2097 note is added to scenario."""
         base_scenario = analyze_base_zoning(transit_adjacent_parcel)
 
-        modified_scenario = apply_ab2097_parking_reduction(
-            base_scenario,
-            transit_adjacent_parcel
-        )
+        modified_scenario = apply_ab2097_parking_reduction(base_scenario, transit_adjacent_parcel)
 
         notes_text = " ".join(modified_scenario.notes).lower()
         assert "ab2097" in notes_text
@@ -205,7 +203,7 @@ class TestTransitProximityInfo:
             lot_size_sqft=5000.0,
             zoning_code="R2",
             existing_units=0,
-            existing_building_sqft=0
+            existing_building_sqft=0,
         )
 
         info = get_transit_proximity_info(non_transit_parcel)
@@ -235,7 +233,7 @@ class TestOptionalParkingCalculation:
             max_stories=3,
             parking_spaces_required=0,
             setbacks={},
-            lot_coverage_pct=50
+            lot_coverage_pct=50,
         )
 
         optional = calculate_optional_parking(scenario)
@@ -257,7 +255,7 @@ class TestOptionalParkingCalculation:
             max_stories=4,
             parking_spaces_required=0,
             setbacks={},
-            lot_coverage_pct=60
+            lot_coverage_pct=60,
         )
 
         optional = calculate_optional_parking(scenario)
@@ -278,7 +276,7 @@ class TestOptionalParkingCalculation:
             max_stories=6,
             parking_spaces_required=0,
             setbacks={},
-            lot_coverage_pct=70
+            lot_coverage_pct=70,
         )
 
         optional = calculate_optional_parking(scenario)
@@ -288,14 +286,17 @@ class TestOptionalParkingCalculation:
         # Expect around 40 spaces (0.4 per unit)
         assert 25 <= optional <= 60
 
-    @pytest.mark.parametrize("units,min_ratio,max_ratio", [
-        (5, 0.5, 0.8),
-        (10, 0.5, 0.8),
-        (15, 0.4, 0.6),
-        (30, 0.4, 0.6),
-        (50, 0.2, 0.5),
-        (100, 0.2, 0.5),
-    ])
+    @pytest.mark.parametrize(
+        "units,min_ratio,max_ratio",
+        [
+            (5, 0.5, 0.8),
+            (10, 0.5, 0.8),
+            (15, 0.4, 0.6),
+            (30, 0.4, 0.6),
+            (50, 0.2, 0.5),
+            (100, 0.2, 0.5),
+        ],
+    )
     def test_parking_ratios_by_project_size(self, units, min_ratio, max_ratio):
         """Test that optional parking ratios decrease with project size."""
         scenario = DevelopmentScenario(
@@ -307,7 +308,7 @@ class TestOptionalParkingCalculation:
             max_stories=4,
             parking_spaces_required=0,
             setbacks={},
-            lot_coverage_pct=60
+            lot_coverage_pct=60,
         )
 
         optional = calculate_optional_parking(scenario)
@@ -348,7 +349,7 @@ class TestEdgeCases:
             max_stories=3,
             parking_spaces_required=0,  # Already zero
             setbacks={},
-            lot_coverage_pct=50
+            lot_coverage_pct=50,
         )
 
         modified = apply_ab2097_parking_reduction(scenario, transit_adjacent_parcel)
@@ -369,7 +370,7 @@ class TestEdgeCases:
             existing_units=0,
             existing_building_sqft=0,
             latitude=37.7749,
-            longitude=-122.4194
+            longitude=-122.4194,
         )
 
         scenario = DevelopmentScenario(
@@ -381,7 +382,7 @@ class TestEdgeCases:
             max_stories=2,
             parking_spaces_required=2,
             setbacks={},
-            lot_coverage_pct=40
+            lot_coverage_pct=40,
         )
 
         modified = apply_ab2097_parking_reduction(scenario, transit_parcel)

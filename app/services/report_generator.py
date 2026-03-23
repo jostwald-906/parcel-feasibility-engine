@@ -199,9 +199,7 @@ class PDFReportGenerator:
 
         # Alternative Scenarios
         if analysis.alternative_scenarios:
-            story.extend(
-                self._build_alternative_scenarios_section(analysis.alternative_scenarios)
-            )
+            story.extend(self._build_alternative_scenarios_section(analysis.alternative_scenarios))
             story.append(Spacer(1, 0.3 * inch))
 
         # Scenario Comparison Matrix
@@ -232,17 +230,13 @@ class PDFReportGenerator:
 
         return pdf_bytes
 
-    def _build_title_page(
-        self, analysis: AnalysisResponse, parcel: ParcelBase
-    ) -> List[Any]:
+    def _build_title_page(self, analysis: AnalysisResponse, parcel: ParcelBase) -> List[Any]:
         """Build title page content."""
         elements = []
 
         # Title
         elements.append(Spacer(1, 2 * inch))
-        elements.append(
-            Paragraph("Parcel Feasibility Analysis Report", self.styles["ReportTitle"])
-        )
+        elements.append(Paragraph("Parcel Feasibility Analysis Report", self.styles["ReportTitle"]))
         elements.append(Spacer(1, 0.5 * inch))
 
         # Property address
@@ -255,9 +249,7 @@ class PDFReportGenerator:
         elements.append(Spacer(1, 0.3 * inch))
 
         # APN
-        elements.append(
-            Paragraph(f"APN: {parcel.apn}", self.styles["BodyText"])
-        )
+        elements.append(Paragraph(f"APN: {parcel.apn}", self.styles["BodyText"]))
         elements.append(Spacer(1, 0.5 * inch))
 
         # Report date
@@ -270,9 +262,7 @@ class PDFReportGenerator:
 
         return elements
 
-    def _build_executive_summary(
-        self, analysis: AnalysisResponse, parcel: ParcelBase
-    ) -> List[Any]:
+    def _build_executive_summary(self, analysis: AnalysisResponse, parcel: ParcelBase) -> List[Any]:
         """Build executive summary section."""
         elements = []
 
@@ -290,9 +280,10 @@ class PDFReportGenerator:
                 if "lot size" in note.lower() or "sq ft" in note.lower():
                     # Try to extract number
                     import re
-                    match = re.search(r'([\d,]+)\s*sq\s*ft', note, re.IGNORECASE)
+
+                    match = re.search(r"([\d,]+)\s*sq\s*ft", note, re.IGNORECASE)
                     if match:
-                        lot_size_sqft = float(match.group(1).replace(',', ''))
+                        lot_size_sqft = float(match.group(1).replace(",", ""))
                         break
 
         # If still not found, calculate from FAR and building size
@@ -303,9 +294,7 @@ class PDFReportGenerator:
 
         # Calculate key metrics
         base_units = analysis.base_scenario.max_units
-        max_units = max(
-            [s.max_units for s in analysis.alternative_scenarios] + [base_units]
-        )
+        max_units = max([s.max_units for s in analysis.alternative_scenarios] + [base_units])
         num_scenarios = len(analysis.alternative_scenarios) + 1  # +1 for base
 
         # Get actual property address (not "APN {apn}")
@@ -330,14 +319,10 @@ class PDFReportGenerator:
                 f"under {analysis.recommended_scenario}. "
             )
         else:
-            summary_text += (
-                f"No alternative state housing programs are applicable to this parcel. "
-            )
+            summary_text += f"No alternative state housing programs are applicable to this parcel. "
 
         if analysis.warnings:
-            summary_text += (
-                f"Please note {len(analysis.warnings)} important constraint(s) identified in this analysis."
-            )
+            summary_text += f"Please note {len(analysis.warnings)} important constraint(s) identified in this analysis."
 
         elements.append(Paragraph(summary_text, self.styles["BodyText"]))
         elements.append(Spacer(1, 0.2 * inch))
@@ -381,7 +366,10 @@ class PDFReportGenerator:
             ["Zip Code:", parcel.zip_code],
             ["", ""],
             ["Site Characteristics", ""],
-            ["Lot Size:", f"{parcel.lot_size_sqft:,.0f} sq ft ({parcel.lot_size_sqft / 43560:.3f} acres)"],
+            [
+                "Lot Size:",
+                f"{parcel.lot_size_sqft:,.0f} sq ft ({parcel.lot_size_sqft / 43560:.3f} acres)",
+            ],
             ["Zoning:", parcel.zoning_code],
         ]
         section_header_rows = [0, 7]  # Property and Site Characteristics headers
@@ -391,12 +379,14 @@ class PDFReportGenerator:
 
         if parcel.existing_units > 0:
             existing_dev_row = len(data) + 2  # +2 for empty row and header
-            data.extend([
-                ["", ""],
-                ["Existing Development", ""],
-                ["Existing Units:", str(parcel.existing_units)],
-                ["Existing Building Sq Ft:", f"{parcel.existing_building_sqft:,.0f}"],
-            ])
+            data.extend(
+                [
+                    ["", ""],
+                    ["Existing Development", ""],
+                    ["Existing Units:", str(parcel.existing_units)],
+                    ["Existing Building Sq Ft:", f"{parcel.existing_building_sqft:,.0f}"],
+                ]
+            )
             section_header_rows.append(existing_dev_row)
 
         if parcel.use_description:
@@ -408,10 +398,12 @@ class PDFReportGenerator:
         # Tier and overlay information
         if parcel.development_tier or parcel.overlay_codes:
             special_areas_row = len(data) + 2  # +2 for empty row and header
-            data.extend([
-                ["", ""],
-                ["Special Plan Areas", ""],
-            ])
+            data.extend(
+                [
+                    ["", ""],
+                    ["Special Plan Areas", ""],
+                ]
+            )
             section_header_rows.append(special_areas_row)
             if parcel.development_tier:
                 data.append(["Development Tier:", f"Tier {parcel.development_tier}"])
@@ -461,35 +453,36 @@ class PDFReportGenerator:
         data = [
             ["Maximum Units:", str(scenario.max_units)],
             ["Maximum Building Sq Ft:", f"{scenario.max_building_sqft:,.0f}"],
-            ["Maximum Height:", f"{scenario.max_height_ft:.0f} ft ({scenario.max_stories} stories)"],
+            [
+                "Maximum Height:",
+                f"{scenario.max_height_ft:.0f} ft ({scenario.max_stories} stories)",
+            ],
             ["Parking Required:", f"{scenario.parking_spaces_required} spaces"],
         ]
 
         if scenario.affordable_units_required > 0:
-            data.append(
-                ["Affordable Units Required:", str(scenario.affordable_units_required)]
-            )
+            data.append(["Affordable Units Required:", str(scenario.affordable_units_required)])
 
         if scenario.setbacks:
-            setback_str = ", ".join(
-                [f"{k}: {v} ft" for k, v in scenario.setbacks.items()]
-            )
+            setback_str = ", ".join([f"{k}: {v} ft" for k, v in scenario.setbacks.items()])
             data.append(["Setbacks:", setback_str])
 
         data.append(["Lot Coverage:", f"{scenario.lot_coverage_pct:.0f}%"])
 
         table = Table(data, colWidths=[2 * inch, 4.5 * inch])
         table.setStyle(
-            TableStyle([
-                ("FONT", (0, 0), (-1, -1), "Helvetica", 9),
-                ("FONT", (0, 0), (0, -1), "Helvetica-Bold", 9),
-                ("VALIGN", (0, 0), (-1, -1), "TOP"),
-                ("ALIGN", (0, 0), (0, -1), "RIGHT"),
-                ("ALIGN", (1, 0), (1, -1), "LEFT"),
-                ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
-                ("LEFTPADDING", (0, 0), (-1, -1), 6),
-                ("RIGHTPADDING", (0, 0), (-1, -1), 6),
-            ])
+            TableStyle(
+                [
+                    ("FONT", (0, 0), (-1, -1), "Helvetica", 9),
+                    ("FONT", (0, 0), (0, -1), "Helvetica-Bold", 9),
+                    ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                    ("ALIGN", (0, 0), (0, -1), "RIGHT"),
+                    ("ALIGN", (1, 0), (1, -1), "LEFT"),
+                    ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
+                    ("LEFTPADDING", (0, 0), (-1, -1), 6),
+                    ("RIGHTPADDING", (0, 0), (-1, -1), 6),
+                ]
+            )
         )
 
         elements.append(table)
@@ -497,9 +490,7 @@ class PDFReportGenerator:
 
         # Notes
         if scenario.notes:
-            elements.append(
-                Paragraph("<b>Notes:</b>", self.styles["SubsectionHeader"])
-            )
+            elements.append(Paragraph("<b>Notes:</b>", self.styles["SubsectionHeader"]))
             for note in scenario.notes:
                 elements.append(Paragraph(f"• {note}", self.styles["Citation"]))
 
@@ -527,38 +518,37 @@ class PDFReportGenerator:
             data = [
                 ["Maximum Units:", str(scenario.max_units)],
                 ["Maximum Building Sq Ft:", f"{scenario.max_building_sqft:,.0f}"],
-                ["Maximum Height:", f"{scenario.max_height_ft:.0f} ft ({scenario.max_stories} stories)"],
+                [
+                    "Maximum Height:",
+                    f"{scenario.max_height_ft:.0f} ft ({scenario.max_stories} stories)",
+                ],
                 ["Parking Required:", f"{scenario.parking_spaces_required} spaces"],
             ]
 
             if scenario.affordable_units_required > 0:
-                data.append(
-                    ["Affordable Units Required:", str(scenario.affordable_units_required)]
-                )
+                data.append(["Affordable Units Required:", str(scenario.affordable_units_required)])
 
             # Concessions and waivers (density bonus)
             if scenario.concessions_applied:
-                data.append(
-                    ["Concessions:", f"{len(scenario.concessions_applied)} granted"]
-                )
+                data.append(["Concessions:", f"{len(scenario.concessions_applied)} granted"])
 
             if scenario.waivers_applied:
-                data.append(
-                    ["Waivers:", f"{len(scenario.waivers_applied)} granted"]
-                )
+                data.append(["Waivers:", f"{len(scenario.waivers_applied)} granted"])
 
             table = Table(data, colWidths=[2 * inch, 4.5 * inch])
             table.setStyle(
-                TableStyle([
-                    ("FONT", (0, 0), (-1, -1), "Helvetica", 9),
-                    ("FONT", (0, 0), (0, -1), "Helvetica-Bold", 9),
-                    ("VALIGN", (0, 0), (-1, -1), "TOP"),
-                    ("ALIGN", (0, 0), (0, -1), "RIGHT"),
-                    ("ALIGN", (1, 0), (1, -1), "LEFT"),
-                    ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
-                    ("LEFTPADDING", (0, 0), (-1, -1), 6),
-                    ("RIGHTPADDING", (0, 0), (-1, -1), 6),
-                ])
+                TableStyle(
+                    [
+                        ("FONT", (0, 0), (-1, -1), "Helvetica", 9),
+                        ("FONT", (0, 0), (0, -1), "Helvetica-Bold", 9),
+                        ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                        ("ALIGN", (0, 0), (0, -1), "RIGHT"),
+                        ("ALIGN", (1, 0), (1, -1), "LEFT"),
+                        ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
+                        ("LEFTPADDING", (0, 0), (-1, -1), 6),
+                        ("RIGHTPADDING", (0, 0), (-1, -1), 6),
+                    ]
+                )
             )
 
             elements.append(table)
@@ -578,15 +568,20 @@ class PDFReportGenerator:
         """Build scenario comparison matrix."""
         elements = []
 
-        elements.append(
-            Paragraph("Scenario Comparison Matrix", self.styles["SectionHeader"])
-        )
+        elements.append(Paragraph("Scenario Comparison Matrix", self.styles["SectionHeader"]))
 
         # Build comparison table
         all_scenarios = [analysis.base_scenario] + analysis.alternative_scenarios
 
         # Table headers
-        headers = ["Scenario", "Max Units", "Building Sq Ft", "Height (ft)", "Parking", "Affordable"]
+        headers = [
+            "Scenario",
+            "Max Units",
+            "Building Sq Ft",
+            "Height (ft)",
+            "Parking",
+            "Affordable",
+        ]
 
         # Table data
         data = [headers]
@@ -598,7 +593,11 @@ class PDFReportGenerator:
                 f"{scenario.max_building_sqft:,.0f}",
                 f"{scenario.max_height_ft:.0f}",
                 str(scenario.parking_spaces_required),
-                str(scenario.affordable_units_required) if scenario.affordable_units_required > 0 else "-",
+                (
+                    str(scenario.affordable_units_required)
+                    if scenario.affordable_units_required > 0
+                    else "-"
+                ),
             ]
             data.append(row)
 
@@ -608,27 +607,34 @@ class PDFReportGenerator:
 
         # Style table
         table.setStyle(
-            TableStyle([
-                # Header row
-                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#1e3a8a")),
-                ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
-                ("FONT", (0, 0), (-1, 0), "Helvetica-Bold", 9),
-                ("ALIGN", (0, 0), (-1, 0), "CENTER"),
-                # Data rows
-                ("FONT", (0, 1), (-1, -1), "Helvetica", 8),
-                ("ALIGN", (0, 1), (0, -1), "LEFT"),
-                ("ALIGN", (1, 1), (-1, -1), "CENTER"),
-                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-                # Grid
-                ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
-                # Alternating row colors
-                ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#f1f5f9")]),
-                # Padding
-                ("LEFTPADDING", (0, 0), (-1, -1), 4),
-                ("RIGHTPADDING", (0, 0), (-1, -1), 4),
-                ("TOPPADDING", (0, 0), (-1, -1), 4),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
-            ])
+            TableStyle(
+                [
+                    # Header row
+                    ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#1e3a8a")),
+                    ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
+                    ("FONT", (0, 0), (-1, 0), "Helvetica-Bold", 9),
+                    ("ALIGN", (0, 0), (-1, 0), "CENTER"),
+                    # Data rows
+                    ("FONT", (0, 1), (-1, -1), "Helvetica", 8),
+                    ("ALIGN", (0, 1), (0, -1), "LEFT"),
+                    ("ALIGN", (1, 1), (-1, -1), "CENTER"),
+                    ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                    # Grid
+                    ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
+                    # Alternating row colors
+                    (
+                        "ROWBACKGROUNDS",
+                        (0, 1),
+                        (-1, -1),
+                        [colors.white, colors.HexColor("#f1f5f9")],
+                    ),
+                    # Padding
+                    ("LEFTPADDING", (0, 0), (-1, -1), 4),
+                    ("RIGHTPADDING", (0, 0), (-1, -1), 4),
+                    ("TOPPADDING", (0, 0), (-1, -1), 4),
+                    ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+                ]
+            )
         )
 
         elements.append(table)
@@ -639,9 +645,7 @@ class PDFReportGenerator:
         """Build applicable laws and citations section."""
         elements = []
 
-        elements.append(
-            Paragraph("Applicable Laws & Citations", self.styles["SectionHeader"])
-        )
+        elements.append(Paragraph("Applicable Laws & Citations", self.styles["SectionHeader"]))
 
         if not analysis.applicable_laws:
             elements.append(
@@ -703,9 +707,7 @@ class PDFReportGenerator:
         """Build timeline estimates section."""
         elements = []
 
-        elements.append(
-            Paragraph("Timeline Estimates", self.styles["SectionHeader"])
-        )
+        elements.append(Paragraph("Timeline Estimates", self.styles["SectionHeader"]))
 
         # Collect scenarios with timeline data
         scenarios_with_timelines = []
@@ -728,8 +730,14 @@ class PDFReportGenerator:
 
         for scenario in scenarios_with_timelines:
             timeline = scenario.estimated_timeline
-            days_range = f"{timeline.get('total_days_min', 'N/A')} - {timeline.get('total_days_max', 'N/A')}"
-            statutory = f"{timeline.get('statutory_deadline', 'None')} days" if timeline.get('statutory_deadline') else "-"
+            days_range = (
+                f"{timeline.get('total_days_min', 'N/A')} - {timeline.get('total_days_max', 'N/A')}"
+            )
+            statutory = (
+                f"{timeline.get('statutory_deadline', 'None')} days"
+                if timeline.get("statutory_deadline")
+                else "-"
+            )
 
             row = [
                 scenario.scenario_name,
@@ -741,26 +749,33 @@ class PDFReportGenerator:
 
         table = Table(data, colWidths=[2.5 * inch, 1.5 * inch, 1.3 * inch, 1.2 * inch])
         table.setStyle(
-            TableStyle([
-                # Header
-                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#3b82f6")),
-                ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
-                ("FONT", (0, 0), (-1, 0), "Helvetica-Bold", 9),
-                ("ALIGN", (0, 0), (-1, 0), "CENTER"),
-                # Data
-                ("FONT", (0, 1), (-1, -1), "Helvetica", 8),
-                ("ALIGN", (0, 1), (0, -1), "LEFT"),
-                ("ALIGN", (1, 1), (-1, -1), "CENTER"),
-                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-                # Grid
-                ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
-                ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#f1f5f9")]),
-                # Padding
-                ("LEFTPADDING", (0, 0), (-1, -1), 6),
-                ("RIGHTPADDING", (0, 0), (-1, -1), 6),
-                ("TOPPADDING", (0, 0), (-1, -1), 4),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
-            ])
+            TableStyle(
+                [
+                    # Header
+                    ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#3b82f6")),
+                    ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
+                    ("FONT", (0, 0), (-1, 0), "Helvetica-Bold", 9),
+                    ("ALIGN", (0, 0), (-1, 0), "CENTER"),
+                    # Data
+                    ("FONT", (0, 1), (-1, -1), "Helvetica", 8),
+                    ("ALIGN", (0, 1), (0, -1), "LEFT"),
+                    ("ALIGN", (1, 1), (-1, -1), "CENTER"),
+                    ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                    # Grid
+                    ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
+                    (
+                        "ROWBACKGROUNDS",
+                        (0, 1),
+                        (-1, -1),
+                        [colors.white, colors.HexColor("#f1f5f9")],
+                    ),
+                    # Padding
+                    ("LEFTPADDING", (0, 0), (-1, -1), 6),
+                    ("RIGHTPADDING", (0, 0), (-1, -1), 6),
+                    ("TOPPADDING", (0, 0), (-1, -1), 4),
+                    ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+                ]
+            )
         )
 
         elements.append(table)
@@ -799,9 +814,7 @@ class PDFReportGenerator:
             )
         )
 
-        elements.append(
-            Paragraph(analysis.recommendation_reason, self.styles["BodyText"])
-        )
+        elements.append(Paragraph(analysis.recommendation_reason, self.styles["BodyText"]))
 
         elements.append(Spacer(1, 0.2 * inch))
 
@@ -829,18 +842,17 @@ class PDFReportGenerator:
         """Build report metadata section."""
         elements = []
 
-        elements.append(
-            Paragraph("Report Metadata", self.styles["SectionHeader"])
-        )
+        elements.append(Paragraph("Report Metadata", self.styles["SectionHeader"]))
 
         # Get version from settings
         from app.core.config import settings
-        version = getattr(settings, 'VERSION', '1.0.0')
+
+        version = getattr(settings, "VERSION", "1.0.0")
 
         # Build metadata table
         metadata = [
             ["Report Information", ""],
-            ["Generated:", analysis.analysis_date.strftime('%B %d, %Y at %I:%M %p')],
+            ["Generated:", analysis.analysis_date.strftime("%B %d, %Y at %I:%M %p")],
             ["Analysis Engine:", f"Santa Monica Parcel Feasibility Engine v{version}"],
             ["Report Type:", "Automated Feasibility Analysis"],
             ["", ""],
@@ -854,10 +866,13 @@ class PDFReportGenerator:
             ["Analysis Type:", "Automated desktop analysis - no site inspection performed"],
             ["Not Included:", "Site-specific engineering, environmental assessment, title review"],
             ["Not Included:", "Detailed CEQA analysis, traffic study, utility capacity analysis"],
-            ["Not Included:", "Market feasibility, financial pro forma, construction cost estimate"],
+            [
+                "Not Included:",
+                "Market feasibility, financial pro forma, construction cost estimate",
+            ],
             ["", ""],
             ["Validity", ""],
-            ["Valid As Of:", analysis.analysis_date.strftime('%B %d, %Y')],
+            ["Valid As Of:", analysis.analysis_date.strftime("%B %d, %Y")],
             ["Note:", "Zoning and regulations are subject to change without notice"],
             ["Recommendation:", "Verify current standards with Santa Monica Planning Division"],
             ["Contact:", "planning@smgov.net | (310) 458-8341"],

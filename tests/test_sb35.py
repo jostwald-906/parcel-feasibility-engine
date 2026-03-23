@@ -4,8 +4,9 @@ Tests for SB35 (2017) streamlined approval analysis.
 SB35 provides ministerial approval for multifamily housing in
 jurisdictions that haven't met RHNA targets.
 """
+
 import pytest
-from app.rules.sb35 import (
+from app.rules.state_law.sb35 import (
     analyze_sb35,
     is_sb35_eligible,
     can_apply_sb35,
@@ -14,7 +15,7 @@ from app.rules.sb35 import (
     get_labor_requirements,
     calculate_sb35_max_units,
     get_max_far,
-    get_max_height
+    get_max_height,
 )
 from app.models.parcel import ParcelBase
 
@@ -53,7 +54,7 @@ class TestSB35Eligibility:
             lot_size_sqft=3500.0,  # Exactly at minimum
             zoning_code="R2",
             existing_units=0,
-            existing_building_sqft=0
+            existing_building_sqft=0,
         )
 
         assert is_sb35_eligible(parcel) is True
@@ -69,22 +70,25 @@ class TestSB35Eligibility:
             lot_size_sqft=3499.0,
             zoning_code="R2",
             existing_units=0,
-            existing_building_sqft=0
+            existing_building_sqft=0,
         )
 
         assert is_sb35_eligible(parcel) is False
 
-    @pytest.mark.parametrize("zoning_code,expected_eligible", [
-        ("R2", True),
-        ("R3", True),
-        ("R4", True),
-        ("RM-2", True),
-        ("RH-3", True),
-        ("MU-1", True),
-        ("MIXED USE", True),
-        ("C-1", False),  # Pure commercial
-        ("M-1", False),  # Industrial
-    ])
+    @pytest.mark.parametrize(
+        "zoning_code,expected_eligible",
+        [
+            ("R2", True),
+            ("R3", True),
+            ("R4", True),
+            ("RM-2", True),
+            ("RH-3", True),
+            ("MU-1", True),
+            ("MIXED USE", True),
+            ("C-1", False),  # Pure commercial
+            ("M-1", False),  # Industrial
+        ],
+    )
     def test_zoning_eligibility(self, zoning_code, expected_eligible):
         """Test eligibility for various zoning codes."""
         parcel = ParcelBase(
@@ -96,7 +100,7 @@ class TestSB35Eligibility:
             lot_size_sqft=5000.0,
             zoning_code=zoning_code,
             existing_units=0,
-            existing_building_sqft=0
+            existing_building_sqft=0,
         )
 
         assert is_sb35_eligible(parcel) == expected_eligible
@@ -123,7 +127,7 @@ class TestAffordabilityRequirements:
             lot_size_sqft=5000.0,
             zoning_code="R2",
             existing_units=0,
-            existing_building_sqft=0
+            existing_building_sqft=0,
         )
 
         affordability = get_affordability_percentage(parcel)
@@ -148,7 +152,7 @@ class TestAffordabilityRequirements:
             lot_size_sqft=5000.0,
             zoning_code="R2",
             existing_units=0,
-            existing_building_sqft=0
+            existing_building_sqft=0,
         )
 
         affordability = get_affordability_percentage(parcel)
@@ -169,7 +173,7 @@ class TestUnitCalculations:
             lot_size_sqft=10000.0,  # ~0.23 acres
             zoning_code="R2",
             existing_units=0,
-            existing_building_sqft=0
+            existing_building_sqft=0,
         )
 
         max_units = calculate_sb35_max_units(parcel)
@@ -207,7 +211,7 @@ class TestUnitCalculations:
             lot_size_sqft=3600.0,  # Small R2 lot
             zoning_code="R2",
             existing_units=0,
-            existing_building_sqft=0
+            existing_building_sqft=0,
         )
 
         max_units = calculate_sb35_max_units(small_parcel)
@@ -219,15 +223,18 @@ class TestUnitCalculations:
 class TestFARCalculations:
     """Tests for Floor Area Ratio calculations."""
 
-    @pytest.mark.parametrize("zoning,expected_far", [
-        ("R2", 0.75),
-        ("R3", 1.5),
-        ("RM-3", 1.5),
-        ("R4", 2.5),
-        ("RH-4", 2.5),
-        ("MU-1", 2.0),
-        ("MIXED USE", 2.0),
-    ])
+    @pytest.mark.parametrize(
+        "zoning,expected_far",
+        [
+            ("R2", 0.75),
+            ("R3", 1.5),
+            ("RM-3", 1.5),
+            ("R4", 2.5),
+            ("RH-4", 2.5),
+            ("MU-1", 2.0),
+            ("MIXED USE", 2.0),
+        ],
+    )
     def test_far_by_zone(self, zoning, expected_far):
         """Test FAR values for different zones."""
         parcel = ParcelBase(
@@ -239,7 +246,7 @@ class TestFARCalculations:
             lot_size_sqft=5000.0,
             zoning_code=zoning,
             existing_units=0,
-            existing_building_sqft=0
+            existing_building_sqft=0,
         )
 
         far = get_max_far(parcel)
@@ -249,15 +256,18 @@ class TestFARCalculations:
 class TestHeightCalculations:
     """Tests for maximum height calculations."""
 
-    @pytest.mark.parametrize("zoning,expected_height", [
-        ("R2", 40.0),
-        ("R3", 55.0),
-        ("RM-3", 55.0),
-        ("R4", 75.0),
-        ("RH-4", 75.0),
-        ("MU-1", 65.0),
-        ("MIXED USE", 65.0),
-    ])
+    @pytest.mark.parametrize(
+        "zoning,expected_height",
+        [
+            ("R2", 40.0),
+            ("R3", 55.0),
+            ("RM-3", 55.0),
+            ("R4", 75.0),
+            ("RH-4", 75.0),
+            ("MU-1", 65.0),
+            ("MIXED USE", 65.0),
+        ],
+    )
     def test_height_by_zone(self, zoning, expected_height):
         """Test height limits for different zones."""
         parcel = ParcelBase(
@@ -269,7 +279,7 @@ class TestHeightCalculations:
             lot_size_sqft=5000.0,
             zoning_code=zoning,
             existing_units=0,
-            existing_building_sqft=0
+            existing_building_sqft=0,
         )
 
         height = get_max_height(parcel)
@@ -328,7 +338,7 @@ class TestPrevailingWageRequirements:
             lot_size_sqft=20000.0,  # Large enough for 10+ units
             zoning_code="R3",
             existing_units=0,
-            existing_building_sqft=0
+            existing_building_sqft=0,
         )
 
         scenario = analyze_sb35(parcel)
@@ -439,7 +449,7 @@ class TestEdgeCases:
             lot_size_sqft=3500.0,
             zoning_code="R2",
             existing_units=0,
-            existing_building_sqft=0
+            existing_building_sqft=0,
         )
 
         assert is_sb35_eligible(parcel) is True
@@ -455,7 +465,7 @@ class TestEdgeCases:
             lot_size_sqft=5000.0,
             zoning_code="MU-1",
             existing_units=0,
-            existing_building_sqft=0
+            existing_building_sqft=0,
         )
 
         assert is_sb35_eligible(parcel) is True
@@ -514,38 +524,42 @@ class TestCanApplySB35:
         result = can_apply_sb35(r2_parcel)
 
         assert isinstance(result, dict)
-        assert 'eligible' in result
-        assert 'reasons' in result
-        assert 'requirements' in result
-        assert 'exclusions' in result
+        assert "eligible" in result
+        assert "reasons" in result
+        assert "requirements" in result
+        assert "exclusions" in result
 
     def test_eligible_parcel_has_reasons(self, r2_parcel):
         """Test that eligible parcels have positive reasons."""
         result = can_apply_sb35(r2_parcel)
 
         # R2 parcel should be eligible (Los Angeles hasn't met RHNA)
-        assert result['eligible'] is True
-        assert len(result['reasons']) > 0
+        assert result["eligible"] is True
+        assert len(result["reasons"]) > 0
         # Should mention zoning eligibility
-        reasons_text = " ".join(result['reasons'])
+        reasons_text = " ".join(result["reasons"])
         assert "R2" in reasons_text or "residential" in reasons_text.lower()
 
     def test_ineligible_parcel_has_reasons(self, small_r1_parcel):
         """Test that ineligible parcels have exclusion reasons."""
         result = can_apply_sb35(small_r1_parcel)
 
-        assert result['eligible'] is False
-        assert len(result['reasons']) > 0
+        assert result["eligible"] is False
+        assert len(result["reasons"]) > 0
         # Should mention lot size issue
-        reasons_text = " ".join(result['reasons'])
-        assert "3,500" in reasons_text or "3500" in reasons_text or "minimum" in reasons_text.lower()
+        reasons_text = " ".join(result["reasons"])
+        assert (
+            "3,500" in reasons_text or "3500" in reasons_text or "minimum" in reasons_text.lower()
+        )
 
     def test_site_exclusions_detected(self, coastal_parcel):
         """Test that coastal parcels are flagged for exclusion verification."""
         result = can_apply_sb35(coastal_parcel)
 
         # Santa Monica is coastal, should flag for verification
-        assert len(result['exclusions']) > 0 or any('coastal' in r.lower() for r in result['reasons'])
+        assert len(result["exclusions"]) > 0 or any(
+            "coastal" in r.lower() for r in result["reasons"]
+        )
 
     def test_tenancy_issues_detected(self, r2_parcel):
         """Test that parcels with existing units flag tenancy verification."""
@@ -553,9 +567,9 @@ class TestCanApplySB35:
 
         # R2 parcel has 2 existing units in LA (rent control jurisdiction)
         # Should flag for tenancy verification
-        assert result['eligible'] is False
-        reasons_text = " ".join(result['reasons'])
-        assert 'existing unit' in reasons_text.lower() or 'rent control' in reasons_text.lower()
+        assert result["eligible"] is False
+        reasons_text = " ".join(result["reasons"])
+        assert "existing unit" in reasons_text.lower() or "rent control" in reasons_text.lower()
 
     def test_requirements_listed(self):
         """Test that eligible parcels list verification requirements."""
@@ -569,13 +583,13 @@ class TestCanApplySB35:
             lot_size_sqft=10000.0,
             zoning_code="R3",
             existing_units=0,  # No existing units
-            existing_building_sqft=0.0
+            existing_building_sqft=0.0,
         )
 
         result = can_apply_sb35(parcel)
 
         # Should have some requirements to verify
-        assert len(result['requirements']) > 0
+        assert len(result["requirements"]) > 0
 
 
 class TestLaborRequirements:
@@ -621,18 +635,18 @@ class TestAffordabilityDocumentation:
         result = get_affordability_requirement(r2_parcel)
 
         assert isinstance(result, dict)
-        assert 'percentage' in result
-        assert 'income_levels' in result
-        assert 'notes' in result
+        assert "percentage" in result
+        assert "income_levels" in result
+        assert "notes" in result
 
     def test_high_performing_city_details(self, dcp_parcel):
         """Test San Francisco gets detailed 10% affordability docs."""
         result = get_affordability_requirement(dcp_parcel)
 
-        assert result['percentage'] == 10.0
-        assert len(result['income_levels']) > 0
-        assert len(result['notes']) > 0
-        notes_text = " ".join(result['notes'])
+        assert result["percentage"] == 10.0
+        assert len(result["income_levels"]) > 0
+        assert len(result["notes"]) > 0
+        notes_text = " ".join(result["notes"])
         assert "10%" in notes_text
         assert "AMI" in notes_text  # Area median income
 
@@ -640,10 +654,10 @@ class TestAffordabilityDocumentation:
         """Test LA gets detailed 50% affordability docs."""
         result = get_affordability_requirement(r2_parcel)
 
-        assert result['percentage'] == 50.0
-        assert len(result['income_levels']) > 0
-        assert len(result['notes']) > 0
-        notes_text = " ".join(result['notes'])
+        assert result["percentage"] == 50.0
+        assert len(result["income_levels"]) > 0
+        assert len(result["notes"]) > 0
+        notes_text = " ".join(result["notes"])
         assert "50%" in notes_text
         assert "very low" in notes_text.lower()
 
@@ -663,7 +677,7 @@ class TestAB2097Integration:
             zoning_code="R3",
             existing_units=0,
             existing_building_sqft=0.0,
-            near_transit=True  # Key attribute
+            near_transit=True,  # Key attribute
         )
 
         scenario = analyze_sb35(parcel)

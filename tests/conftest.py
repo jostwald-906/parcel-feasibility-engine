@@ -4,6 +4,7 @@ Test fixtures for Parcel Feasibility Engine tests.
 This module provides pytest fixtures with various parcel scenarios
 for testing different zoning rules and state laws.
 """
+
 import pytest
 from app.models.parcel import ParcelBase
 
@@ -33,7 +34,7 @@ def r1_parcel() -> ParcelBase:
         existing_building_sqft=1800.0,
         year_built=1965,
         latitude=32.7157,
-        longitude=-117.1611
+        longitude=-117.1611,
     )
 
 
@@ -63,7 +64,7 @@ def r2_parcel() -> ParcelBase:
         existing_building_sqft=2400.0,
         year_built=1978,
         latitude=34.0522,
-        longitude=-118.2437
+        longitude=-118.2437,
     )
 
 
@@ -93,7 +94,7 @@ def dcp_parcel() -> ParcelBase:
         existing_building_sqft=0.0,
         year_built=None,
         latitude=37.7749,
-        longitude=-122.4194
+        longitude=-122.4194,
     )
 
 
@@ -122,7 +123,7 @@ def coastal_parcel() -> ParcelBase:
         existing_building_sqft=2000.0,
         year_built=1955,
         latitude=34.0195,
-        longitude=-118.4912
+        longitude=-118.4912,
     )
 
 
@@ -151,7 +152,7 @@ def historic_parcel() -> ParcelBase:
         existing_building_sqft=2200.0,
         year_built=1920,
         latitude=34.1478,
-        longitude=-118.1445
+        longitude=-118.1445,
     )
 
 
@@ -181,7 +182,7 @@ def transit_adjacent_parcel() -> ParcelBase:
         existing_building_sqft=0.0,
         year_built=None,
         latitude=37.8044,
-        longitude=-122.2712
+        longitude=-122.2712,
     )
 
 
@@ -210,7 +211,7 @@ def commercial_parcel() -> ParcelBase:
         existing_building_sqft=20000.0,
         year_built=1985,
         latitude=37.3382,
-        longitude=-121.8863
+        longitude=-121.8863,
     )
 
 
@@ -239,7 +240,7 @@ def small_r1_parcel() -> ParcelBase:
         existing_building_sqft=900.0,
         year_built=1972,
         latitude=32.7503,
-        longitude=-117.1745
+        longitude=-117.1745,
     )
 
 
@@ -268,5 +269,5 @@ def large_r4_parcel() -> ParcelBase:
         existing_building_sqft=0.0,
         year_built=None,
         latitude=34.0407,
-        longitude=-118.2468
+        longitude=-118.2468,
     )

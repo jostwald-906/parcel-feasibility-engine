@@ -17,6 +17,7 @@ Notes:
 - Corridor mapping, labor standards, and detailed site exclusions are out-of-scope
   in this simplified implementation and would be validated upstream.
 """
+
 from app.models.analysis import DevelopmentScenario
 from app.models.parcel import ParcelBase
 from typing import Optional, Tuple, Dict, List
@@ -47,9 +48,10 @@ from app.rules.state_law.ab2097 import apply_ab2097_parking_reduction
 
 # Placeholder constants pending local policy integration
 DEFAULT_LOT_COVERAGE_PCT = 60.0  # TODO(SM): derive from local ODDS/objective standards
-DEFAULT_STORY_HEIGHT_FT = 12.0   # TODO(SM): confirm story height assumption for height→stories
+DEFAULT_STORY_HEIGHT_FT = 12.0  # TODO(SM): confirm story height assumption for height→stories
 MIXED_INCOME_MIN_AFFORDABILITY_PCT = 15.0  # TODO(SM): replace with AB2011 mixed-income thresholds
-PARKING_PER_UNIT_DEFAULT = 0.5   # TODO(SM): integrate AB 2097 + car-share to allow zero
+PARKING_PER_UNIT_DEFAULT = 0.5  # TODO(SM): integrate AB 2097 + car-share to allow zero
+
 
 def analyze_ab2011(parcel: ParcelBase) -> Optional[DevelopmentScenario]:
     """
@@ -204,12 +206,14 @@ def analyze_ab2011_tracks(parcel: ParcelBase) -> List[DevelopmentScenario]:
 
     # Add coastal zone notes if applicable
     if parcel.in_coastal_zone:
-        notes_mixed.extend([
-            "COASTAL ZONE REQUIREMENTS:",
-            "  - Parcel is in California Coastal Zone",
-            "  - Coastal Development Permit (CDP) may be required",
-            "  - Must comply with Local Coastal Program (LCP)",
-        ])
+        notes_mixed.extend(
+            [
+                "COASTAL ZONE REQUIREMENTS:",
+                "  - Parcel is in California Coastal Zone",
+                "  - Coastal Development Permit (CDP) may be required",
+                "  - Must comply with Local Coastal Program (LCP)",
+            ]
+        )
 
     scenario_mixed = DevelopmentScenario(
         scenario_name="AB2011 Corridor Housing (Mixed-Income)",
@@ -247,12 +251,14 @@ def analyze_ab2011_tracks(parcel: ParcelBase) -> List[DevelopmentScenario]:
 
     # Add coastal zone notes if applicable
     if parcel.in_coastal_zone:
-        notes_100.extend([
-            "COASTAL ZONE REQUIREMENTS:",
-            "  - Parcel is in California Coastal Zone",
-            "  - Coastal Development Permit (CDP) may be required",
-            "  - Must comply with Local Coastal Program (LCP)",
-        ])
+        notes_100.extend(
+            [
+                "COASTAL ZONE REQUIREMENTS:",
+                "  - Parcel is in California Coastal Zone",
+                "  - Coastal Development Permit (CDP) may be required",
+                "  - Must comply with Local Coastal Program (LCP)",
+            ]
+        )
 
     scenario_100 = DevelopmentScenario(
         scenario_name="AB2011 Corridor Housing (100% Affordable)",
@@ -344,7 +350,7 @@ def can_apply_ab2011(parcel: ParcelBase) -> Dict[str, any]:
         "reasons": reasons,
         "exclusions": exclusions,
         "warnings": warnings,
-        "corridor_info": corridor_info
+        "corridor_info": corridor_info,
     }
 
 
@@ -380,7 +386,9 @@ def check_site_exclusions(parcel: ParcelBase) -> Dict[str, any]:
     # Prime farmland check
     if parcel.in_prime_farmland:
         excluded = True
-        exclusion_reasons.append("EXCLUDED: Parcel is on prime farmland or farmland of statewide importance")
+        exclusion_reasons.append(
+            "EXCLUDED: Parcel is on prime farmland or farmland of statewide importance"
+        )
     else:
         passed_checks.append("Site is not on protected farmland")
 
@@ -394,7 +402,9 @@ def check_site_exclusions(parcel: ParcelBase) -> Dict[str, any]:
     # Conservation area check
     if parcel.in_conservation_area:
         excluded = True
-        exclusion_reasons.append("EXCLUDED: Parcel has conservation easement or is in protected area")
+        exclusion_reasons.append(
+            "EXCLUDED: Parcel has conservation easement or is in protected area"
+        )
     else:
         passed_checks.append("Site is not in conservation area")
 
@@ -407,25 +417,29 @@ def check_site_exclusions(parcel: ParcelBase) -> Dict[str, any]:
 
     # Flood zone (warning but not absolute exclusion per AB 2011)
     if parcel.in_flood_zone:
-        passed_checks.append("WARNING: Parcel is in flood hazard zone - additional requirements may apply")
+        passed_checks.append(
+            "WARNING: Parcel is in flood hazard zone - additional requirements may apply"
+        )
 
     # Alquist-Priolo earthquake fault zone check (using GIS data from CGS)
-    if getattr(parcel, 'in_earthquake_fault_zone', None) is True:
+    if getattr(parcel, "in_earthquake_fault_zone", None) is True:
         excluded = True
         exclusion_reasons.append("EXCLUDED: Parcel is in Alquist-Priolo earthquake fault zone")
     else:
         passed_checks.append("Site is not in Alquist-Priolo earthquake fault zone")
 
     # Hazardous waste proximity check (using GIS data from DTSC EnviroStor)
-    if getattr(parcel, 'near_hazardous_waste', None) is True:
+    if getattr(parcel, "near_hazardous_waste", None) is True:
         excluded = True
-        exclusion_reasons.append("EXCLUDED: Parcel is within 500 feet of hazardous waste site (DTSC Cortese List)")
+        exclusion_reasons.append(
+            "EXCLUDED: Parcel is within 500 feet of hazardous waste site (DTSC Cortese List)"
+        )
     else:
         passed_checks.append("Site is not near hazardous waste sites")
 
     # Fire hazard zone check (using GIS data from CAL FIRE/LA County)
-    fire_hazard_zone = getattr(parcel, 'fire_hazard_zone', None)
-    if fire_hazard_zone and 'very high' in str(fire_hazard_zone).lower():
+    fire_hazard_zone = getattr(parcel, "fire_hazard_zone", None)
+    if fire_hazard_zone and "very high" in str(fire_hazard_zone).lower():
         excluded = True
         exclusion_reasons.append("EXCLUDED: Site is in Very High Fire Hazard Severity Zone")
     else:
@@ -434,7 +448,7 @@ def check_site_exclusions(parcel: ParcelBase) -> Dict[str, any]:
     return {
         "excluded": excluded,
         "exclusion_reasons": exclusion_reasons,
-        "passed_checks": passed_checks
+        "passed_checks": passed_checks,
     }
 
 
@@ -462,26 +476,34 @@ def check_protected_housing(parcel: ParcelBase) -> Dict[str, any]:
 
     # Rent control check
     # First check manual override
-    if hasattr(parcel, 'rent_control_status') and parcel.rent_control_status:
+    if hasattr(parcel, "rent_control_status") and parcel.rent_control_status:
         status_lower = parcel.rent_control_status.lower()
-        if status_lower == 'yes':
+        if status_lower == "yes":
             protected = True
-            protection_reasons.append("EXCLUDED: Parcel contains rent-controlled units (AB 2011 protection) - MANUAL OVERRIDE")
-        elif status_lower == 'no':
+            protection_reasons.append(
+                "EXCLUDED: Parcel contains rent-controlled units (AB 2011 protection) - MANUAL OVERRIDE"
+            )
+        elif status_lower == "no":
             passed_checks.append("No rent-controlled units on parcel (manual override)")
-        elif status_lower == 'unknown':
-            warnings.append("Rent control status UNKNOWN - verification required with Santa Monica Rent Control Board before proceeding with AB2011")
+        elif status_lower == "unknown":
+            warnings.append(
+                "Rent control status UNKNOWN - verification required with Santa Monica Rent Control Board before proceeding with AB2011"
+            )
     # Fall back to has_rent_controlled_units flag
     elif parcel.has_rent_controlled_units:
         protected = True
-        protection_reasons.append("EXCLUDED: Parcel contains rent-controlled units (AB 2011 protection)")
+        protection_reasons.append(
+            "EXCLUDED: Parcel contains rent-controlled units (AB 2011 protection)"
+        )
     else:
         passed_checks.append("No rent-controlled units on parcel")
 
     # Deed-restricted affordable housing check
     if parcel.has_deed_restricted_affordable:
         protected = True
-        protection_reasons.append("EXCLUDED: Parcel has deed-restricted affordable housing (protected)")
+        protection_reasons.append(
+            "EXCLUDED: Parcel has deed-restricted affordable housing (protected)"
+        )
     else:
         passed_checks.append("No deed-restricted affordable housing on parcel")
 
@@ -526,11 +548,13 @@ def check_protected_housing(parcel: ParcelBase) -> Dict[str, any]:
         "protected": protected,
         "protection_reasons": protection_reasons,
         "passed_checks": passed_checks,
-        "warnings": warnings
+        "warnings": warnings,
     }
 
 
-def check_labor_compliance(parcel: ParcelBase, project_units: Optional[int] = None) -> Dict[str, any]:
+def check_labor_compliance(
+    parcel: ParcelBase, project_units: Optional[int] = None
+) -> Dict[str, any]:
     """
     Check AB 2011 labor standards compliance requirements.
 
@@ -629,7 +653,7 @@ def check_labor_compliance(parcel: ParcelBase, project_units: Optional[int] = No
         "missing_requirements": missing_requirements,
         "warnings": warnings,
         "skilled_workforce_required": skilled_workforce_required,
-        "estimated_units": estimated_units
+        "estimated_units": estimated_units,
     }
 
 
@@ -664,7 +688,7 @@ def estimate_conversion_feasibility(parcel: ParcelBase) -> dict:
         "estimated_units": 0,
         "estimated_cost_per_sqft": 0,
         "considerations": [],
-        "requirements": []
+        "requirements": [],
     }
 
     if not feasibility["eligible"]:
@@ -698,7 +722,7 @@ def estimate_conversion_feasibility(parcel: ParcelBase) -> dict:
         "Plumbing and electrical upgrades likely needed",
         "ADA accessibility upgrades required",
         "Fire safety system upgrades required",
-        f"Estimated conversion cost: ${int(cost_per_sqft * parcel.existing_building_sqft):,}"
+        f"Estimated conversion cost: ${int(cost_per_sqft * parcel.existing_building_sqft):,}",
     ]
 
     # Requirements
@@ -708,7 +732,7 @@ def estimate_conversion_feasibility(parcel: ParcelBase) -> dict:
         "Building code compliance verification",
         "Environmental clearance",
         "Tenant relocation plan if applicable",
-        "Prevailing wage compliance"
+        "Prevailing wage compliance",
     ]
 
     return feasibility
@@ -717,6 +741,7 @@ def estimate_conversion_feasibility(parcel: ParcelBase) -> dict:
 # ----------------------------------------------------------------------------
 # AB2011 standards application helpers (refactor: eligibility vs. standards)
 # ----------------------------------------------------------------------------
+
 
 def check_corridor_eligibility(parcel: ParcelBase) -> Dict[str, any]:
     """
@@ -753,7 +778,7 @@ def check_corridor_eligibility(parcel: ParcelBase) -> Dict[str, any]:
             "tier": None,
             "tier_name": None,
             "reasons": reasons,
-            "state_floors": None
+            "state_floors": None,
         }
 
     reasons.append(f"Parcel has eligible commercial zoning: {parcel.zoning_code}")
@@ -762,7 +787,7 @@ def check_corridor_eligibility(parcel: ParcelBase) -> Dict[str, any]:
     standards = determine_ab2011_standards(parcel)
 
     if not standards:
-        row_width = getattr(parcel, 'street_row_width', None)
+        row_width = getattr(parcel, "street_row_width", None)
         if row_width is None:
             reasons.append("Street ROW width not provided - cannot determine eligibility")
             reasons.append("Manual ROW width entry required (70-150 ft for eligibility)")
@@ -778,32 +803,34 @@ def check_corridor_eligibility(parcel: ParcelBase) -> Dict[str, any]:
             "tier": None,
             "tier_name": None,
             "reasons": reasons,
-            "state_floors": None
+            "state_floors": None,
         }
 
     # Parcel is on eligible corridor
     is_corridor = True
-    classification = standards['classification']
+    classification = standards["classification"]
     tier_name = f"AB 2011 {classification}"
     reasons.append(f"Corridor classification: {classification}")
-    reasons.append(standards['basis'])
-    reasons.append(f"State minimum floors: {standards['density_per_acre']} u/ac density, {standards['max_height_ft']} ft height")
+    reasons.append(standards["basis"])
+    reasons.append(
+        f"State minimum floors: {standards['density_per_acre']} u/ac density, {standards['max_height_ft']} ft height"
+    )
 
     # Map classification to legacy tier field for compatibility
     # Transit-Adjacent or Wide Corridor -> "high"
     # Narrow Corridor -> "mid"
     # Small Lot -> "low"
     tier_map = {
-        'Transit-Adjacent': 'high',
-        'Wide Corridor': 'high',
-        'Narrow Corridor': 'mid',
-        'Small Lot': 'low'
+        "Transit-Adjacent": "high",
+        "Wide Corridor": "high",
+        "Narrow Corridor": "mid",
+        "Small Lot": "low",
     }
-    tier = tier_map.get(classification, 'mid')
+    tier = tier_map.get(classification, "mid")
 
     state_floors = {
-        'min_density_u_ac': standards['density_per_acre'],
-        'min_height_ft': standards['max_height_ft']
+        "min_density_u_ac": standards["density_per_acre"],
+        "min_height_ft": standards["max_height_ft"],
     }
 
     return {
@@ -811,7 +838,7 @@ def check_corridor_eligibility(parcel: ParcelBase) -> Dict[str, any]:
         "tier": tier,  # Legacy compatibility
         "tier_name": tier_name,
         "reasons": reasons,
-        "state_floors": state_floors
+        "state_floors": state_floors,
     }
 
 
@@ -831,49 +858,51 @@ def determine_ab2011_standards(parcel: ParcelBase) -> Optional[Dict[str, any]]:
     Returns:
         Dictionary with classification, density, height, and basis, or None if not eligible
     """
-    row_width = getattr(parcel, 'street_row_width', None)
-    near_major_transit = getattr(parcel, 'near_transit', False)
-    in_coastal = getattr(parcel, 'in_coastal_zone', False)
+    row_width = getattr(parcel, "street_row_width", None)
+    near_major_transit = getattr(parcel, "near_transit", False)
+    in_coastal = getattr(parcel, "in_coastal_zone", False)
     lot_acres = (parcel.lot_size_sqft or 0) / 43560.0
 
     # Transit-adjacent takes precedence (if not coastal)
     if near_major_transit and not in_coastal:
         return {
-            'classification': 'Transit-Adjacent',
-            'density_per_acre': 80.0,
-            'max_height_ft': 65.0,
-            'basis': 'Within 0.5 mile of major transit stop (§65912.124(b)(3))'
+            "classification": "Transit-Adjacent",
+            "density_per_acre": 80.0,
+            "max_height_ft": 65.0,
+            "basis": "Within 0.5 mile of major transit stop (§65912.124(b)(3))",
         }
 
     # Wide corridor (100-150 ft ROW)
     if row_width and row_width >= 100 and row_width <= 150:
         return {
-            'classification': 'Wide Corridor',
-            'density_per_acre': 60.0,
-            'max_height_ft': 45.0,
-            'basis': f'{row_width:.0f} ft ROW (§65912.124(b)(2))'
+            "classification": "Wide Corridor",
+            "density_per_acre": 60.0,
+            "max_height_ft": 45.0,
+            "basis": f"{row_width:.0f} ft ROW (§65912.124(b)(2))",
         }
 
     # Narrow corridor (70-99 ft ROW)
     if row_width and row_width >= 70 and row_width < 100:
         return {
-            'classification': 'Narrow Corridor',
-            'density_per_acre': 40.0,
-            'max_height_ft': 35.0,
-            'basis': f'{row_width:.0f} ft ROW (§65912.124(b)(1))'
+            "classification": "Narrow Corridor",
+            "density_per_acre": 40.0,
+            "max_height_ft": 35.0,
+            "basis": f"{row_width:.0f} ft ROW (§65912.124(b)(1))",
         }
 
     # Small lot minimum (applies to any eligible corridor < 1 acre)
     if lot_acres < 1.0 and row_width and row_width >= 70:
         return {
-            'classification': 'Small Lot',
-            'density_per_acre': 30.0,
-            'max_height_ft': 35.0,
-            'basis': f'{lot_acres:.2f} acre lot (§65912.124(c))'
+            "classification": "Small Lot",
+            "density_per_acre": 30.0,
+            "max_height_ft": 35.0,
+            "basis": f"{lot_acres:.2f} acre lot (§65912.124(c))",
         }
 
     # Not eligible - no qualifying corridor width
     return None
+
+
 def ab2011_state_floors(tier: str) -> Dict[str, float]:
     """Return state minimum floors for AB2011 by corridor/tier.
 
@@ -905,7 +934,7 @@ def ab2011_precedence(local_value: Optional[float], state_floor: float) -> float
     try:
         lv = float(local_value)
     except (TypeError, ValueError):
-        lv = float('nan')
+        lv = float("nan")
     if not (lv > 0):  # handles NaN and non-positive values
         return float(state_floor)
     return max(lv, float(state_floor))

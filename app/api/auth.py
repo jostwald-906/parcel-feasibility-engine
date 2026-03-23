@@ -1,6 +1,7 @@
 """
 Authentication API endpoints.
 """
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials
 from sqlmodel import Session, select
@@ -31,10 +32,7 @@ logger = get_logger(__name__)
 
 
 @router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
-async def register(
-    user_data: UserCreate,
-    session: Session = Depends(get_session)
-) -> UserResponse:
+async def register(user_data: UserCreate, session: Session = Depends(get_session)) -> UserResponse:
     """
     Register a new user account.
 
@@ -54,17 +52,13 @@ async def register(
 
     if existing_user:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Email already registered"
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered"
         )
 
     # Validate password strength
     is_valid, error_message = validate_password_strength(user_data.password)
     if not is_valid:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=error_message
-        )
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=error_message)
 
     # Create user
     hashed_password = get_password_hash(user_data.password)
@@ -73,7 +67,7 @@ async def register(
         full_name=user_data.full_name,
         hashed_password=hashed_password,
         is_active=True,
-        is_verified=False  # Email verification can be added later
+        is_verified=False,  # Email verification can be added later
     )
 
     session.add(db_user)
@@ -85,7 +79,7 @@ async def register(
         user_id=db_user.id,
         stripe_customer_id=f"temp_{db_user.id}",  # Will be updated when Stripe customer is created
         status=SubscriptionStatus.INCOMPLETE,
-        plan=SubscriptionPlan.FREE
+        plan=SubscriptionPlan.FREE,
     )
 
     session.add(subscription)
@@ -100,15 +94,12 @@ async def register(
         is_active=db_user.is_active,
         is_verified=db_user.is_verified,
         created_at=db_user.created_at,
-        has_active_subscription=False
+        has_active_subscription=False,
     )
 
 
 @router.post("/login", response_model=Token)
-async def login(
-    login_data: LoginRequest,
-    session: Session = Depends(get_session)
-) -> Token:
+async def login(login_data: LoginRequest, session: Session = Depends(get_session)) -> Token:
     """
     Authenticate user and return JWT tokens.
 
@@ -145,7 +136,7 @@ async def login(
     if not user.is_active:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Account is inactive. Please contact support."
+            detail="Account is inactive. Please contact support.",
         )
 
     # Create tokens
@@ -154,17 +145,13 @@ async def login(
 
     logger.info(f"User logged in: {user.email}", extra={"user_id": user.id})
 
-    return Token(
-        access_token=access_token,
-        refresh_token=refresh_token,
-        token_type="bearer"
-    )
+    return Token(access_token=access_token, refresh_token=refresh_token, token_type="bearer")
 
 
 @router.post("/refresh", response_model=Token)
 async def refresh_token(
     credentials: HTTPAuthorizationCredentials = Depends(security),
-    session: Session = Depends(get_session)
+    session: Session = Depends(get_session),
 ) -> Token:
     """
     Refresh access token using refresh token.
@@ -201,25 +188,18 @@ async def refresh_token(
     user = session.get(User, token_payload.sub)
     if user is None or not user.is_active:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="User not found or inactive"
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found or inactive"
         )
 
     # Create new tokens
     access_token = create_access_token(user.id)
     new_refresh_token = create_refresh_token(user.id)
 
-    return Token(
-        access_token=access_token,
-        refresh_token=new_refresh_token,
-        token_type="bearer"
-    )
+    return Token(access_token=access_token, refresh_token=new_refresh_token, token_type="bearer")
 
 
 @router.post("/logout")
-async def logout(
-    current_user: User = Depends(get_current_user)
-):
+async def logout(current_user: User = Depends(get_current_user)):
     """
     Logout user (client should delete tokens).
 
@@ -240,8 +220,7 @@ async def logout(
 
 @router.get("/me", response_model=UserResponse)
 async def get_current_user_profile(
-    current_user: User = Depends(get_current_user),
-    session: Session = Depends(get_session)
+    current_user: User = Depends(get_current_user), session: Session = Depends(get_session)
 ) -> UserResponse:
     """
     Get current user profile information.
@@ -254,9 +233,11 @@ async def get_current_user_profile(
         User profile data including subscription status
     """
     # Check if user has active subscription
-    statement = select(Subscription).where(
-        Subscription.user_id == current_user.id
-    ).order_by(Subscription.created_at.desc())
+    statement = (
+        select(Subscription)
+        .where(Subscription.user_id == current_user.id)
+        .order_by(Subscription.created_at.desc())
+    )
 
     subscription = session.exec(statement).first()
 
@@ -264,7 +245,7 @@ async def get_current_user_profile(
     if subscription:
         has_active_subscription = subscription.status in [
             SubscriptionStatus.ACTIVE,
-            SubscriptionStatus.TRIALING
+            SubscriptionStatus.TRIALING,
         ]
 
     return UserResponse(
@@ -274,7 +255,7 @@ async def get_current_user_profile(
         is_active=current_user.is_active,
         is_verified=current_user.is_verified,
         created_at=current_user.created_at,
-        has_active_subscription=has_active_subscription
+        has_active_subscription=has_active_subscription,
     )
 
 
@@ -282,7 +263,7 @@ async def get_current_user_profile(
 async def update_current_user(
     user_update: UserUpdate,
     current_user: User = Depends(get_current_user),
-    session: Session = Depends(get_session)
+    session: Session = Depends(get_session),
 ) -> UserResponse:
     """
     Update current user profile.
@@ -305,8 +286,7 @@ async def update_current_user(
 
         if existing_user:
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Email already registered"
+                status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered"
             )
 
         current_user.email = user_update.email
@@ -320,10 +300,7 @@ async def update_current_user(
     if user_update.password:
         is_valid, error_message = validate_password_strength(user_update.password)
         if not is_valid:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=error_message
-            )
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=error_message)
 
         current_user.hashed_password = get_password_hash(user_update.password)
 
@@ -341,9 +318,11 @@ async def update_current_user(
     logger.info(f"User profile updated: {current_user.email}", extra={"user_id": current_user.id})
 
     # Check subscription status
-    statement = select(Subscription).where(
-        Subscription.user_id == current_user.id
-    ).order_by(Subscription.created_at.desc())
+    statement = (
+        select(Subscription)
+        .where(Subscription.user_id == current_user.id)
+        .order_by(Subscription.created_at.desc())
+    )
 
     subscription = session.exec(statement).first()
 
@@ -351,7 +330,7 @@ async def update_current_user(
     if subscription:
         has_active_subscription = subscription.status in [
             SubscriptionStatus.ACTIVE,
-            SubscriptionStatus.TRIALING
+            SubscriptionStatus.TRIALING,
         ]
 
     return UserResponse(
@@ -361,5 +340,5 @@ async def update_current_user(
         is_active=current_user.is_active,
         is_verified=current_user.is_verified,
         created_at=current_user.created_at,
-        has_active_subscription=has_active_subscription
+        has_active_subscription=has_active_subscription,
     )

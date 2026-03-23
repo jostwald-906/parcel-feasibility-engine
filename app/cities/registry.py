@@ -29,6 +29,7 @@ class CityRegistry:
         try:
             # Santa Monica
             from app.cities.santa_monica import santa_monica
+
             self.register_city(santa_monica)
             self._default_city = "SM"
             logger.info("Loaded Santa Monica city configuration")
@@ -85,11 +86,7 @@ class CityRegistry:
             List of dicts with city info: [{'code': 'SM', 'name': 'Santa Monica', 'state': 'CA'}, ...]
         """
         return [
-            {
-                "code": city.city_code,
-                "name": city.city_name,
-                "state": city.state
-            }
+            {"code": city.city_code, "name": city.city_name, "state": city.state}
             for city in self._cities.values()
         ]
 
@@ -136,6 +133,8 @@ def get_city_config(city_code: Optional[str] = None) -> CityConfig:
 
     city = city_registry.get_city(city_code)
     if city is None:
-        raise ValueError(f"City '{city_code}' not found. Available cities: {city_registry.available_cities}")
+        raise ValueError(
+            f"City '{city_code}' not found. Available cities: {city_registry.available_cities}"
+        )
 
     return city

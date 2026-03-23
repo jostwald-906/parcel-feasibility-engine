@@ -8,6 +8,7 @@ Uses SlowAPI for FastAPI-native rate limiting to protect against:
 
 Rate limiting is applied per IP address by default.
 """
+
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 from app.core.config import settings
@@ -22,10 +23,10 @@ limiter = Limiter(
 
 # Custom rate limit decorators for different endpoint types
 RATE_LIMITS = {
-    "analysis": "10/minute",      # Heavy endpoint: 10 per minute
-    "pdf_export": "5/minute",     # Very heavy: 5 per minute
+    "analysis": "10/minute",  # Heavy endpoint: 10 per minute
+    "pdf_export": "5/minute",  # Very heavy: 5 per minute
     "autocomplete": "30/minute",  # Light endpoint: 30 per minute
-    "metadata": "50/minute",      # Very light: 50 per minute
+    "metadata": "50/minute",  # Very light: 50 per minute
 }
 
 

@@ -3,6 +3,7 @@ Tests for economic feasibility Pydantic models.
 
 Validates model structure, validation rules, and JSON serialization.
 """
+
 import pytest
 from datetime import datetime
 from pydantic import ValidationError
@@ -46,10 +47,7 @@ class TestEconomicAssumptions:
     def test_custom_values(self):
         """Test custom values can be set."""
         assumptions = EconomicAssumptions(
-            discount_rate=0.15,
-            risk_free_rate=0.035,
-            location_factor=1.3,
-            cap_rate=0.05
+            discount_rate=0.15, risk_free_rate=0.035, location_factor=1.3, cap_rate=0.05
         )
 
         assert assumptions.discount_rate == 0.15
@@ -103,7 +101,7 @@ class TestConstructionInputs:
             num_units=30,
             construction_type="wood_frame",
             construction_duration_months=18,
-            predevelopment_duration_months=12
+            predevelopment_duration_months=12,
         )
 
         assert inputs.total_buildable_sf == 25000.0
@@ -120,7 +118,7 @@ class TestConstructionInputs:
                 num_units=10,
                 construction_type=ctype,
                 construction_duration_months=12,
-                predevelopment_duration_months=6
+                predevelopment_duration_months=6,
             )
             assert inputs.construction_type == ctype
 
@@ -131,7 +129,7 @@ class TestConstructionInputs:
                 num_units=10,
                 construction_type="brick",
                 construction_duration_months=12,
-                predevelopment_duration_months=6
+                predevelopment_duration_months=6,
             )
 
     def test_positive_values_required(self):
@@ -142,7 +140,7 @@ class TestConstructionInputs:
                 num_units=10,
                 construction_type="wood_frame",
                 construction_duration_months=12,
-                predevelopment_duration_months=6
+                predevelopment_duration_months=6,
             )
 
         with pytest.raises(ValidationError):
@@ -151,7 +149,7 @@ class TestConstructionInputs:
                 num_units=0,
                 construction_type="wood_frame",
                 construction_duration_months=12,
-                predevelopment_duration_months=6
+                predevelopment_duration_months=6,
             )
 
 
@@ -165,7 +163,7 @@ class TestRevenueInputs:
             county="Los Angeles",
             market_units=25,
             affordable_units=5,
-            unit_mix={0: 5, 1: 15, 2: 8, 3: 2}
+            unit_mix={0: 5, 1: 15, 2: 8, 3: 2},
         )
 
         assert inputs.parcel_zip == "90401"
@@ -182,7 +180,7 @@ class TestRevenueInputs:
             county="Los Angeles",
             market_units=10,
             affordable_units=0,
-            unit_mix={1: 10}
+            unit_mix={1: 10},
         )
 
         # Invalid - 9 digits (ZIP+4)
@@ -192,7 +190,7 @@ class TestRevenueInputs:
                 county="Los Angeles",
                 market_units=10,
                 affordable_units=0,
-                unit_mix={1: 10}
+                unit_mix={1: 10},
             )
 
         # Invalid - 4 digits
@@ -202,7 +200,7 @@ class TestRevenueInputs:
                 county="Los Angeles",
                 market_units=10,
                 affordable_units=0,
-                unit_mix={1: 10}
+                unit_mix={1: 10},
             )
 
     def test_unit_mix_validation(self):
@@ -213,7 +211,7 @@ class TestRevenueInputs:
             county="Los Angeles",
             market_units=10,
             affordable_units=0,
-            unit_mix={0: 2, 1: 3, 2: 3, 3: 1, 4: 1}
+            unit_mix={0: 2, 1: 3, 2: 3, 3: 1, 4: 1},
         )
 
         # Invalid - negative bedrooms
@@ -223,7 +221,7 @@ class TestRevenueInputs:
                 county="Los Angeles",
                 market_units=10,
                 affordable_units=0,
-                unit_mix={-1: 5, 1: 5}
+                unit_mix={-1: 5, 1: 5},
             )
 
         # Invalid - 6 bedrooms (too many)
@@ -233,7 +231,7 @@ class TestRevenueInputs:
                 county="Los Angeles",
                 market_units=10,
                 affordable_units=0,
-                unit_mix={6: 10}
+                unit_mix={6: 10},
             )
 
 
@@ -243,10 +241,7 @@ class TestTimelineInputs:
     def test_valid_timeline(self):
         """Test valid timeline inputs."""
         timeline = TimelineInputs(
-            predevelopment_months=12,
-            construction_months=18,
-            lease_up_months=6,
-            operating_years=10
+            predevelopment_months=12, construction_months=18, lease_up_months=6, operating_years=10
         )
 
         assert timeline.predevelopment_months == 12
@@ -257,11 +252,7 @@ class TestTimelineInputs:
     def test_positive_values_required(self):
         """Test all timeline values must be > 0."""
         with pytest.raises(ValidationError):
-            TimelineInputs(
-                predevelopment_months=0,
-                construction_months=18,
-                lease_up_months=6
-            )
+            TimelineInputs(predevelopment_months=0, construction_months=18, lease_up_months=6)
 
 
 class TestCashFlow:
@@ -276,7 +267,7 @@ class TestCashFlow:
             operating_expenses=0.0,
             capital_expenditure=500000.0,
             net_cash_flow=-500000.0,
-            cumulative_cash_flow=-500000.0
+            cumulative_cash_flow=-500000.0,
         )
 
         assert cf.period == 0
@@ -287,21 +278,11 @@ class TestCashFlow:
         """Test period type must be valid."""
         # Valid types
         for ptype in ["predevelopment", "construction", "lease_up", "operations"]:
-            CashFlow(
-                period=0,
-                period_type=ptype,
-                net_cash_flow=0.0,
-                cumulative_cash_flow=0.0
-            )
+            CashFlow(period=0, period_type=ptype, net_cash_flow=0.0, cumulative_cash_flow=0.0)
 
         # Invalid type
         with pytest.raises(ValidationError):
-            CashFlow(
-                period=0,
-                period_type="invalid",
-                net_cash_flow=0.0,
-                cumulative_cash_flow=0.0
-            )
+            CashFlow(period=0, period_type="invalid", net_cash_flow=0.0, cumulative_cash_flow=0.0)
 
 
 class TestMonteCarloInputs:
@@ -318,7 +299,7 @@ class TestMonteCarloInputs:
             cap_rate_max=0.06,
             delay_months_mean=0.0,
             delay_months_std=3.0,
-            random_seed=42
+            random_seed=42,
         )
 
         assert inputs.iterations == 10000
@@ -333,7 +314,7 @@ class TestMonteCarloInputs:
             rent_growth_std=0.01,
             cap_rate_min=0.04,
             cap_rate_mode=0.045,
-            cap_rate_max=0.06
+            cap_rate_max=0.06,
         )
 
         # Invalid - too few
@@ -344,7 +325,7 @@ class TestMonteCarloInputs:
                 rent_growth_std=0.01,
                 cap_rate_min=0.04,
                 cap_rate_mode=0.045,
-                cap_rate_max=0.06
+                cap_rate_max=0.06,
             )
 
 
@@ -359,10 +340,8 @@ class TestFeasibilityRequest:
             units=30,
             buildable_sf=25000.0,
             timeline=TimelineInputs(
-                predevelopment_months=12,
-                construction_months=18,
-                lease_up_months=6
-            )
+                predevelopment_months=12, construction_months=18, lease_up_months=6
+            ),
         )
 
         assert request.parcel_apn == "4293-021-012"
@@ -380,10 +359,8 @@ class TestFeasibilityRequest:
             units=10,
             buildable_sf=10000.0,
             timeline=TimelineInputs(
-                predevelopment_months=12,
-                construction_months=18,
-                lease_up_months=6
-            )
+                predevelopment_months=12, construction_months=18, lease_up_months=6
+            ),
         )
 
         # Should have default assumptions
@@ -398,14 +375,9 @@ class TestFeasibilityRequest:
             units=10,
             buildable_sf=10000.0,
             timeline=TimelineInputs(
-                predevelopment_months=12,
-                construction_months=18,
-                lease_up_months=6
+                predevelopment_months=12, construction_months=18, lease_up_months=6
             ),
-            assumptions=EconomicAssumptions(
-                discount_rate=0.15,
-                location_factor=1.35
-            )
+            assumptions=EconomicAssumptions(discount_rate=0.15, location_factor=1.35),
         )
 
         assert request.assumptions.discount_rate == 0.15
@@ -417,10 +389,7 @@ class TestJSONSerialization:
 
     def test_economic_assumptions_serialization(self):
         """Test EconomicAssumptions can be serialized to JSON."""
-        assumptions = EconomicAssumptions(
-            discount_rate=0.15,
-            location_factor=1.3
-        )
+        assumptions = EconomicAssumptions(discount_rate=0.15, location_factor=1.3)
 
         json_data = assumptions.model_dump()
         assert json_data["discount_rate"] == 0.15
@@ -438,11 +407,9 @@ class TestJSONSerialization:
             units=30,
             buildable_sf=25000.0,
             timeline=TimelineInputs(
-                predevelopment_months=12,
-                construction_months=18,
-                lease_up_months=6
+                predevelopment_months=12, construction_months=18, lease_up_months=6
             ),
-            assumptions=EconomicAssumptions(discount_rate=0.15)
+            assumptions=EconomicAssumptions(discount_rate=0.15),
         )
 
         # Serialize to dict
@@ -462,7 +429,7 @@ class TestJSONSerialization:
             RevenueProjection,
             FinancialMetrics,
             SensitivityAnalysis,
-            MonteCarloResult
+            MonteCarloResult,
         )
 
         analysis = FeasibilityAnalysis(
@@ -478,7 +445,7 @@ class TestJSONSerialization:
                 contingency=450000.0,
                 total_cost=7500000.0,
                 cost_per_unit=250000.0,
-                cost_per_sf=300.0
+                cost_per_sf=300.0,
             ),
             revenue_projection=RevenueProjection(
                 annual_gross_income=900000.0,
@@ -486,7 +453,7 @@ class TestJSONSerialization:
                 effective_gross_income=837000.0,
                 operating_expenses=270000.0,
                 annual_noi=567000.0,
-                noi_per_unit=18900.0
+                noi_per_unit=18900.0,
             ),
             financial_metrics=FinancialMetrics(
                 npv=2500000.0,
@@ -494,7 +461,7 @@ class TestJSONSerialization:
                 payback_period_years=7.5,
                 profitability_index=1.33,
                 return_on_cost=0.075,
-                exit_value=12600000.0
+                exit_value=12600000.0,
             ),
             sensitivity_analysis=SensitivityAnalysis(
                 tornado=[],
@@ -507,12 +474,12 @@ class TestJSONSerialization:
                         "p25": 1500000.0,
                         "p50": 2250000.0,
                         "p75": 3100000.0,
-                        "p90": 3800000.0
-                    }
-                )
+                        "p90": 3800000.0,
+                    },
+                ),
             ),
             decision_recommendation="Recommended - Strong Feasibility",
-            analysis_timestamp=datetime(2025, 1, 15, 10, 30, 0)
+            analysis_timestamp=datetime(2025, 1, 15, 10, 30, 0),
         )
 
         # Serialize to JSON-compatible dict

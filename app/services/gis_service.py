@@ -25,6 +25,7 @@ Future Scaling:
 - For multi-instance deployments, upgrade to Redis
 - See docs/redis_upgrade.md for migration path
 """
+
 from functools import lru_cache
 from typing import Optional, Dict, Any, Tuple
 import logging
@@ -35,7 +36,7 @@ from tenacity import (
     stop_after_attempt,
     wait_exponential,
     retry_if_exception_type,
-    RetryError
+    RetryError,
 )
 
 logger = logging.getLogger(__name__)
@@ -43,16 +44,19 @@ logger = logging.getLogger(__name__)
 
 class GISServiceError(Exception):
     """Base exception for GIS service errors."""
+
     pass
 
 
 class GISServiceUnavailable(GISServiceError):
     """GIS service is temporarily unavailable."""
+
     pass
 
 
 class GISDataNotFound(GISServiceError):
     """Requested parcel data not found in GIS."""
+
     pass
 
 
@@ -166,7 +170,9 @@ class GISCache:
             Dict with cache metrics
         """
         total_requests = self._hits + self._misses + self._stale_hits
-        hit_rate = ((self._hits + self._stale_hits) / total_requests * 100) if total_requests > 0 else 0
+        hit_rate = (
+            ((self._hits + self._stale_hits) / total_requests * 100) if total_requests > 0 else 0
+        )
 
         return {
             "cached_parcels": len(self._cache),
@@ -208,7 +214,7 @@ def _get_parcel_lru_wrapper(apn: str, cache_buster: str) -> Optional[Dict[str, A
     stop=stop_after_attempt(3),
     wait=wait_exponential(multiplier=1, min=1, max=10),
     retry=retry_if_exception_type((httpx.TimeoutException, httpx.HTTPStatusError)),
-    reraise=True
+    reraise=True,
 )
 async def query_parcel_by_apn(apn: str) -> Optional[Dict[str, Any]]:
     """
@@ -286,7 +292,9 @@ async def query_parcel_by_apn(apn: str) -> Optional[Dict[str, Any]]:
         raise GISServiceUnavailable(f"GIS service timeout for {apn}") from e
     except httpx.HTTPStatusError as e:
         logger.error(f"GIS API HTTP error for APN {apn}: {e}")
-        raise GISServiceUnavailable(f"GIS service HTTP error for {apn}: {e.response.status_code}") from e
+        raise GISServiceUnavailable(
+            f"GIS service HTTP error for {apn}: {e.response.status_code}"
+        ) from e
     except Exception as e:
         logger.error(f"GIS API unexpected error for APN {apn}: {e}")
         raise GISServiceUnavailable(f"GIS service error for {apn}") from e

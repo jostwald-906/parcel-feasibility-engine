@@ -47,18 +47,15 @@ class RevenueInputs(BaseModel):
 
     # Unit mix
     market_unit_mix: Dict[int, int] = Field(
-        default_factory=dict,
-        description="Market-rate units by bedroom count {bedrooms: count}"
+        default_factory=dict, description="Market-rate units by bedroom count {bedrooms: count}"
     )
     affordable_unit_mix: Dict[int, int] = Field(
-        default_factory=dict,
-        description="Affordable units by bedroom count {bedrooms: count}"
+        default_factory=dict, description="Affordable units by bedroom count {bedrooms: count}"
     )
 
     # Affordability levels for affordable units
     ami_percentages: List[float] = Field(
-        default=[50.0, 60.0, 80.0],
-        description="AMI percentages for affordable units"
+        default=[50.0, 60.0, 80.0], description="AMI percentages for affordable units"
     )
 
     # Market-rate quality adjustment
@@ -66,14 +63,12 @@ class RevenueInputs(BaseModel):
         1.0,
         ge=0.8,
         le=1.2,
-        description="Quality adjustment factor (0.8-1.2): 0.8-0.9=Class C, 0.9-1.0=Class B, 1.0-1.2=Class A"
+        description="Quality adjustment factor (0.8-1.2): 0.8-0.9=Class C, 0.9-1.0=Class B, 1.0-1.2=Class A",
     )
 
     # Operating parameters
     utility_allowance: float = Field(
-        150.0,
-        ge=0,
-        description="Monthly utility allowance for affordable units"
+        150.0, ge=0, description="Monthly utility allowance for affordable units"
     )
 
     @property
@@ -97,10 +92,7 @@ class EconomicAssumptions(BaseModel):
 
     # Vacancy and collection
     vacancy_rate: float = Field(
-        0.05,
-        ge=0,
-        le=0.20,
-        description="Vacancy and collection loss rate (typical: 5%)"
+        0.05, ge=0, le=0.20, description="Vacancy and collection loss rate (typical: 5%)"
     )
 
     # Property tax (California Prop 13)
@@ -108,63 +100,42 @@ class EconomicAssumptions(BaseModel):
         0.0125,
         ge=0.01,
         le=0.03,
-        description="Property tax rate (Prop 13: 1% base + local add-ons, typical: 1.25%)"
+        description="Property tax rate (Prop 13: 1% base + local add-ons, typical: 1.25%)",
     )
 
     # Operating expense ratios
     insurance_rate: float = Field(
-        0.006,
-        ge=0,
-        description="Insurance rate as % of replacement cost (typical: 0.6%)"
+        0.006, ge=0, description="Insurance rate as % of replacement cost (typical: 0.6%)"
     )
     management_rate: float = Field(
-        0.05,
-        ge=0,
-        le=0.10,
-        description="Management rate as % of EGI (typical: 5%)"
+        0.05, ge=0, le=0.10, description="Management rate as % of EGI (typical: 5%)"
     )
 
     # Per-unit annual costs
     utilities_per_unit_annual: float = Field(
-        800.0,
-        ge=0,
-        description="Annual utilities per unit if landlord-paid"
+        800.0, ge=0, description="Annual utilities per unit if landlord-paid"
     )
     maintenance_per_unit_annual: float = Field(
-        1200.0,
-        ge=0,
-        description="Annual maintenance and repairs per unit"
+        1200.0, ge=0, description="Annual maintenance and repairs per unit"
     )
     reserves_per_unit_annual: float = Field(
-        500.0,
-        ge=0,
-        description="Annual reserves for replacement per unit"
+        500.0, ge=0, description="Annual reserves for replacement per unit"
     )
     marketing_per_unit_annual: float = Field(
-        200.0,
-        ge=0,
-        description="Annual marketing and leasing per unit"
+        200.0, ge=0, description="Annual marketing and leasing per unit"
     )
 
     # Construction cost for insurance calculation
     construction_cost_per_sqft: float = Field(
-        350.0,
-        ge=0,
-        description="Construction cost per sq ft for insurance basis"
+        350.0, ge=0, description="Construction cost per sq ft for insurance basis"
     )
 
     # Growth rates for multi-year projections
     rent_growth_rate: float = Field(
-        0.03,
-        ge=0,
-        le=0.10,
-        description="Annual rent growth rate (typical: 3%)"
+        0.03, ge=0, le=0.10, description="Annual rent growth rate (typical: 3%)"
     )
     expense_growth_rate: float = Field(
-        0.025,
-        ge=0,
-        le=0.10,
-        description="Annual expense growth rate (typical: 2.5%)"
+        0.025, ge=0, le=0.10, description="Annual expense growth rate (typical: 2.5%)"
     )
 
 
@@ -183,13 +154,13 @@ class OperatingExpenses(BaseModel):
     def total(self) -> float:
         """Total annual operating expenses."""
         return (
-            self.property_tax +
-            self.insurance +
-            self.management +
-            self.utilities +
-            self.maintenance +
-            self.reserves +
-            self.marketing
+            self.property_tax
+            + self.insurance
+            + self.management
+            + self.utilities
+            + self.maintenance
+            + self.reserves
+            + self.marketing
         )
 
 
@@ -214,32 +185,23 @@ class RevenueProjection(BaseModel):
 
     # Rent breakdown
     market_rents: Dict[str, float] = Field(
-        ...,
-        description="Market rents by bedroom type (studio, 1br, 2br, etc.)"
+        ..., description="Market rents by bedroom type (studio, 1br, 2br, etc.)"
     )
-    affordable_rents: Dict[str, float] = Field(
-        ...,
-        description="Affordable rents by bedroom type"
-    )
+    affordable_rents: Dict[str, float] = Field(..., description="Affordable rents by bedroom type")
 
     # Multi-year projections (optional)
     projections: Optional[List[Dict[str, float]]] = Field(
-        None,
-        description="Multi-year NOI projections with growth"
+        None, description="Multi-year NOI projections with growth"
     )
 
     # Source documentation
     source_notes: Dict[str, Any] = Field(
-        default_factory=dict,
-        description="Source documentation for all assumptions"
+        default_factory=dict, description="Source documentation for all assumptions"
     )
 
 
 async def calculate_market_rents(
-    zip_code: str,
-    unit_mix: Dict[int, int],
-    quality_factor: float,
-    hud_client: HudFMRClient
+    zip_code: str, unit_mix: Dict[int, int], quality_factor: float, hud_client: HudFMRClient
 ) -> tuple[Dict[str, float], FMRData]:
     """
     Calculate market rents using HUD FMR data with quality adjustments.
@@ -267,8 +229,7 @@ async def calculate_market_rents(
         2BR rent: $2815
     """
     logger.info(
-        "Calculating market rents",
-        extra={"zip_code": zip_code, "quality_factor": quality_factor}
+        "Calculating market rents", extra={"zip_code": zip_code, "quality_factor": quality_factor}
     )
 
     # Fetch FMR data
@@ -276,13 +237,7 @@ async def calculate_market_rents(
 
     # Calculate rents by bedroom type with quality adjustment
     market_rents = {}
-    bedroom_labels = {
-        0: "studio",
-        1: "1br",
-        2: "2br",
-        3: "3br",
-        4: "4br"
-    }
+    bedroom_labels = {0: "studio", 1: "1br", 2: "2br", 3: "3br", 4: "4br"}
 
     for bedrooms, count in unit_mix.items():
         if count > 0:
@@ -303,8 +258,8 @@ async def calculate_market_rents(
                     "base_fmr": base_fmr,
                     "quality_factor": quality_factor,
                     "adjusted_rent": adjusted_rent,
-                    "is_safmr": fmr_data.smallarea_status == 1
-                }
+                    "is_safmr": fmr_data.smallarea_status == 1,
+                },
             )
 
     return market_rents, fmr_data
@@ -315,7 +270,7 @@ def calculate_affordable_rents(
     unit_mix_affordable: Dict[int, int],
     ami_percentages: List[float],
     utility_allowance: float,
-    ami_calculator: AMICalculator
+    ami_calculator: AMICalculator,
 ) -> Dict[str, float]:
     """
     Calculate affordable rents using AMI calculator.
@@ -345,18 +300,12 @@ def calculate_affordable_rents(
         extra={
             "county": county,
             "ami_percentages": ami_percentages,
-            "utility_allowance": utility_allowance
-        }
+            "utility_allowance": utility_allowance,
+        },
     )
 
     affordable_rents = {}
-    bedroom_labels = {
-        0: "studio",
-        1: "1br",
-        2: "2br",
-        3: "3br",
-        4: "4br"
-    }
+    bedroom_labels = {0: "studio", 1: "1br", 2: "2br", 3: "3br", 4: "4br"}
 
     for bedrooms, count in unit_mix_affordable.items():
         if count > 0:
@@ -367,7 +316,7 @@ def calculate_affordable_rents(
                     county=county,
                     ami_pct=ami_pct,
                     bedrooms=bedrooms,
-                    utility_allowance=utility_allowance
+                    utility_allowance=utility_allowance,
                 )
                 rents.append(rent_result.max_rent_no_utilities)
 
@@ -384,8 +333,8 @@ def calculate_affordable_rents(
                     "bedrooms": bedrooms,
                     "ami_percentages": ami_percentages,
                     "rents_by_ami": rents,
-                    "avg_rent": avg_rent
-                }
+                    "avg_rent": avg_rent,
+                },
             )
 
     return affordable_rents
@@ -395,7 +344,7 @@ def calculate_gross_income(
     market_rents: Dict[str, float],
     affordable_rents: Dict[str, float],
     market_unit_mix: Dict[int, int],
-    affordable_unit_mix: Dict[int, int]
+    affordable_unit_mix: Dict[int, int],
 ) -> float:
     """
     Calculate annual Gross Potential Income (GPI).
@@ -441,10 +390,7 @@ def calculate_gross_income(
     return gpi
 
 
-def calculate_property_tax(
-    assessed_value: float,
-    tax_rate: float
-) -> float:
+def calculate_property_tax(assessed_value: float, tax_rate: float) -> float:
     """
     Calculate annual property tax (California Prop 13).
 
@@ -475,7 +421,7 @@ def calculate_operating_expenses(
     total_buildable_sqft: float,
     assessed_value: float,
     effective_gross_income: float,
-    assumptions: EconomicAssumptions
+    assumptions: EconomicAssumptions,
 ) -> OperatingExpenses:
     """
     Calculate annual operating expenses.
@@ -529,14 +475,12 @@ def calculate_operating_expenses(
         utilities=utilities,
         maintenance=maintenance,
         reserves=reserves,
-        marketing=marketing
+        marketing=marketing,
     )
 
 
 def calculate_noi(
-    gross_potential_income: float,
-    vacancy_rate: float,
-    operating_expenses: OperatingExpenses
+    gross_potential_income: float, vacancy_rate: float, operating_expenses: OperatingExpenses
 ) -> tuple[float, float, float]:
     """
     Calculate Net Operating Income (NOI).
@@ -572,7 +516,7 @@ def project_revenue_stream(
     base_expenses: float,
     rent_growth_rate: float,
     expense_growth_rate: float,
-    years: int = 10
+    years: int = 10,
 ) -> List[Dict[str, float]]:
     """
     Project NOI over multiple years with growth rates.
@@ -608,12 +552,7 @@ def project_revenue_stream(
         expenses = base_expenses * ((1 + expense_growth_rate) ** (year - 1))
         noi = gpi - expenses
 
-        projections.append({
-            "year": year,
-            "gpi": gpi,
-            "operating_expenses": expenses,
-            "noi": noi
-        })
+        projections.append({"year": year, "gpi": gpi, "operating_expenses": expenses, "noi": noi})
 
     return projections
 
@@ -626,7 +565,7 @@ async def estimate_revenue(
     hud_client: Optional[HudFMRClient] = None,
     ami_calculator: Optional[AMICalculator] = None,
     include_projections: bool = False,
-    projection_years: int = 10
+    projection_years: int = 10,
 ) -> RevenueProjection:
     """
     Estimate annual revenue and NOI for residential development.
@@ -666,18 +605,17 @@ async def estimate_revenue(
     # Initialize clients if not provided
     if hud_client is None:
         from app.clients.hud_fmr_client import get_hud_fmr_client
+
         hud_client = get_hud_fmr_client()
 
     if ami_calculator is None:
         from app.services.ami_calculator import get_ami_calculator
+
         ami_calculator = get_ami_calculator()
 
     # Calculate market rents
     market_rents, fmr_data = await calculate_market_rents(
-        inputs.zip_code,
-        inputs.market_unit_mix,
-        inputs.quality_factor,
-        hud_client
+        inputs.zip_code, inputs.market_unit_mix, inputs.quality_factor, hud_client
     )
 
     # Calculate affordable rents
@@ -686,15 +624,12 @@ async def estimate_revenue(
         inputs.affordable_unit_mix,
         inputs.ami_percentages,
         inputs.utility_allowance,
-        ami_calculator
+        ami_calculator,
     )
 
     # Calculate GPI
     gpi = calculate_gross_income(
-        market_rents,
-        affordable_rents,
-        inputs.market_unit_mix,
-        inputs.affordable_unit_mix
+        market_rents, affordable_rents, inputs.market_unit_mix, inputs.affordable_unit_mix
     )
 
     # Calculate vacancy loss and EGI
@@ -703,11 +638,7 @@ async def estimate_revenue(
 
     # Calculate operating expenses
     operating_expenses = calculate_operating_expenses(
-        inputs.total_units,
-        total_buildable_sqft,
-        assessed_value,
-        egi,
-        assumptions
+        inputs.total_units, total_buildable_sqft, assessed_value, egi, assumptions
     )
 
     # Calculate NOI
@@ -726,14 +657,14 @@ async def estimate_revenue(
             operating_expenses.total,
             assumptions.rent_growth_rate,
             assumptions.expense_growth_rate,
-            projection_years
+            projection_years,
         )
 
     # Build source notes
     quality_description = (
-        "Class C (below market)" if inputs.quality_factor < 0.9
-        else "Class B (market average)" if inputs.quality_factor < 1.0
-        else "Class A (above market)"
+        "Class C (below market)"
+        if inputs.quality_factor < 0.9
+        else "Class B (market average)" if inputs.quality_factor < 1.0 else "Class A (above market)"
     )
 
     source_notes = {
@@ -750,12 +681,12 @@ async def estimate_revenue(
             "insurance": f"{assumptions.insurance_rate:.2%} of replacement cost",
             "utilities": f"${assumptions.utilities_per_unit_annual}/unit/year (landlord-paid)",
             "reserves": f"${assumptions.reserves_per_unit_annual}/unit/year",
-            "marketing": f"${assumptions.marketing_per_unit_annual}/unit/year"
+            "marketing": f"${assumptions.marketing_per_unit_annual}/unit/year",
         },
         "growth_rates": {
             "rent_growth": f"{assumptions.rent_growth_rate:.1%}",
-            "expense_growth": f"{assumptions.expense_growth_rate:.1%}"
-        }
+            "expense_growth": f"{assumptions.expense_growth_rate:.1%}",
+        },
     }
 
     logger.info(
@@ -765,8 +696,8 @@ async def estimate_revenue(
             "egi": egi,
             "noi": noi,
             "noi_per_unit": noi_per_unit,
-            "is_safmr": fmr_data.smallarea_status == 1
-        }
+            "is_safmr": fmr_data.smallarea_status == 1,
+        },
     )
 
     return RevenueProjection(
@@ -781,5 +712,5 @@ async def estimate_revenue(
         market_rents=market_rents,
         affordable_rents=affordable_rents,
         projections=projections,
-        source_notes=source_notes
+        source_notes=source_notes,
     )

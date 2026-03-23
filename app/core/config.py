@@ -1,6 +1,7 @@
 """
 Configuration settings for the Parcel Feasibility Engine.
 """
+
 from pydantic import Field
 from pydantic_settings import BaseSettings
 from typing import Optional, List
@@ -28,7 +29,7 @@ class Settings(BaseSettings):
     # ============================================
     DATABASE_URL: str = Field(
         default="sqlite:///./parcel_feasibility.db",
-        description="Database connection string (PostgreSQL in production, SQLite in dev)"
+        description="Database connection string (PostgreSQL in production, SQLite in dev)",
     )
 
     # ============================================
@@ -38,7 +39,7 @@ class Settings(BaseSettings):
         "http://localhost:3000",
         "http://localhost:8000",
         "https://parcel-feasibility-engine.vercel.app",
-        "https://*.vercel.app"
+        "https://*.vercel.app",
     ]
 
     # ============================================
@@ -54,10 +55,18 @@ class Settings(BaseSettings):
     # GIS Service Endpoints
     # ============================================
     # Santa Monica GIS Services
-    SANTA_MONICA_PARCEL_SERVICE_URL: str = "https://gis.smgov.net/arcgis/rest/services/PublicWorks/Parcels/MapServer"
-    SANTA_MONICA_ZONING_SERVICE_URL: str = "https://gis.smgov.net/arcgis/rest/services/Planning/Zoning/MapServer"
-    SANTA_MONICA_OVERLAY_SERVICE_URL: str = "https://gis.smgov.net/arcgis/rest/services/Planning/Overlays/MapServer"
-    SANTA_MONICA_TRANSIT_SERVICE_URL: str = "https://gis.smgov.net/arcgis/rest/services/Transportation/Transit/MapServer"
+    SANTA_MONICA_PARCEL_SERVICE_URL: str = (
+        "https://gis.smgov.net/arcgis/rest/services/PublicWorks/Parcels/MapServer"
+    )
+    SANTA_MONICA_ZONING_SERVICE_URL: str = (
+        "https://gis.smgov.net/arcgis/rest/services/Planning/Zoning/MapServer"
+    )
+    SANTA_MONICA_OVERLAY_SERVICE_URL: str = (
+        "https://gis.smgov.net/arcgis/rest/services/Planning/Overlays/MapServer"
+    )
+    SANTA_MONICA_TRANSIT_SERVICE_URL: str = (
+        "https://gis.smgov.net/arcgis/rest/services/Transportation/Transit/MapServer"
+    )
 
     # Regional GIS Services
     SCAG_REGIONAL_SERVICE_URL: str = "https://gisdata.scag.ca.gov/arcgis/rest/services"
@@ -161,11 +170,7 @@ class Settings(BaseSettings):
     # ============================================
     ENVIRONMENT: str = "development"
 
-    model_config = {
-        "env_file": ".env",
-        "case_sensitive": True,
-        "extra": "ignore"
-    }
+    model_config = {"env_file": ".env", "case_sensitive": True, "extra": "ignore"}
 
     def is_feature_enabled(self, feature: str) -> bool:
         """Check if a specific feature flag is enabled."""

@@ -4,6 +4,7 @@ Admin API endpoints.
 Provides administrative functionality for cache management, system monitoring,
 and operations support.
 """
+
 from fastapi import APIRouter, HTTPException
 from typing import Dict, Any
 import logging
@@ -125,11 +126,8 @@ async def admin_health_check() -> Dict[str, Any]:
             "config": {
                 "environment": settings.ENVIRONMENT,
                 "log_level": settings.LOG_LEVEL,
-            }
+            },
         }
     except Exception as e:
         logger.error(f"Health check failed: {e}")
-        return {
-            "status": "unhealthy",
-            "error": str(e)
-        }
+        return {"status": "unhealthy", "error": str(e)}

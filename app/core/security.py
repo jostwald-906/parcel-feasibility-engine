@@ -1,6 +1,7 @@
 """
 Security utilities for authentication and password management.
 """
+
 from datetime import datetime, timedelta
 from typing import Optional
 from jose import jwt, JWTError
@@ -55,11 +56,7 @@ def create_access_token(user_id: int, expires_delta: Optional[timedelta] = None)
     else:
         expire = datetime.utcnow() + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
 
-    payload = {
-        "sub": str(user_id),
-        "exp": expire,
-        "type": "access"
-    }
+    payload = {"sub": str(user_id), "exp": expire, "type": "access"}
 
     return jwt.encode(payload, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
 
@@ -80,11 +77,7 @@ def create_refresh_token(user_id: int, expires_delta: Optional[timedelta] = None
     else:
         expire = datetime.utcnow() + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
 
-    payload = {
-        "sub": str(user_id),
-        "exp": expire,
-        "type": "refresh"
-    }
+    payload = {"sub": str(user_id), "exp": expire, "type": "refresh"}
 
     return jwt.encode(payload, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
 
@@ -121,9 +114,7 @@ def verify_token(token: str, token_type: str = "access") -> Optional[TokenPayloa
             return None
 
         return TokenPayload(
-            sub=int(user_id),
-            exp=datetime.fromtimestamp(exp),
-            type=payload.get("type")
+            sub=int(user_id), exp=datetime.fromtimestamp(exp), type=payload.get("type")
         )
 
     except JWTError:

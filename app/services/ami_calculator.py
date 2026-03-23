@@ -44,7 +44,7 @@ class AMILookup(BaseModel):
                 "county": "Los Angeles",
                 "ami_pct": 50.0,
                 "household_size": 2,
-                "income_limit": 42640.0
+                "income_limit": 42640.0,
             }
         }
 
@@ -71,7 +71,7 @@ class AffordableRent(BaseModel):
                 "income_limit": 47970.0,
                 "max_rent_with_utilities": 1199.25,
                 "max_rent_no_utilities": 1049.25,
-                "utility_allowance": 150.0
+                "utility_allowance": 150.0,
             }
         }
 
@@ -100,8 +100,8 @@ class AffordableSalesPrice(BaseModel):
                     "down_payment_pct": 10.0,
                     "property_tax_rate_pct": 1.25,
                     "insurance_rate_pct": 0.5,
-                    "hoa_monthly": 0.0
-                }
+                    "hoa_monthly": 0.0,
+                },
             }
         }
 
@@ -150,12 +150,7 @@ class AMICalculator:
         # Cache available counties for validation
         self.available_counties = set(self.ami_data["county"].unique())
 
-    def get_income_limit(
-        self,
-        county: str,
-        ami_pct: float,
-        household_size: int
-    ) -> float:
+    def get_income_limit(self, county: str, ami_pct: float, household_size: int) -> float:
         """
         Get income limit for county/AMI%/household size.
 
@@ -179,9 +174,9 @@ class AMICalculator:
 
         # Query DataFrame
         result = self.ami_data[
-            (self.ami_data["county"] == county) &
-            (self.ami_data["ami_pct"] == ami_pct) &
-            (self.ami_data["household_size"] == household_size)
+            (self.ami_data["county"] == county)
+            & (self.ami_data["ami_pct"] == ami_pct)
+            & (self.ami_data["household_size"] == household_size)
         ]
 
         if result.empty:
@@ -192,12 +187,7 @@ class AMICalculator:
 
         return float(result.iloc[0]["income_limit"])
 
-    def get_ami_lookup(
-        self,
-        county: str,
-        ami_pct: float,
-        household_size: int
-    ) -> AMILookup:
+    def get_ami_lookup(self, county: str, ami_pct: float, household_size: int) -> AMILookup:
         """
         Get AMI lookup with metadata.
 
@@ -212,18 +202,11 @@ class AMICalculator:
         income_limit = self.get_income_limit(county, ami_pct, household_size)
 
         return AMILookup(
-            county=county,
-            ami_pct=ami_pct,
-            household_size=household_size,
-            income_limit=income_limit
+            county=county, ami_pct=ami_pct, household_size=household_size, income_limit=income_limit
         )
 
     def calculate_max_rent(
-        self,
-        county: str,
-        ami_pct: float,
-        bedrooms: int,
-        utility_allowance: float = 150.0
+        self, county: str, ami_pct: float, bedrooms: int, utility_allowance: float = 150.0
     ) -> AffordableRent:
         """
         Calculate maximum affordable rent (30% of income standard).
@@ -274,7 +257,7 @@ class AMICalculator:
             income_limit=income_limit,
             max_rent_with_utilities=max_rent_with_utilities,
             max_rent_no_utilities=max_rent_no_utilities,
-            utility_allowance=utility_allowance
+            utility_allowance=utility_allowance,
         )
 
     def calculate_max_sales_price(
@@ -287,7 +270,7 @@ class AMICalculator:
         down_payment_pct: float = 10.0,
         property_tax_rate_pct: float = 1.25,
         insurance_rate_pct: float = 0.5,
-        hoa_monthly: float = 0.0
+        hoa_monthly: float = 0.0,
     ) -> AffordableSalesPrice:
         """
         Calculate maximum affordable sales price.
@@ -346,8 +329,11 @@ class AMICalculator:
         # Monthly payment factor for mortgage
         if monthly_interest_rate > 0:
             # Standard mortgage payment formula
-            mortgage_factor = monthly_interest_rate * (1 + monthly_interest_rate) ** loan_term_months / \
-                            ((1 + monthly_interest_rate) ** loan_term_months - 1)
+            mortgage_factor = (
+                monthly_interest_rate
+                * (1 + monthly_interest_rate) ** loan_term_months
+                / ((1 + monthly_interest_rate) ** loan_term_months - 1)
+            )
         else:
             # No interest case
             mortgage_factor = 1.0 / loan_term_months
@@ -383,7 +369,7 @@ class AMICalculator:
             "down_payment_pct": down_payment_pct,
             "property_tax_rate_pct": property_tax_rate_pct,
             "insurance_rate_pct": insurance_rate_pct,
-            "hoa_monthly": hoa_monthly
+            "hoa_monthly": hoa_monthly,
         }
 
         return AffordableSalesPrice(
@@ -392,7 +378,7 @@ class AMICalculator:
             household_size=household_size,
             income_limit=income_limit,
             max_sales_price=max_sales_price,
-            assumptions=assumptions
+            assumptions=assumptions,
         )
 
     def get_available_counties(self) -> List[str]:

@@ -4,11 +4,11 @@ Tests for API rate limiting.
 Tests verify that rate limits are properly enforced on critical endpoints
 to protect against abuse, excessive costs, and GIS service limits.
 """
+
 import pytest
 from fastapi.testclient import TestClient
 from app.main import app
 from app.core.rate_limit import RATE_LIMITS
-
 
 client = TestClient(app)
 
@@ -30,8 +30,12 @@ class TestRateLimitConfiguration:
             parts = limit.split("/")
             assert len(parts) == 2, f"Rate limit for {endpoint_type} should have 2 parts"
             assert parts[0].isdigit(), f"First part of {endpoint_type} limit should be a number"
-            assert parts[1] in ["second", "minute", "hour", "day"], \
-                f"Second part of {endpoint_type} limit should be a valid period"
+            assert parts[1] in [
+                "second",
+                "minute",
+                "hour",
+                "day",
+            ], f"Second part of {endpoint_type} limit should be a valid period"
 
 
 class TestAnalysisEndpointRateLimit:
@@ -90,8 +94,9 @@ class TestAnalysisEndpointRateLimit:
         # The 11th request should be rate limited (429)
         # Note: In test environment with memory storage, this might not always trigger
         # depending on test isolation and cleanup
-        assert 429 in responses or all(r in [200, 422, 500] for r in responses), \
-            "Expected rate limit 429 or all successful/error responses"
+        assert 429 in responses or all(
+            r in [200, 422, 500] for r in responses
+        ), "Expected rate limit 429 or all successful/error responses"
 
 
 class TestPDFExportRateLimit:
@@ -102,13 +107,15 @@ class TestPDFExportRateLimit:
         pdf_limit = int(RATE_LIMITS["pdf_export"].split("/")[0])
         analysis_limit = int(RATE_LIMITS["analysis"].split("/")[0])
 
-        assert pdf_limit < analysis_limit, \
-            "PDF export should have stricter (lower) rate limit than analysis"
+        assert (
+            pdf_limit < analysis_limit
+        ), "PDF export should have stricter (lower) rate limit than analysis"
 
     def test_pdf_export_rate_limit_value(self):
         """Test that PDF export rate limit is set to 5/minute."""
-        assert RATE_LIMITS["pdf_export"] == "5/minute", \
-            "PDF export should be limited to 5 requests per minute"
+        assert (
+            RATE_LIMITS["pdf_export"] == "5/minute"
+        ), "PDF export should be limited to 5 requests per minute"
 
 
 class TestAutocompleteRateLimit:
@@ -119,13 +126,15 @@ class TestAutocompleteRateLimit:
         autocomplete_limit = int(RATE_LIMITS["autocomplete"].split("/")[0])
         analysis_limit = int(RATE_LIMITS["analysis"].split("/")[0])
 
-        assert autocomplete_limit > analysis_limit, \
-            "Autocomplete should have higher (more permissive) rate limit than analysis"
+        assert (
+            autocomplete_limit > analysis_limit
+        ), "Autocomplete should have higher (more permissive) rate limit than analysis"
 
     def test_autocomplete_rate_limit_value(self):
         """Test that autocomplete rate limit is set to 30/minute."""
-        assert RATE_LIMITS["autocomplete"] == "30/minute", \
-            "Autocomplete should be limited to 30 requests per minute"
+        assert (
+            RATE_LIMITS["autocomplete"] == "30/minute"
+        ), "Autocomplete should be limited to 30 requests per minute"
 
 
 class TestRateLimitErrorResponse:
@@ -178,8 +187,7 @@ class TestRateLimitIntegration:
             responses.append(response.status_code)
 
         # All should succeed (200)
-        assert all(r == 200 for r in responses), \
-            "Health endpoint should not be rate limited"
+        assert all(r == 200 for r in responses), "Health endpoint should not be rate limited"
 
     def test_docs_endpoint_not_rate_limited(self):
         """Test that docs endpoint is not rate limited."""
@@ -190,8 +198,7 @@ class TestRateLimitIntegration:
             responses.append(response.status_code)
 
         # All should succeed (200)
-        assert all(r == 200 for r in responses), \
-            "Docs endpoint should not be rate limited"
+        assert all(r == 200 for r in responses), "Docs endpoint should not be rate limited"
 
 
 class TestRateLimitScenarios:

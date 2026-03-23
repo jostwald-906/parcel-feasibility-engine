@@ -1,6 +1,7 @@
 """
 Tests for Revenue Projection Service.
 """
+
 import pytest
 from unittest.mock import Mock, AsyncMock, patch
 from app.services.revenue_estimator import (
@@ -15,7 +16,7 @@ from app.services.revenue_estimator import (
     calculate_operating_expenses,
     calculate_noi,
     project_revenue_stream,
-    estimate_revenue
+    estimate_revenue,
 )
 from app.clients.hud_fmr_client import FMRData
 from app.services.ami_calculator import AMICalculator, AffordableRent
@@ -37,7 +38,7 @@ def sample_fmr_data():
         fmr_3br=3866.0,
         fmr_4br=4614.0,
         smallarea_status=1,  # SAFMR available
-        fmr_percentile=40
+        fmr_percentile=40,
     )
 
 
@@ -51,7 +52,7 @@ def sample_revenue_inputs():
         affordable_unit_mix={1: 5, 2: 5},
         ami_percentages=[50.0, 60.0, 80.0],
         quality_factor=1.0,
-        utility_allowance=150.0
+        utility_allowance=150.0,
     )
 
 
@@ -69,7 +70,7 @@ def sample_economic_assumptions():
         marketing_per_unit_annual=200.0,
         construction_cost_per_sqft=350.0,
         rent_growth_rate=0.03,
-        expense_growth_rate=0.025
+        expense_growth_rate=0.025,
     )
 
 
@@ -82,7 +83,7 @@ class TestRevenueInputs:
             zip_code="90401",
             county="Los Angeles",
             market_unit_mix={1: 10, 2: 15},
-            affordable_unit_mix={1: 3, 2: 2}
+            affordable_unit_mix={1: 3, 2: 2},
         )
 
         assert inputs.total_units == 30
@@ -96,13 +97,13 @@ class TestRevenueInputs:
             zip_code="90401",
             county="Los Angeles",
             market_unit_mix={1: 10},
-            quality_factor=0.8  # Class C
+            quality_factor=0.8,  # Class C
         )
         RevenueInputs(
             zip_code="90401",
             county="Los Angeles",
             market_unit_mix={1: 10},
-            quality_factor=1.2  # Class A
+            quality_factor=1.2,  # Class A
         )
 
         # Invalid quality factors
@@ -111,7 +112,7 @@ class TestRevenueInputs:
                 zip_code="90401",
                 county="Los Angeles",
                 market_unit_mix={1: 10},
-                quality_factor=0.5  # Too low
+                quality_factor=0.5,  # Too low
             )
 
         with pytest.raises(Exception):
@@ -119,7 +120,7 @@ class TestRevenueInputs:
                 zip_code="90401",
                 county="Los Angeles",
                 market_unit_mix={1: 10},
-                quality_factor=1.5  # Too high
+                quality_factor=1.5,  # Too high
             )
 
 
@@ -132,14 +133,18 @@ class TestMarketRentCalculation:
         mock_client = Mock()
         mock_client.get_fmr_by_zip = AsyncMock(return_value=sample_fmr_data)
         mock_client.get_fmr_for_bedroom = lambda data, br: {
-            0: 1823.0, 1: 2156.0, 2: 2815.0, 3: 3866.0, 4: 4614.0
+            0: 1823.0,
+            1: 2156.0,
+            2: 2815.0,
+            3: 3866.0,
+            4: 4614.0,
         }[br]
 
         market_rents, fmr_data = await calculate_market_rents(
             zip_code="90401",
             unit_mix={0: 5, 1: 10, 2: 15},
             quality_factor=1.0,
-            hud_client=mock_client
+            hud_client=mock_client,
         )
 
         # Quality factor 1.0 = no adjustment
@@ -153,15 +158,13 @@ class TestMarketRentCalculation:
         """Test calculating market rents with Class C quality (0.85)."""
         mock_client = Mock()
         mock_client.get_fmr_by_zip = AsyncMock(return_value=sample_fmr_data)
-        mock_client.get_fmr_for_bedroom = lambda data, br: {
-            0: 1823.0, 1: 2156.0, 2: 2815.0
-        }[br]
+        mock_client.get_fmr_for_bedroom = lambda data, br: {0: 1823.0, 1: 2156.0, 2: 2815.0}[br]
 
         market_rents, _ = await calculate_market_rents(
             zip_code="90401",
             unit_mix={1: 10, 2: 15},
             quality_factor=0.85,  # Class C (below market)
-            hud_client=mock_client
+            hud_client=mock_client,
         )
 
         # 15% discount from FMR
@@ -173,15 +176,13 @@ class TestMarketRentCalculation:
         """Test calculating market rents with Class A quality (1.15)."""
         mock_client = Mock()
         mock_client.get_fmr_by_zip = AsyncMock(return_value=sample_fmr_data)
-        mock_client.get_fmr_for_bedroom = lambda data, br: {
-            1: 2156.0, 2: 2815.0
-        }[br]
+        mock_client.get_fmr_for_bedroom = lambda data, br: {1: 2156.0, 2: 2815.0}[br]
 
         market_rents, _ = await calculate_market_rents(
             zip_code="90401",
             unit_mix={1: 10, 2: 15},
             quality_factor=1.15,  # Class A (above market)
-            hud_client=mock_client
+            hud_client=mock_client,
         )
 
         # 15% premium over FMR
@@ -209,7 +210,7 @@ class TestAffordableRentCalculation:
                 income_limit=50000 * ami_factor,
                 max_rent_with_utilities=base_rent * ami_factor + 150,
                 max_rent_no_utilities=base_rent * ami_factor,
-                utility_allowance=150.0
+                utility_allowance=150.0,
             )
 
         mock_calculator.calculate_max_rent = mock_calculate_max_rent
@@ -219,7 +220,7 @@ class TestAffordableRentCalculation:
             unit_mix_affordable={0: 2, 1: 5, 2: 8},
             ami_percentages=[50.0, 60.0, 80.0],
             utility_allowance=150.0,
-            ami_calculator=mock_calculator
+            ami_calculator=mock_calculator,
         )
 
         # Should have rents for each bedroom type
@@ -243,10 +244,7 @@ class TestGrossIncomeCalculation:
         affordable_unit_mix = {}
 
         gpi = calculate_gross_income(
-            market_rents,
-            affordable_rents,
-            market_unit_mix,
-            affordable_unit_mix
+            market_rents, affordable_rents, market_unit_mix, affordable_unit_mix
         )
 
         # GPI = (10 units × $2000 × 12) + (15 units × $2500 × 12)
@@ -261,10 +259,7 @@ class TestGrossIncomeCalculation:
         affordable_unit_mix = {1: 5, 2: 5}
 
         gpi = calculate_gross_income(
-            market_rents,
-            affordable_rents,
-            market_unit_mix,
-            affordable_unit_mix
+            market_rents, affordable_rents, market_unit_mix, affordable_unit_mix
         )
 
         # Market: (10 × 2000 × 12) + (15 × 2500 × 12) = 690,000
@@ -315,7 +310,7 @@ class TestOperatingExpensesCalculation:
             total_buildable_sqft=50_000,
             assessed_value=10_000_000,
             effective_gross_income=1_500_000,
-            assumptions=sample_economic_assumptions
+            assumptions=sample_economic_assumptions,
         )
 
         # Verify individual components
@@ -346,7 +341,7 @@ class TestNOICalculation:
             utilities=40_000,
             maintenance=60_000,
             reserves=25_000,
-            marketing=10_000
+            marketing=10_000,
         )
 
         vacancy, egi, noi = calculate_noi(gpi, vacancy_rate, expenses)
@@ -367,7 +362,7 @@ class TestNOICalculation:
             utilities=40_000,
             maintenance=60_000,
             reserves=25_000,
-            marketing=10_000
+            marketing=10_000,
         )
 
         vacancy, egi, noi = calculate_noi(gpi, vacancy_rate, expenses)
@@ -388,7 +383,7 @@ class TestRevenueProjections:
             base_expenses=500_000,
             rent_growth_rate=0.03,  # 3% rent growth
             expense_growth_rate=0.025,  # 2.5% expense growth
-            years=10
+            years=10,
         )
 
         assert len(projections) == 10
@@ -415,12 +410,12 @@ class TestRevenueProjections:
             base_expenses=500_000,
             rent_growth_rate=0.04,  # 4% rent growth
             expense_growth_rate=0.02,  # 2% expense growth
-            years=5
+            years=5,
         )
 
         # NOI should increase each year
         for i in range(1, len(projections)):
-            assert projections[i]["noi"] > projections[i-1]["noi"]
+            assert projections[i]["noi"] > projections[i - 1]["noi"]
 
 
 class TestFullRevenueEstimation:
@@ -428,18 +423,13 @@ class TestFullRevenueEstimation:
 
     @pytest.mark.asyncio
     async def test_estimate_revenue_complete(
-        self,
-        sample_revenue_inputs,
-        sample_economic_assumptions,
-        sample_fmr_data
+        self, sample_revenue_inputs, sample_economic_assumptions, sample_fmr_data
     ):
         """Test complete revenue estimation pipeline."""
         # Mock HUD client
         mock_hud_client = Mock()
         mock_hud_client.get_fmr_by_zip = AsyncMock(return_value=sample_fmr_data)
-        mock_hud_client.get_fmr_for_bedroom = lambda data, br: {
-            1: 2156.0, 2: 2815.0
-        }[br]
+        mock_hud_client.get_fmr_for_bedroom = lambda data, br: {1: 2156.0, 2: 2815.0}[br]
 
         # Mock AMI calculator
         mock_ami_calculator = Mock(spec=AMICalculator)
@@ -455,7 +445,7 @@ class TestFullRevenueEstimation:
                 income_limit=50000 * ami_factor,
                 max_rent_with_utilities=base_rent * ami_factor + 150,
                 max_rent_no_utilities=base_rent * ami_factor,
-                utility_allowance=150.0
+                utility_allowance=150.0,
             )
 
         mock_ami_calculator.calculate_max_rent = mock_calculate_max_rent
@@ -469,7 +459,7 @@ class TestFullRevenueEstimation:
             hud_client=mock_hud_client,
             ami_calculator=mock_ami_calculator,
             include_projections=True,
-            projection_years=10
+            projection_years=10,
         )
 
         # Verify structure
@@ -503,10 +493,7 @@ class TestFullRevenueEstimation:
 
     @pytest.mark.asyncio
     async def test_estimate_revenue_no_projections(
-        self,
-        sample_revenue_inputs,
-        sample_economic_assumptions,
-        sample_fmr_data
+        self, sample_revenue_inputs, sample_economic_assumptions, sample_fmr_data
     ):
         """Test revenue estimation without multi-year projections."""
         mock_hud_client = Mock()
@@ -523,7 +510,7 @@ class TestFullRevenueEstimation:
                 income_limit=50000,
                 max_rent_with_utilities=1400,
                 max_rent_no_utilities=1250,
-                utility_allowance=150
+                utility_allowance=150,
             )
         )
 
@@ -534,7 +521,7 @@ class TestFullRevenueEstimation:
             assumptions=sample_economic_assumptions,
             hud_client=mock_hud_client,
             ami_calculator=mock_ami_calculator,
-            include_projections=False
+            include_projections=False,
         )
 
         # Should not include projections
@@ -546,10 +533,7 @@ class TestSourceNotesDocumentation:
 
     @pytest.mark.asyncio
     async def test_source_notes_completeness(
-        self,
-        sample_revenue_inputs,
-        sample_economic_assumptions,
-        sample_fmr_data
+        self, sample_revenue_inputs, sample_economic_assumptions, sample_fmr_data
     ):
         """Test that source notes document all key assumptions."""
         mock_hud_client = Mock()
@@ -566,7 +550,7 @@ class TestSourceNotesDocumentation:
                 income_limit=50000,
                 max_rent_with_utilities=1400,
                 max_rent_no_utilities=1250,
-                utility_allowance=150
+                utility_allowance=150,
             )
         )
 
@@ -576,7 +560,7 @@ class TestSourceNotesDocumentation:
             assessed_value=15_000_000,
             assumptions=sample_economic_assumptions,
             hud_client=mock_hud_client,
-            ami_calculator=mock_ami_calculator
+            ami_calculator=mock_ami_calculator,
         )
 
         # Verify source notes

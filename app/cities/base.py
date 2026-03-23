@@ -19,6 +19,7 @@ from pydantic import BaseModel
 
 class ZoningCode(BaseModel):
     """Standard zoning code structure."""
+
     code: str
     description: str
     category: str
@@ -28,6 +29,7 @@ class ZoningCode(BaseModel):
 
 class GISServiceConfig(BaseModel):
     """GIS service connection configuration."""
+
     url: str
     layer_name: str
     layer_id: Optional[int] = None
@@ -38,6 +40,7 @@ class GISServiceConfig(BaseModel):
 
 class OverlayZone(BaseModel):
     """Overlay zone or special plan area."""
+
     name: str
     code: str
     description: str

@@ -43,15 +43,11 @@ class FMRData(BaseModel):
 
     # SAFMR indicator
     smallarea_status: int = Field(
-        ...,
-        description="Small Area FMR status (1=SAFMR available, 0=metro-wide FMR only)"
+        ..., description="Small Area FMR status (1=SAFMR available, 0=metro-wide FMR only)"
     )
 
     # Percentile data (optional)
-    fmr_percentile: Optional[int] = Field(
-        40,
-        description="FMR percentile (typically 40th)"
-    )
+    fmr_percentile: Optional[int] = Field(40, description="FMR percentile (typically 40th)")
 
 
 class HudFMRClient:
@@ -94,11 +90,7 @@ class HudFMRClient:
             await self._client.aclose()
             self._client = None
 
-    async def get_fmr_by_zip(
-        self,
-        zip_code: str,
-        year: Optional[int] = None
-    ) -> FMRData:
+    async def get_fmr_by_zip(self, zip_code: str, year: Optional[int] = None) -> FMRData:
         """
         Get FMR data for ZIP code.
 
@@ -136,7 +128,7 @@ class HudFMRClient:
 
         logger.info(
             "Fetching HUD FMR data via statedata endpoint",
-            extra={"zip_code": zip_code, "year": year, "predicted_metro": metro_name}
+            extra={"zip_code": zip_code, "year": year, "predicted_metro": metro_name},
         )
 
         # Fetch California statedata
@@ -172,14 +164,13 @@ class HudFMRClient:
                         metro_data = metro
                         logger.warning(
                             f"Using Los Angeles metro FMR as fallback for ZIP {zip_code}",
-                            extra={"zip_code": zip_code}
+                            extra={"zip_code": zip_code},
                         )
                         break
 
             if metro_data is None:
                 raise ValueError(
-                    f"Could not find FMR data for ZIP {zip_code}. "
-                    f"Predicted metro: {metro_name}"
+                    f"Could not find FMR data for ZIP {zip_code}. " f"Predicted metro: {metro_name}"
                 )
 
             # Parse FMR data
@@ -196,7 +187,7 @@ class HudFMRClient:
                 fmr_3br=float(metro_data["Three-Bedroom"]),
                 fmr_4br=float(metro_data["Four-Bedroom"]),
                 smallarea_status=int(metro_data["smallarea_status"]),
-                fmr_percentile=int(metro_data.get("FMR Percentile", 40))
+                fmr_percentile=int(metro_data.get("FMR Percentile", 40)),
             )
 
             logger.info(
@@ -205,8 +196,8 @@ class HudFMRClient:
                     "zip_code": zip_code,
                     "metro_name": fmr_data.metro_name,
                     "is_safmr": fmr_data.smallarea_status == 1,
-                    "fmr_2br": fmr_data.fmr_2br
-                }
+                    "fmr_2br": fmr_data.fmr_2br,
+                },
             )
 
             return fmr_data
@@ -214,17 +205,13 @@ class HudFMRClient:
         except httpx.HTTPStatusError as e:
             logger.error(
                 f"HUD API request failed: {e}",
-                extra={"zip_code": zip_code, "status_code": e.response.status_code}
+                extra={"zip_code": zip_code, "status_code": e.response.status_code},
             )
             raise ValueError(
-                f"Failed to fetch FMR data for ZIP {zip_code}: "
-                f"HTTP {e.response.status_code}"
+                f"Failed to fetch FMR data for ZIP {zip_code}: " f"HTTP {e.response.status_code}"
             )
         except Exception as e:
-            logger.error(
-                f"Error fetching HUD FMR data: {e}",
-                extra={"zip_code": zip_code}
-            )
+            logger.error(f"Error fetching HUD FMR data: {e}", extra={"zip_code": zip_code})
             raise
 
     def _zip_to_metro(self, zip_code: str) -> str:

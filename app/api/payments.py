@@ -1,6 +1,7 @@
 """
 Payment and subscription API endpoints.
 """
+
 from fastapi import APIRouter, Depends, HTTPException, status, Request, Header
 from sqlmodel import Session, select
 from typing import Optional
@@ -28,8 +29,7 @@ stripe_service = StripeService()
 
 @router.post("/create-checkout-session")
 async def create_checkout_session(
-    current_user: User = Depends(get_current_user),
-    session: Session = Depends(get_session)
+    current_user: User = Depends(get_current_user), session: Session = Depends(get_session)
 ):
     """
     Create a Stripe Checkout session for subscribing to Pro plan.
@@ -47,13 +47,15 @@ async def create_checkout_session(
     if not settings.STRIPE_SECRET_KEY or not settings.STRIPE_PRICE_ID_PRO:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Payment processing is not configured"
+            detail="Payment processing is not configured",
         )
 
     # Get or create Stripe customer
-    statement = select(Subscription).where(
-        Subscription.user_id == current_user.id
-    ).order_by(Subscription.created_at.desc())
+    statement = (
+        select(Subscription)
+        .where(Subscription.user_id == current_user.id)
+        .order_by(Subscription.created_at.desc())
+    )
 
     user_subscription = session.exec(statement).first()
 
@@ -68,7 +70,7 @@ async def create_checkout_session(
             stripe_customer = stripe_service.create_customer(
                 email=current_user.email,
                 name=current_user.full_name,
-                metadata={"user_id": str(current_user.id)}
+                metadata={"user_id": str(current_user.id)},
             )
             stripe_customer_id = stripe_customer.id
 
@@ -82,7 +84,7 @@ async def create_checkout_session(
             logger.error(f"Failed to create Stripe customer: {e}")
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Failed to create payment customer"
+                detail="Failed to create payment customer",
             )
 
     # Create checkout session
@@ -95,29 +97,22 @@ async def create_checkout_session(
             price_id=settings.STRIPE_PRICE_ID_PRO,
             success_url=success_url,
             cancel_url=cancel_url,
-            metadata={
-                "user_id": str(current_user.id),
-                "plan": SubscriptionPlan.PRO.value
-            }
+            metadata={"user_id": str(current_user.id), "plan": SubscriptionPlan.PRO.value},
         )
 
-        return {
-            "checkout_url": checkout_session.url,
-            "session_id": checkout_session.id
-        }
+        return {"checkout_url": checkout_session.url, "session_id": checkout_session.id}
 
     except stripe.error.StripeError as e:
         logger.error(f"Failed to create checkout session: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to create checkout session"
+            detail="Failed to create checkout session",
         )
 
 
 @router.post("/create-portal-session")
 async def create_portal_session(
-    current_user: User = Depends(get_current_user),
-    session: Session = Depends(get_session)
+    current_user: User = Depends(get_current_user), session: Session = Depends(get_session)
 ):
     """
     Create a Stripe Customer Portal session for managing subscription.
@@ -133,16 +128,17 @@ async def create_portal_session(
         HTTPException: If user has no subscription or portal creation fails
     """
     # Get user's subscription
-    statement = select(Subscription).where(
-        Subscription.user_id == current_user.id
-    ).order_by(Subscription.created_at.desc())
+    statement = (
+        select(Subscription)
+        .where(Subscription.user_id == current_user.id)
+        .order_by(Subscription.created_at.desc())
+    )
 
     user_subscription = session.exec(statement).first()
 
     if not user_subscription or not user_subscription.stripe_customer_id.startswith("cus_"):
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="No active subscription found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="No active subscription found"
         )
 
     # Create portal session
@@ -150,19 +146,16 @@ async def create_portal_session(
 
     try:
         portal_session = stripe_service.create_portal_session(
-            customer_id=user_subscription.stripe_customer_id,
-            return_url=return_url
+            customer_id=user_subscription.stripe_customer_id, return_url=return_url
         )
 
-        return {
-            "portal_url": portal_session.url
-        }
+        return {"portal_url": portal_session.url}
 
     except stripe.error.StripeError as e:
         logger.error(f"Failed to create portal session: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to create billing portal session"
+            detail="Failed to create billing portal session",
         )
 
 
@@ -170,7 +163,7 @@ async def create_portal_session(
 async def stripe_webhook(
     request: Request,
     stripe_signature: Optional[str] = Header(None, alias="stripe-signature"),
-    session: Session = Depends(get_session)
+    session: Session = Depends(get_session),
 ):
     """
     Handle Stripe webhook events.
@@ -194,8 +187,7 @@ async def stripe_webhook(
     """
     if not stripe_signature:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Missing stripe-signature header"
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Missing stripe-signature header"
         )
 
     # Read raw body
@@ -206,14 +198,10 @@ async def stripe_webhook(
         event = stripe_service.construct_webhook_event(payload, stripe_signature)
     except stripe.error.SignatureVerificationError:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid webhook signature"
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid webhook signature"
         )
     except ValueError as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e)
-        )
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
     # Handle different event types
     event_type = event.type
@@ -249,9 +237,11 @@ async def handle_checkout_completed(checkout_session, db_session: Session):
     user_id = int(checkout_session.metadata.get("user_id"))
 
     # Get or update subscription
-    statement = select(Subscription).where(
-        Subscription.user_id == user_id
-    ).order_by(Subscription.created_at.desc())
+    statement = (
+        select(Subscription)
+        .where(Subscription.user_id == user_id)
+        .order_by(Subscription.created_at.desc())
+    )
 
     subscription = db_session.exec(statement).first()
 
@@ -269,14 +259,18 @@ async def handle_checkout_completed(checkout_session, db_session: Session):
             stripe_customer_id=stripe_customer_id,
             stripe_subscription_id=stripe_subscription_id,
             status=SubscriptionStatus.ACTIVE,
-            plan=SubscriptionPlan.PRO
+            plan=SubscriptionPlan.PRO,
         )
 
     # Get subscription details from Stripe
     if stripe_subscription_id:
         stripe_subscription = stripe_service.get_subscription(stripe_subscription_id)
-        subscription.current_period_start = datetime.fromtimestamp(stripe_subscription.current_period_start)
-        subscription.current_period_end = datetime.fromtimestamp(stripe_subscription.current_period_end)
+        subscription.current_period_start = datetime.fromtimestamp(
+            stripe_subscription.current_period_start
+        )
+        subscription.current_period_end = datetime.fromtimestamp(
+            stripe_subscription.current_period_end
+        )
         subscription.cancel_at_period_end = stripe_subscription.cancel_at_period_end
 
     db_session.add(subscription)
@@ -302,7 +296,9 @@ async def handle_subscription_updated(stripe_subscription, db_session: Session):
 
     # Update subscription details
     subscription.status = SubscriptionStatus(stripe_subscription.status)
-    subscription.current_period_start = datetime.fromtimestamp(stripe_subscription.current_period_start)
+    subscription.current_period_start = datetime.fromtimestamp(
+        stripe_subscription.current_period_start
+    )
     subscription.current_period_end = datetime.fromtimestamp(stripe_subscription.current_period_end)
     subscription.cancel_at_period_end = stripe_subscription.cancel_at_period_end
     subscription.updated_at = datetime.utcnow()
@@ -310,7 +306,10 @@ async def handle_subscription_updated(stripe_subscription, db_session: Session):
     db_session.add(subscription)
     db_session.commit()
 
-    logger.info(f"Subscription updated: {stripe_subscription_id}", extra={"status": subscription.status.value})
+    logger.info(
+        f"Subscription updated: {stripe_subscription_id}",
+        extra={"status": subscription.status.value},
+    )
 
 
 async def handle_subscription_deleted(stripe_subscription, db_session: Session):
@@ -363,14 +362,13 @@ async def handle_payment_failed(invoice, db_session: Session):
 
     logger.warning(
         f"Payment failed for subscription: {stripe_subscription_id}",
-        extra={"user_id": subscription.user_id}
+        extra={"user_id": subscription.user_id},
     )
 
 
 @router.get("/subscription", response_model=SubscriptionResponse)
 async def get_subscription(
-    current_user: User = Depends(get_current_user),
-    session: Session = Depends(get_session)
+    current_user: User = Depends(get_current_user), session: Session = Depends(get_session)
 ) -> SubscriptionResponse:
     """
     Get current user's subscription details.
@@ -385,17 +383,16 @@ async def get_subscription(
     Raises:
         HTTPException: If no subscription found
     """
-    statement = select(Subscription).where(
-        Subscription.user_id == current_user.id
-    ).order_by(Subscription.created_at.desc())
+    statement = (
+        select(Subscription)
+        .where(Subscription.user_id == current_user.id)
+        .order_by(Subscription.created_at.desc())
+    )
 
     subscription = session.exec(statement).first()
 
     if not subscription:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="No subscription found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No subscription found")
 
     return SubscriptionResponse(
         id=subscription.id,
@@ -405,14 +402,13 @@ async def get_subscription(
         current_period_start=subscription.current_period_start,
         current_period_end=subscription.current_period_end,
         cancel_at_period_end=subscription.cancel_at_period_end,
-        stripe_customer_id=subscription.stripe_customer_id
+        stripe_customer_id=subscription.stripe_customer_id,
     )
 
 
 @router.get("/usage", response_model=UsageStats)
 async def get_usage_stats(
-    current_user: User = Depends(get_current_user),
-    session: Session = Depends(get_session)
+    current_user: User = Depends(get_current_user), session: Session = Depends(get_session)
 ) -> UsageStats:
     """
     Get current user's API usage statistics.
@@ -425,41 +421,47 @@ async def get_usage_stats(
         Usage statistics (total analyses, monthly analyses, last analysis)
     """
     # Get subscription for billing period
-    subscription_statement = select(Subscription).where(
-        Subscription.user_id == current_user.id
-    ).order_by(Subscription.created_at.desc())
+    subscription_statement = (
+        select(Subscription)
+        .where(Subscription.user_id == current_user.id)
+        .order_by(Subscription.created_at.desc())
+    )
 
     subscription = session.exec(subscription_statement).first()
 
     # Count total analyses
     total_statement = select(APIUsage).where(
-        APIUsage.user_id == current_user.id,
-        APIUsage.endpoint.like("%/analyze%")
+        APIUsage.user_id == current_user.id, APIUsage.endpoint.like("%/analyze%")
     )
 
     total_analyses = len(session.exec(total_statement).all())
 
     # Count this month's analyses
-    period_start = subscription.current_period_start if subscription and subscription.current_period_start else datetime.utcnow().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    period_start = (
+        subscription.current_period_start
+        if subscription and subscription.current_period_start
+        else datetime.utcnow().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    )
 
     monthly_statement = select(APIUsage).where(
         APIUsage.user_id == current_user.id,
         APIUsage.endpoint.like("%/analyze%"),
-        APIUsage.timestamp >= period_start
+        APIUsage.timestamp >= period_start,
     )
 
     analyses_this_month = len(session.exec(monthly_statement).all())
 
     # Get last analysis
-    last_statement = select(APIUsage).where(
-        APIUsage.user_id == current_user.id,
-        APIUsage.endpoint.like("%/analyze%")
-    ).order_by(APIUsage.timestamp.desc())
+    last_statement = (
+        select(APIUsage)
+        .where(APIUsage.user_id == current_user.id, APIUsage.endpoint.like("%/analyze%"))
+        .order_by(APIUsage.timestamp.desc())
+    )
 
     last_usage = session.exec(last_statement).first()
 
     return UsageStats(
         total_analyses=total_analyses,
         analyses_this_month=analyses_this_month,
-        last_analysis=last_usage.timestamp if last_usage else None
+        last_analysis=last_usage.timestamp if last_usage else None,
     )

@@ -41,6 +41,7 @@ logger = logging.getLogger(__name__)
 
 class RentControlLookupError(Exception):
     """Raised when rent control lookup fails"""
+
     pass
 
 
@@ -78,11 +79,11 @@ def _read_from_cache(street_number: str, street_name: str) -> Optional[List[Dict
             return None
 
         # Read cache file
-        with open(cache_path, 'r') as f:
+        with open(cache_path, "r") as f:
             cached = json.load(f)
 
         # Check expiration
-        cached_at = datetime.fromisoformat(cached['cached_at'])
+        cached_at = datetime.fromisoformat(cached["cached_at"])
         expires_at = cached_at + timedelta(hours=CACHE_TTL_HOURS)
 
         if datetime.now() > expires_at:
@@ -91,7 +92,7 @@ def _read_from_cache(street_number: str, street_name: str) -> Optional[List[Dict
             return None
 
         logger.info(f"Cache hit for {street_number} {street_name} (cached {cached_at.isoformat()})")
-        return cached['data']
+        return cached["data"]
 
     except Exception as e:
         logger.warning(f"Error reading cache: {e}")
@@ -105,12 +106,12 @@ def _write_to_cache(street_number: str, street_name: str, data: List[Dict[str, s
         cache_path = _get_cache_path(cache_key)
 
         cache_data = {
-            'address': f"{street_number} {street_name}",
-            'cached_at': datetime.now().isoformat(),
-            'data': data
+            "address": f"{street_number} {street_name}",
+            "cached_at": datetime.now().isoformat(),
+            "data": data,
         }
 
-        with open(cache_path, 'w') as f:
+        with open(cache_path, "w") as f:
             json.dump(cache_data, f, indent=2)
 
         logger.info(f"Cached rent control data for {street_number} {street_name}")
@@ -123,7 +124,7 @@ def lookup_mar(
     street_number: str,
     street_name: str,
     use_cache: bool = True,
-    timeout: int = DEFAULT_TIMEOUT_SECONDS
+    timeout: int = DEFAULT_TIMEOUT_SECONDS,
 ) -> List[Dict[str, str]]:
     """
     Query Santa Monica's Maximum Allowable Rent database.
@@ -155,15 +156,13 @@ def lookup_mar(
     url = "https://www.smgov.net/departments/rentcontrol/mar.aspx"
 
     try:
-        logger.info(f"Fetching rent control data for {street_number} {street_name} (timeout: {timeout}s)")
+        logger.info(
+            f"Fetching rent control data for {street_number} {street_name} (timeout: {timeout}s)"
+        )
 
         # Create cloudscraper session to bypass Cloudflare
         scraper = cloudscraper.create_scraper(
-            browser={
-                'browser': 'chrome',
-                'platform': 'windows',
-                'mobile': False
-            }
+            browser={"browser": "chrome", "platform": "windows", "mobile": False}
         )
 
         # Step 1: GET initial page to extract hidden form fields
@@ -171,26 +170,28 @@ def lookup_mar(
         response = scraper.get(url, timeout=timeout)
         response.raise_for_status()
 
-        soup = BeautifulSoup(response.text, 'html.parser')
+        soup = BeautifulSoup(response.text, "html.parser")
 
         # Extract ASP.NET WebForms hidden fields
-        viewstate = soup.find('input', {'name': '__VIEWSTATE'})
-        viewstate_generator = soup.find('input', {'name': '__VIEWSTATEGENERATOR'})
-        event_validation = soup.find('input', {'name': '__EVENTVALIDATION'})
+        viewstate = soup.find("input", {"name": "__VIEWSTATE"})
+        viewstate_generator = soup.find("input", {"name": "__VIEWSTATEGENERATOR"})
+        event_validation = soup.find("input", {"name": "__EVENTVALIDATION"})
 
         if not viewstate or not viewstate_generator:
-            raise RentControlLookupError("Failed to extract form hidden fields - page structure may have changed")
+            raise RentControlLookupError(
+                "Failed to extract form hidden fields - page structure may have changed"
+            )
 
         logger.debug("Step 2: Submitting search request")
 
         # Step 2: Construct POST payload with search parameters
         payload = {
-            '__VIEWSTATE': viewstate.get('value', ''),
-            '__VIEWSTATEGENERATOR': viewstate_generator.get('value', ''),
-            '__EVENTVALIDATION': event_validation.get('value', '') if event_validation else '',
-            '__EVENTTARGET': 'ctl00$mainContent$btnSearch',
-            'ctl00$mainContent$txtStNumber': street_number,
-            'ctl00$mainContent$txtStreet': street_name,
+            "__VIEWSTATE": viewstate.get("value", ""),
+            "__VIEWSTATEGENERATOR": viewstate_generator.get("value", ""),
+            "__EVENTVALIDATION": event_validation.get("value", "") if event_validation else "",
+            "__EVENTTARGET": "ctl00$mainContent$btnSearch",
+            "ctl00$mainContent$txtStNumber": street_number,
+            "ctl00$mainContent$txtStreet": street_name,
         }
 
         # Step 3: POST search request
@@ -199,37 +200,41 @@ def lookup_mar(
 
         # Step 4: Parse results table
         logger.debug("Step 3: Parsing results")
-        soup = BeautifulSoup(response.text, 'html.parser')
-        results_table = soup.find('table', {'id': 'ctl00_mainContent_gvAddress'})
+        soup = BeautifulSoup(response.text, "html.parser")
+        results_table = soup.find("table", {"id": "ctl00_mainContent_gvAddress"})
 
         if not results_table:
             # Check for "no results" message
-            no_results = soup.find(string=re.compile(r'no records found|no results', re.IGNORECASE))
+            no_results = soup.find(string=re.compile(r"no records found|no results", re.IGNORECASE))
             if no_results:
                 logger.info(f"No rent control records found for {street_number} {street_name}")
                 # Cache empty result to avoid repeated lookups
                 _write_to_cache(street_number, street_name, [])
                 return []
-            raise RentControlLookupError(f"No rent control data found for {street_number} {street_name}")
+            raise RentControlLookupError(
+                f"No rent control data found for {street_number} {street_name}"
+            )
 
         # Parse table rows
         units = []
-        rows = results_table.find_all('tr')
+        rows = results_table.find_all("tr")
 
         for row in rows[1:]:  # Skip header row
-            cells = row.find_all('td')
+            cells = row.find_all("td")
             if len(cells) >= 6:
                 unit_data = {
-                    'address': cells[0].get_text(strip=True),
-                    'unit': cells[1].get_text(strip=True),
-                    'mar': cells[2].get_text(strip=True),
-                    'tenancy_date': cells[3].get_text(strip=True),
-                    'bedrooms': cells[4].get_text(strip=True),
-                    'parcel': cells[5].get_text(strip=True),
+                    "address": cells[0].get_text(strip=True),
+                    "unit": cells[1].get_text(strip=True),
+                    "mar": cells[2].get_text(strip=True),
+                    "tenancy_date": cells[3].get_text(strip=True),
+                    "bedrooms": cells[4].get_text(strip=True),
+                    "parcel": cells[5].get_text(strip=True),
                 }
                 units.append(unit_data)
 
-        logger.info(f"Successfully retrieved {len(units)} rent control units for {street_number} {street_name}")
+        logger.info(
+            f"Successfully retrieved {len(units)} rent control units for {street_number} {street_name}"
+        )
 
         # Cache successful result
         _write_to_cache(street_number, street_name, units)
@@ -246,7 +251,9 @@ def lookup_mar(
         raise RentControlLookupError(error_msg)
 
 
-def get_mar_summary(street_number: str, street_name: str, use_cache: bool = True) -> Optional[Dict[str, any]]:
+def get_mar_summary(
+    street_number: str, street_name: str, use_cache: bool = True
+) -> Optional[Dict[str, any]]:
     """
     Get a summary of rent control data for an address.
 
@@ -270,18 +277,18 @@ def get_mar_summary(street_number: str, street_name: str, use_cache: bool = True
 
         if not units:
             return {
-                'is_rent_controlled': False,
-                'total_units': 0,
-                'avg_mar': None,
-                'units': [],
-                'status': 'not_found',
-                'error_message': None
+                "is_rent_controlled": False,
+                "total_units": 0,
+                "avg_mar": None,
+                "units": [],
+                "status": "not_found",
+                "error_message": None,
             }
 
         # Parse MAR values
         mar_values = []
         for unit in units:
-            mar_str = unit['mar'].replace('$', '').replace(',', '').strip()
+            mar_str = unit["mar"].replace("$", "").replace(",", "").strip()
             try:
                 mar_val = float(mar_str)
                 if mar_val > 0:  # Exclude $0 (exempt units)
@@ -292,31 +299,31 @@ def get_mar_summary(street_number: str, street_name: str, use_cache: bool = True
         avg_mar = sum(mar_values) / len(mar_values) if mar_values else None
 
         return {
-            'is_rent_controlled': True,
-            'total_units': len(units),
-            'avg_mar': round(avg_mar, 2) if avg_mar else None,
-            'units': units,
-            'status': 'success',
-            'error_message': None
+            "is_rent_controlled": True,
+            "total_units": len(units),
+            "avg_mar": round(avg_mar, 2) if avg_mar else None,
+            "units": units,
+            "status": "success",
+            "error_message": None,
         }
 
     except RentControlLookupError as e:
         logger.warning(f"Rent control lookup error: {e}")
         return {
-            'is_rent_controlled': None,  # Unknown status
-            'total_units': 0,
-            'avg_mar': None,
-            'units': [],
-            'status': 'error',
-            'error_message': str(e)
+            "is_rent_controlled": None,  # Unknown status
+            "total_units": 0,
+            "avg_mar": None,
+            "units": [],
+            "status": "error",
+            "error_message": str(e),
         }
     except Exception as e:
         logger.error(f"Unexpected error in get_mar_summary: {e}")
         return {
-            'is_rent_controlled': None,
-            'total_units': 0,
-            'avg_mar': None,
-            'units': [],
-            'status': 'error',
-            'error_message': f"Unexpected error: {e}"
+            "is_rent_controlled": None,
+            "total_units": 0,
+            "avg_mar": None,
+            "units": [],
+            "status": "error",
+            "error_message": f"Unexpected error: {e}",
         }

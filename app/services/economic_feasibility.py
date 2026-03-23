@@ -49,7 +49,7 @@ from app.models.economic_feasibility import (
     ConstructionCostEstimate,
     RevenueProjection,
     TimelineInputs,
-    RevenueInputs
+    RevenueInputs,
 )
 
 from app.services.cost_estimator import estimate_construction_cost
@@ -86,7 +86,7 @@ def _estimate_revenue_simple(
     num_units: int,
     buildable_sf: float,
     assumptions: EconomicAssumptions,
-    affordable_pct: float = 0.0
+    affordable_pct: float = 0.0,
 ) -> float:
     """
     Simplified revenue estimate for NPV calculation.
@@ -138,10 +138,7 @@ def _estimate_revenue_simple(
 
 
 def _create_npv_function(
-    base_params: Dict[str, Any],
-    num_units: int,
-    buildable_sf: float,
-    affordable_pct: float
+    base_params: Dict[str, Any], num_units: int, buildable_sf: float, affordable_pct: float
 ) -> Callable[[Dict[str, Any]], float]:
     """
     Create NPV calculation function for sensitivity analysis.
@@ -157,24 +154,27 @@ def _create_npv_function(
     Returns:
         Function that calculates NPV given parameters
     """
+
     def calculate_scenario_npv(params: Dict[str, Any]) -> float:
         """Calculate NPV for a given parameter set."""
         # Extract assumptions from params
-        assumptions = params.get('assumptions', base_params['assumptions'])
+        assumptions = params.get("assumptions", base_params["assumptions"])
 
         # Calculate costs
-        cost_per_sf = params.get('cost_per_sf', base_params['cost_per_sf'])
-        quality_factor = params.get('quality_factor', base_params.get('quality_factor', 1.0))
+        cost_per_sf = params.get("cost_per_sf", base_params["cost_per_sf"])
+        quality_factor = params.get("quality_factor", base_params.get("quality_factor", 1.0))
         total_cost = buildable_sf * cost_per_sf * quality_factor
 
         # Calculate revenue (NOI)
-        rent_per_sf = params.get('avg_rent_per_sf_month', assumptions.avg_rent_per_sf_month)
+        rent_per_sf = params.get("avg_rent_per_sf_month", assumptions.avg_rent_per_sf_month)
 
         # Create modified assumptions
         modified_assumptions = EconomicAssumptions(**assumptions.model_dump())
         modified_assumptions.avg_rent_per_sf_month = rent_per_sf
-        modified_assumptions.exit_cap_rate = params.get('exit_cap_rate', assumptions.exit_cap_rate)
-        modified_assumptions.rent_growth_rate = params.get('rent_growth_rate', assumptions.rent_growth_rate)
+        modified_assumptions.exit_cap_rate = params.get("exit_cap_rate", assumptions.exit_cap_rate)
+        modified_assumptions.rent_growth_rate = params.get(
+            "rent_growth_rate", assumptions.rent_growth_rate
+        )
 
         # Calculate NOI
         annual_noi = _estimate_revenue_simple(
@@ -182,7 +182,7 @@ def _create_npv_function(
         )
 
         # Adjust for construction delay
-        construction_delay_months = params.get('construction_delay_months', 0)
+        construction_delay_months = params.get("construction_delay_months", 0)
         construction_months = assumptions.construction_months + construction_delay_months
 
         # Generate cash flows
@@ -190,7 +190,7 @@ def _create_npv_function(
             predevelopment_months=assumptions.predevelopment_months,
             construction_months=int(construction_months),
             lease_up_months=assumptions.lease_up_months,
-            operations_years=assumptions.holding_period_years
+            operations_years=assumptions.holding_period_years,
         )
 
         cash_flows_data = generate_development_cash_flows(
@@ -198,7 +198,7 @@ def _create_npv_function(
             annual_noi=annual_noi,
             timeline=timeline,
             exit_cap_rate=modified_assumptions.exit_cap_rate,
-            soft_cost_pct=assumptions.soft_cost_pct
+            soft_cost_pct=assumptions.soft_cost_pct,
         )
 
         # Extract cash flow amounts (skip period 0 which is initial investment)
@@ -208,7 +208,7 @@ def _create_npv_function(
         npv = calculate_npv(
             cash_flows=cf_amounts,
             discount_rate=assumptions.discount_rate,
-            initial_investment=total_cost
+            initial_investment=total_cost,
         )
 
         return npv
@@ -272,7 +272,7 @@ async def analyze_economic_feasibility(
         construction_type="wood_frame",  # Default, could be parameterized
         location_factor=2.3,  # California coastal market
         permit_fees_per_unit=5000.0,
-        construction_duration_months=assumptions.construction_months
+        construction_duration_months=assumptions.construction_months,
     )
 
     cost_assumptions = CostAssumptions(
@@ -280,23 +280,18 @@ async def analyze_economic_feasibility(
         architecture_pct=assumptions.soft_cost_pct * 0.50,  # 50% of soft costs is A&E
         legal_pct=assumptions.soft_cost_pct * 0.20,  # 20% of soft costs is legal
         developer_fee_pct=assumptions.soft_cost_pct * 0.30,  # 30% of soft costs is dev fee
-        contingency_pct=assumptions.contingency_pct
+        contingency_pct=assumptions.contingency_pct,
     )
 
     cost_estimate = await estimate_construction_cost(
-        inputs=construction_inputs,
-        assumptions=cost_assumptions,
-        fred_client=fred_client
+        inputs=construction_inputs, assumptions=cost_assumptions, fred_client=fred_client
     )
 
     # Step 2: Project revenue (simplified)
     logger.info("Projecting revenue and NOI...")
 
     annual_noi = _estimate_revenue_simple(
-        request.num_units,
-        buildable_sf,
-        assumptions,
-        request.affordable_pct
+        request.num_units, buildable_sf, assumptions, request.affordable_pct
     )
 
     # Create simple revenue projection model (to be enhanced with full revenue_estimator)
@@ -320,7 +315,13 @@ async def analyze_economic_feasibility(
     affordable_rent_discount = None
     if affordable_units > 0:
         # Affordable discount estimate: 40% below market
-        affordable_rent_discount = affordable_units * request.avg_unit_size_sf * assumptions.avg_rent_per_sf_month * 12 * 0.40
+        affordable_rent_discount = (
+            affordable_units
+            * request.avg_unit_size_sf
+            * assumptions.avg_rent_per_sf_month
+            * 12
+            * 0.40
+        )
 
     revenue_projection = RevenueProjection(
         gross_scheduled_income=gross_scheduled_income,
@@ -339,8 +340,8 @@ async def analyze_economic_feasibility(
             "methodology": "Simplified revenue projection using average rent per SF",
             "market_rent_assumption": f"${assumptions.avg_rent_per_sf_month:.2f}/SF/month",
             "vacancy_rate": f"{assumptions.vacancy_rate*100:.1f}%",
-            "opex_per_unit": f"${assumptions.opex_per_unit_annual:,.0f}/year"
-        }
+            "opex_per_unit": f"${assumptions.opex_per_unit_annual:,.0f}/year",
+        },
     )
 
     # Step 3: Generate cash flows
@@ -350,7 +351,7 @@ async def analyze_economic_feasibility(
         predevelopment_months=assumptions.predevelopment_months,
         construction_months=assumptions.construction_months,
         lease_up_months=assumptions.lease_up_months,
-        operations_years=assumptions.holding_period_years
+        operations_years=assumptions.holding_period_years,
     )
 
     cash_flows_data = generate_development_cash_flows(
@@ -358,7 +359,7 @@ async def analyze_economic_feasibility(
         annual_noi=annual_noi,
         timeline=timeline,
         exit_cap_rate=assumptions.exit_cap_rate,
-        soft_cost_pct=assumptions.soft_cost_pct
+        soft_cost_pct=assumptions.soft_cost_pct,
     )
 
     # Convert to API model
@@ -368,7 +369,7 @@ async def analyze_economic_feasibility(
             description=cf.description,
             amount=cf.amount,
             cumulative=cf.cumulative,
-            phase=cf.phase
+            phase=cf.phase,
         )
         for cf in cash_flows_data
     ]
@@ -382,17 +383,13 @@ async def analyze_economic_feasibility(
     npv = calculate_npv(
         cash_flows=cf_amounts,
         discount_rate=assumptions.discount_rate,
-        initial_investment=cost_estimate.total_cost
+        initial_investment=cost_estimate.total_cost,
     )
 
-    irr = calculate_irr(
-        cash_flows=cf_amounts,
-        initial_investment=cost_estimate.total_cost
-    )
+    irr = calculate_irr(cash_flows=cf_amounts, initial_investment=cost_estimate.total_cost)
 
     payback = calculate_payback_period(
-        cash_flows=cf_amounts,
-        initial_investment=cost_estimate.total_cost
+        cash_flows=cf_amounts, initial_investment=cost_estimate.total_cost
     )
 
     pi = calculate_profitability_index(npv, cost_estimate.total_cost)
@@ -408,7 +405,7 @@ async def analyze_economic_feasibility(
         profitability_index=pi,
         initial_investment=cost_estimate.total_cost,
         total_cash_returned=total_cash_returned,
-        discount_rate=assumptions.discount_rate
+        discount_rate=assumptions.discount_rate,
     )
 
     logger.info(f"NPV: {format_currency(npv)}, IRR: {format_percentage(irr) if irr else 'N/A'}")
@@ -424,7 +421,7 @@ async def analyze_economic_feasibility(
             base_npv=npv,
             buildable_sf=buildable_sf,
             cost_per_sf=cost_estimate.cost_per_buildable_sf,
-            assumptions=assumptions
+            assumptions=assumptions,
         )
 
     # Step 6: Generate recommendation
@@ -433,8 +430,12 @@ async def analyze_economic_feasibility(
     recommendation, rationale = _generate_recommendation(
         npv=npv,
         irr=irr,
-        probability_positive=sensitivity_analysis.monte_carlo.probability_positive_npv if sensitivity_analysis and sensitivity_analysis.monte_carlo else None,
-        hurdle_rate=assumptions.hurdle_rate
+        probability_positive=(
+            sensitivity_analysis.monte_carlo.probability_positive_npv
+            if sensitivity_analysis and sensitivity_analysis.monte_carlo
+            else None
+        ),
+        hurdle_rate=assumptions.hurdle_rate,
     )
 
     # Step 7: Compile source notes
@@ -442,7 +443,7 @@ async def analyze_economic_feasibility(
         cost_estimate=cost_estimate,
         revenue_projection=revenue_projection,
         assumptions=assumptions,
-        fred_client=fred_client
+        fred_client=fred_client,
     )
 
     # Create request summary
@@ -454,7 +455,7 @@ async def analyze_economic_feasibility(
         "affordable_units": affordable_units,
         "market_units": market_units,
         "parcel_apn": request.parcel_apn,
-        "parcel_county": request.parcel_county
+        "parcel_county": request.parcel_county,
     }
 
     # Build final response
@@ -468,7 +469,7 @@ async def analyze_economic_feasibility(
         recommendation=recommendation,
         recommendation_rationale=rationale,
         source_notes=source_notes,
-        analysis_date=datetime.now()
+        analysis_date=datetime.now(),
     )
 
     logger.info(f"Feasibility analysis complete. Recommendation: {recommendation}")
@@ -481,7 +482,7 @@ async def _run_sensitivity_analysis(
     base_npv: float,
     buildable_sf: float,
     cost_per_sf: float,
-    assumptions: EconomicAssumptions
+    assumptions: EconomicAssumptions,
 ) -> SensitivityAnalysis:
     """
     Run tornado and/or Monte Carlo sensitivity analysis.
@@ -501,13 +502,13 @@ async def _run_sensitivity_analysis(
 
     # Create base scenario parameters
     base_params = {
-        'assumptions': assumptions,
-        'cost_per_sf': cost_per_sf,
-        'quality_factor': assumptions.quality_factor,
-        'avg_rent_per_sf_month': assumptions.avg_rent_per_sf_month,
-        'exit_cap_rate': assumptions.exit_cap_rate,
-        'rent_growth_rate': assumptions.rent_growth_rate,
-        'construction_delay_months': 0
+        "assumptions": assumptions,
+        "cost_per_sf": cost_per_sf,
+        "quality_factor": assumptions.quality_factor,
+        "avg_rent_per_sf_month": assumptions.avg_rent_per_sf_month,
+        "exit_cap_rate": assumptions.exit_cap_rate,
+        "rent_growth_rate": assumptions.rent_growth_rate,
+        "construction_delay_months": 0,
     }
 
     # Create NPV function
@@ -515,7 +516,7 @@ async def _run_sensitivity_analysis(
         base_params=base_params,
         num_units=request.num_units,
         buildable_sf=buildable_sf,
-        affordable_pct=request.affordable_pct
+        affordable_pct=request.affordable_pct,
     )
 
     # Tornado sensitivity analysis
@@ -527,31 +528,26 @@ async def _run_sensitivity_analysis(
         if not variables_to_test:
             # Use default variables
             from app.models.economic import SensitivityVariable
+
             variables_to_test = [
                 SensitivityVariable(
-                    variable_name='cost_per_sf',
-                    label='Construction Cost per SF',
-                    delta_pct=0.15
+                    variable_name="cost_per_sf", label="Construction Cost per SF", delta_pct=0.15
                 ),
                 SensitivityVariable(
-                    variable_name='avg_rent_per_sf_month',
-                    label='Market Rent per SF',
-                    delta_pct=0.15
+                    variable_name="avg_rent_per_sf_month",
+                    label="Market Rent per SF",
+                    delta_pct=0.15,
                 ),
                 SensitivityVariable(
-                    variable_name='exit_cap_rate',
-                    label='Exit Cap Rate',
-                    delta_pct=0.20
+                    variable_name="exit_cap_rate", label="Exit Cap Rate", delta_pct=0.20
                 ),
                 SensitivityVariable(
-                    variable_name='rent_growth_rate',
-                    label='Rent Growth Rate',
-                    delta_pct=0.33
+                    variable_name="rent_growth_rate", label="Rent Growth Rate", delta_pct=0.33
                 ),
                 SensitivityVariable(
-                    variable_name='construction_delay_months',
-                    label='Construction Delay (months)',
-                    delta_pct=0.50
+                    variable_name="construction_delay_months",
+                    label="Construction Delay (months)",
+                    delta_pct=0.50,
                 ),
             ]
 
@@ -561,7 +557,7 @@ async def _run_sensitivity_analysis(
                 variable_name=var.variable_name,
                 base_value=base_params[var.variable_name],
                 delta_pct=var.delta_pct,
-                label=var.label
+                label=var.label,
             )
             for var in variables_to_test
         ]
@@ -569,7 +565,7 @@ async def _run_sensitivity_analysis(
         tornado_results_raw = calculate_tornado_sensitivity(
             base_scenario=base_params,
             variables_to_test=sensitivity_inputs,
-            npv_function=npv_function
+            npv_function=npv_function,
         )
 
         # Convert to API model
@@ -584,12 +580,14 @@ async def _run_sensitivity_analysis(
                 upside_value=result.upside_value,
                 upside_npv=result.upside_npv,
                 impact=result.impact,
-                rank=i + 1
+                rank=i + 1,
             )
             for i, result in enumerate(tornado_results_raw)
         ]
 
-        logger.info(f"Tornado analysis complete. Most sensitive: {tornado_results[0].label if tornado_results else 'N/A'}")
+        logger.info(
+            f"Tornado analysis complete. Most sensitive: {tornado_results[0].label if tornado_results else 'N/A'}"
+        )
 
     # Monte Carlo simulation
     if request.run_monte_carlo:
@@ -599,6 +597,7 @@ async def _run_sensitivity_analysis(
         mc_config = request.monte_carlo_config
         if not mc_config:
             from app.models.economic import MonteCarloConfig
+
             mc_config = MonteCarloConfig()
 
         # Convert to MonteCarloInputs for financial_math
@@ -611,13 +610,11 @@ async def _run_sensitivity_analysis(
             cap_rate_mode=mc_config.cap_rate_mode,
             cap_rate_max=mc_config.cap_rate_max,
             construction_delay_mean=mc_config.construction_delay_mean,
-            construction_delay_std=mc_config.construction_delay_std
+            construction_delay_std=mc_config.construction_delay_std,
         )
 
         mc_result = run_monte_carlo_simulation(
-            base_params=base_params,
-            monte_carlo_inputs=mc_inputs,
-            npv_function=npv_function
+            base_params=base_params, monte_carlo_inputs=mc_inputs, npv_function=npv_function
         )
 
         # Convert to API model
@@ -632,7 +629,7 @@ async def _run_sensitivity_analysis(
             percentile_75=mc_result.percentile_75,
             percentile_95=mc_result.percentile_95,
             histogram_bins=mc_result.histogram_bins.tolist(),
-            histogram_counts=mc_result.histogram_counts.tolist()
+            histogram_counts=mc_result.histogram_counts.tolist(),
         )
 
         logger.info(
@@ -640,17 +637,14 @@ async def _run_sensitivity_analysis(
             f"Mean NPV = {format_currency(mc_result.mean_npv)}"
         )
 
-    return SensitivityAnalysis(
-        tornado_results=tornado_results,
-        monte_carlo=monte_carlo_stats
-    )
+    return SensitivityAnalysis(tornado_results=tornado_results, monte_carlo=monte_carlo_stats)
 
 
 def _generate_recommendation(
     npv: float,
     irr: Optional[float],
     probability_positive: Optional[float],
-    hurdle_rate: float = 0.15
+    hurdle_rate: float = 0.15,
 ) -> tuple[str, List[str]]:
     """
     Generate investment recommendation based on financial metrics.
@@ -678,7 +672,7 @@ def _generate_recommendation(
         return "DO NOT PROCEED", [
             f"Negative NPV of {format_currency(npv)} indicates project destroys value",
             "Project does not meet minimum financial viability threshold",
-            "Consider alternative development strategies or site uses"
+            "Consider alternative development strategies or site uses",
         ]
 
     # Add positive NPV to rationale
@@ -691,10 +685,12 @@ def _generate_recommendation(
                 *rationale,
                 f"IRR of {format_percentage(irr, 2)} is below hurdle rate of {format_percentage(hurdle_rate, 2)}",
                 "Returns may not adequately compensate for development risk",
-                "Consider value engineering or alternative revenue strategies"
+                "Consider value engineering or alternative revenue strategies",
             ]
         else:
-            rationale.append(f"IRR of {format_percentage(irr, 2)} exceeds hurdle rate of {format_percentage(hurdle_rate, 2)}")
+            rationale.append(
+                f"IRR of {format_percentage(irr, 2)} exceeds hurdle rate of {format_percentage(hurdle_rate, 2)}"
+            )
 
     # Monte Carlo risk check
     if probability_positive is not None:
@@ -703,10 +699,12 @@ def _generate_recommendation(
                 *rationale,
                 f"Monte Carlo analysis shows only {probability_positive*100:.1f}% probability of positive NPV",
                 "High uncertainty suggests significant downside risk",
-                "Recommend additional due diligence and risk mitigation strategies"
+                "Recommend additional due diligence and risk mitigation strategies",
             ]
         else:
-            rationale.append(f"Monte Carlo analysis shows {probability_positive*100:.1f}% probability of positive returns")
+            rationale.append(
+                f"Monte Carlo analysis shows {probability_positive*100:.1f}% probability of positive returns"
+            )
 
     # Strong proceed conditions
     if irr is not None and probability_positive is not None:
@@ -715,7 +713,7 @@ def _generate_recommendation(
                 *rationale,
                 "Excellent risk-adjusted returns with high probability of success",
                 "Project demonstrates strong financial feasibility",
-                "Recommend proceeding with development"
+                "Recommend proceeding with development",
             ]
 
     # Default: Proceed with caveats
@@ -723,7 +721,7 @@ def _generate_recommendation(
         *rationale,
         "Project demonstrates financial viability under base case assumptions",
         "Monitor key sensitivities (construction cost, market rents, cap rates)",
-        "Recommend detailed market study and ongoing feasibility updates"
+        "Recommend detailed market study and ongoing feasibility updates",
     ]
 
 
@@ -731,7 +729,7 @@ def _compile_source_notes(
     cost_estimate: ConstructionCostEstimate,
     revenue_projection: RevenueProjection,
     assumptions: EconomicAssumptions,
-    fred_client: FREDClient
+    fred_client: FREDClient,
 ) -> Dict[str, Any]:
     """
     Compile comprehensive source notes for audit trail.
@@ -751,13 +749,10 @@ def _compile_source_notes(
     source_notes = {
         "analysis_methodology": "Discounted Cash Flow (DCF) analysis with sensitivity testing",
         "analysis_date": datetime.now().isoformat(),
-
         # Cost sources
         "construction_costs": cost_estimate.source_notes,
-
         # Revenue sources
         "revenue_projections": revenue_projection.source_notes,
-
         # Assumptions documentation
         "economic_assumptions": {
             "discount_rate": f"{assumptions.discount_rate*100:.1f}% (WACC proxy)",
@@ -770,17 +765,15 @@ def _compile_source_notes(
             "opex_per_unit": f"${assumptions.opex_per_unit_annual:,.0f}/year",
             "property_tax_rate": f"{assumptions.property_tax_rate*100:.2f}% (Prop 13)",
             "exit_cap_rate": f"{assumptions.exit_cap_rate*100:.1f}%",
-            "holding_period": f"{assumptions.holding_period_years} years"
+            "holding_period": f"{assumptions.holding_period_years} years",
         },
-
         # Timeline
         "development_timeline": {
             "predevelopment": f"{assumptions.predevelopment_months} months",
             "construction": f"{assumptions.construction_months} months",
             "lease_up": f"{assumptions.lease_up_months} months",
-            "operations": f"{assumptions.holding_period_years} years before sale"
+            "operations": f"{assumptions.holding_period_years} years before sale",
         },
-
         # Data sources
         "data_sources": [
             "FRED (Federal Reserve Economic Data) for PPI and interest rates",
@@ -788,17 +781,16 @@ def _compile_source_notes(
             "HUD Fair Market Rent data for revenue assumptions",
             "California HCD Income Limits for affordable housing calculations",
             "Real Estate Finance and Investment Manual (methodology)",
-            "Urban Land Institute Dollars & Cents of Development (benchmarks)"
+            "Urban Land Institute Dollars & Cents of Development (benchmarks)",
         ],
-
         # Disclaimers
         "disclaimers": [
             "This analysis is a preliminary feasibility estimate based on assumed inputs",
             "Actual costs and revenues will vary based on market conditions, design, and execution",
             "Recommend detailed market study, architectural programming, and cost estimating",
             "Financial projections are not guarantees of future performance",
-            "This analysis does not constitute investment advice"
-        ]
+            "This analysis does not constitute investment advice",
+        ],
     }
 
     return source_notes

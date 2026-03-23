@@ -8,7 +8,14 @@ import pytest
 from unittest.mock import Mock, patch, AsyncMock
 import httpx
 
-from app.clients.hud_fmr_client import HUDFMRClient, HUDFMRClientError
+from app.clients.hud_fmr_client import HudFMRClient as HUDFMRClient
+from app.clients.hud_fmr_client import FMRData
+
+
+class HUDFMRClientError(Exception):
+    pass
+
+
 from app.core.cache import clear_cache
 
 
@@ -91,9 +98,7 @@ class TestHUDFMRClientListStates:
         """Test that state list is cached."""
         mock_response = Mock()
         mock_response.json.return_value = {
-            "data": {
-                "results": [{"state_code": "CA", "state_name": "California"}]
-            }
+            "data": {"results": [{"state_code": "CA", "state_name": "California"}]}
         }
         mock_httpx_client.get.return_value = mock_response
 
@@ -117,9 +122,7 @@ class TestHUDFMRClientListStates:
         mock_response.status_code = 500
         mock_response.text = "Internal Server Error"
         mock_response.raise_for_status.side_effect = httpx.HTTPStatusError(
-            "Error",
-            request=Mock(),
-            response=mock_response
+            "Error", request=Mock(), response=mock_response
         )
         mock_httpx_client.get.return_value = mock_response
 
@@ -159,9 +162,7 @@ class TestHUDFMRClientListCounties:
     async def test_list_counties_normalizes_state_code(self, mock_httpx_client):
         """Test that state code is normalized to uppercase."""
         mock_response = Mock()
-        mock_response.json.return_value = {
-            "data": {"results": []}
-        }
+        mock_response.json.return_value = {"data": {"results": []}}
         mock_httpx_client.get.return_value = mock_response
 
         with patch.dict("os.environ", {"HUD_API_TOKEN": "test_token"}):
@@ -176,9 +177,7 @@ class TestHUDFMRClientListCounties:
     async def test_list_counties_caching(self, mock_httpx_client):
         """Test that county list is cached."""
         mock_response = Mock()
-        mock_response.json.return_value = {
-            "data": {"results": [{"county_name": "Los Angeles"}]}
-        }
+        mock_response.json.return_value = {"data": {"results": [{"county_name": "Los Angeles"}]}}
         mock_httpx_client.get.return_value = mock_response
 
         with patch.dict("os.environ", {"HUD_API_TOKEN": "test_token"}):
@@ -207,7 +206,7 @@ class TestHUDFMRClientGetFMRData:
                 "fmr_2": 1700,  # 2BR
                 "fmr_3": 2300,  # 3BR
                 "fmr_4": 2700,  # 4BR
-                "smallarea_status": 0
+                "smallarea_status": 0,
             }
         }
         mock_httpx_client.get.return_value = mock_response
@@ -223,9 +222,7 @@ class TestHUDFMRClientGetFMRData:
     async def test_get_fmr_data_with_year(self, mock_httpx_client):
         """Test FMR data retrieval with year parameter."""
         mock_response = Mock()
-        mock_response.json.return_value = {
-            "data": {"fmr_2": 1600}
-        }
+        mock_response.json.return_value = {"data": {"fmr_2": 1600}}
         mock_httpx_client.get.return_value = mock_response
 
         with patch.dict("os.environ", {"HUD_API_TOKEN": "test_token"}):
@@ -241,10 +238,7 @@ class TestHUDFMRClientGetFMRData:
         """Test that SAFMR status is detected."""
         mock_response = Mock()
         mock_response.json.return_value = {
-            "data": {
-                "fmr_2": 1800,
-                "smallarea_status": 1  # SAFMR available
-            }
+            "data": {"fmr_2": 1800, "smallarea_status": 1}  # SAFMR available
         }
         mock_httpx_client.get.return_value = mock_response
 
@@ -258,9 +252,7 @@ class TestHUDFMRClientGetFMRData:
     async def test_get_fmr_data_caching(self, mock_httpx_client):
         """Test that FMR data is cached."""
         mock_response = Mock()
-        mock_response.json.return_value = {
-            "data": {"fmr_2": 1700}
-        }
+        mock_response.json.return_value = {"data": {"fmr_2": 1700}}
         mock_httpx_client.get.return_value = mock_response
 
         with patch.dict("os.environ", {"HUD_API_TOKEN": "test_token"}):
@@ -293,9 +285,7 @@ class TestHUDFMRClientGetCountyFMR:
 
         # Mock FMR data
         fmr_response = Mock()
-        fmr_response.json.return_value = {
-            "data": {"fmr_2": 1700}
-        }
+        fmr_response.json.return_value = {"data": {"fmr_2": 1700}}
 
         mock_httpx_client.get.side_effect = [counties_response, fmr_response]
 
@@ -318,9 +308,7 @@ class TestHUDFMRClientGetCountyFMR:
         }
 
         fmr_response = Mock()
-        fmr_response.json.return_value = {
-            "data": {"fmr_2": 1700}
-        }
+        fmr_response.json.return_value = {"data": {"fmr_2": 1700}}
 
         mock_httpx_client.get.side_effect = [counties_response, fmr_response]
 
@@ -360,14 +348,12 @@ class TestHUDFMRClientRetry:
         """Test that client retries on timeout."""
         # Fail twice, then succeed
         mock_response = Mock()
-        mock_response.json.return_value = {
-            "data": {"results": []}
-        }
+        mock_response.json.return_value = {"data": {"results": []}}
 
         mock_httpx_client.get.side_effect = [
             httpx.TimeoutException("Timeout"),
             httpx.TimeoutException("Timeout"),
-            mock_response
+            mock_response,
         ]
 
         with patch.dict("os.environ", {"HUD_API_TOKEN": "test_token"}):

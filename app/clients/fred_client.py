@@ -19,20 +19,28 @@ import pandas as pd
 from fredapi import Fred
 from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
 
-from app.core.cache import (
-    generate_cache_key,
-    load_from_cache,
-    save_to_cache,
-    get_cache_dir
-)
+from app.core.cache import generate_cache_key, load_from_cache, save_to_cache, get_cache_dir
 from app.core.config import settings
 from app.utils.logging import get_logger
 
 logger = get_logger(__name__)
 
+from dataclasses import dataclass
+from datetime import date as date_type
+
+
+@dataclass
+class FredObservation:
+    """A single FRED data observation."""
+
+    date: date_type
+    value: float
+    series_id: str
+
 
 class FREDClientError(Exception):
     """Base exception for FRED client errors."""
+
     pass
 
 
@@ -48,7 +56,7 @@ class FREDClient:
     SUPPORTED_SERIES = {
         "WPUSI012011": "Producer Price Index for new multi-unit residential construction",
         "ECICONWAG": "Employment Cost Index for construction wages",
-        "DGS10": "10-Year Treasury Constant Maturity Rate"
+        "DGS10": "10-Year Treasury Constant Maturity Rate",
     }
 
     def __init__(self, api_key: Optional[str] = None, cache_ttl_hours: int = 24):
@@ -68,10 +76,7 @@ class FREDClient:
         self.cache_ttl_hours = cache_ttl_hours
         self._fred_client: Optional[Fred] = None
 
-        logger.info(
-            "FRED client initialized",
-            extra={"cache_ttl_hours": cache_ttl_hours}
-        )
+        logger.info("FRED client initialized", extra={"cache_ttl_hours": cache_ttl_hours})
 
     @property
     def fred(self) -> Fred:
@@ -84,13 +89,13 @@ class FREDClient:
         stop=stop_after_attempt(3),
         wait=wait_exponential(multiplier=1, min=2, max=10),
         retry=retry_if_exception_type(Exception),
-        reraise=True
+        reraise=True,
     )
     def get_series(
         self,
         series_id: str,
         observation_start: Optional[str] = None,
-        observation_end: Optional[str] = None
+        observation_end: Optional[str] = None,
     ) -> pd.Series:
         """
         Get a FRED time series with caching.
@@ -123,14 +128,14 @@ class FREDClient:
                 extra={
                     "series_id": series_id,
                     "cached_at": cached["cached_at"],
-                    "observations": len(cached["data"]["values"])
-                }
+                    "observations": len(cached["data"]["values"]),
+                },
             )
             # Reconstruct pandas Series from cached data
             return pd.Series(
                 data=cached["data"]["values"],
                 index=pd.to_datetime(cached["data"]["index"]),
-                name=series_id
+                name=series_id,
             )
 
         # Fetch from FRED API
@@ -139,21 +144,19 @@ class FREDClient:
             extra={
                 "series_id": series_id,
                 "observation_start": observation_start,
-                "observation_end": observation_end
-            }
+                "observation_end": observation_end,
+            },
         )
 
         try:
             series = self.fred.get_series(
-                series_id,
-                observation_start=observation_start,
-                observation_end=observation_end
+                series_id, observation_start=observation_start, observation_end=observation_end
             )
 
             # Save to cache
             cache_data = {
                 "index": series.index.strftime("%Y-%m-%d").tolist(),
-                "values": series.tolist()
+                "values": series.tolist(),
             }
             save_to_cache(
                 "fred",
@@ -164,8 +167,8 @@ class FREDClient:
                     "series_name": self.SUPPORTED_SERIES[series_id],
                     "observation_start": observation_start,
                     "observation_end": observation_end,
-                    "observations": len(series)
-                }
+                    "observations": len(series),
+                },
             )
 
             logger.info(
@@ -174,17 +177,14 @@ class FREDClient:
                     "series_id": series_id,
                     "observations": len(series),
                     "start_date": str(series.index[0]),
-                    "end_date": str(series.index[-1])
-                }
+                    "end_date": str(series.index[-1]),
+                },
             )
 
             return series
 
         except Exception as e:
-            logger.error(
-                f"Failed to fetch FRED series: {e}",
-                extra={"series_id": series_id}
-            )
+            logger.error(f"Failed to fetch FRED series: {e}", extra={"series_id": series_id})
             raise FREDClientError(f"Failed to fetch FRED series {series_id}: {e}")
 
     def get_latest_value(self, series_id: str) -> Tuple[float, datetime]:
@@ -215,11 +215,7 @@ class FREDClient:
 
         logger.info(
             f"Retrieved latest value for FRED series",
-            extra={
-                "series_id": series_id,
-                "value": latest_value,
-                "as_of_date": str(latest_date)
-            }
+            extra={"series_id": series_id, "value": latest_value, "as_of_date": str(latest_date)},
         )
 
         return float(latest_value), latest_date.to_pydatetime()
@@ -237,11 +233,7 @@ class FREDClient:
         if series_id not in self.SUPPORTED_SERIES:
             raise FREDClientError(f"Unsupported FRED series: {series_id}")
 
-        return {
-            "series_id": series_id,
-            "name": self.SUPPORTED_SERIES[series_id],
-            "supported": True
-        }
+        return {"series_id": series_id, "name": self.SUPPORTED_SERIES[series_id], "supported": True}
 
     def get_current_indices(self):
         """
@@ -277,8 +269,8 @@ class FREDClient:
                 series_ids={
                     "materials_ppi": "WPUSI012011",
                     "risk_free_rate": "DGS10",
-                    "construction_wages": "ECICONWAG"
-                }
+                    "construction_wages": "ECICONWAG",
+                },
             )
         except Exception as e:
             logger.error(f"Failed to fetch current indices: {e}")

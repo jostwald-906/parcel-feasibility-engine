@@ -1,13 +1,10 @@
 """
 Tests for HUD Fair Market Rent (FMR) API Client.
 """
+
 import pytest
 from unittest.mock import Mock, AsyncMock, patch
-from app.clients.hud_fmr_client import (
-    HudFMRClient,
-    FMRData,
-    get_hud_fmr_client
-)
+from app.clients.hud_fmr_client import HudFMRClient, FMRData, get_hud_fmr_client
 
 
 @pytest.fixture
@@ -27,7 +24,7 @@ def mock_hud_response():
                 "Two-Bedroom": "2815",
                 "Three-Bedroom": "3866",
                 "Four-Bedroom": "4614",
-                "smallarea_status": "1"
+                "smallarea_status": "1",
             }
         }
     }
@@ -50,7 +47,7 @@ def mock_hud_response_no_safmr():
                 "Two-Bedroom": "1250",
                 "Three-Bedroom": "1600",
                 "Four-Bedroom": "1850",
-                "smallarea_status": "0"
+                "smallarea_status": "0",
             }
         }
     }
@@ -221,7 +218,7 @@ class TestFMRBedroomLookup:
             fmr_2br=2815.0,
             fmr_3br=3866.0,
             fmr_4br=4614.0,
-            smallarea_status=1
+            smallarea_status=1,
         )
 
         client = HudFMRClient()
@@ -247,7 +244,7 @@ class TestFMRBedroomLookup:
             fmr_2br=2815.0,
             fmr_3br=3866.0,
             fmr_4br=4614.0,
-            smallarea_status=1
+            smallarea_status=1,
         )
 
         client = HudFMRClient()

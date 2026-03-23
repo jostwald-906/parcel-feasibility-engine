@@ -1,6 +1,7 @@
 """
 Pydantic models for the Parcel Feasibility Engine.
 """
+
 from app.models.parcel import ParcelBase, ParcelCreate, Parcel
 from app.models.analysis import (
     AnalysisRequest,

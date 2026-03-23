@@ -1,6 +1,7 @@
 """
 Database configuration and session management.
 """
+
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
@@ -20,13 +21,15 @@ if _is_sqlite:
 else:
     # PostgreSQL connection pool health settings to prevent
     # "SSL SYSCALL error: EOF detected" from stale connections
-    _engine_kwargs.update({
-        "pool_pre_ping": True,         # Test connections before use
-        "pool_recycle": 300,           # Recycle connections every 5 minutes
-        "pool_size": 5,               # Maintain 5 connections in pool
-        "max_overflow": 10,           # Allow up to 10 overflow connections
-        "pool_timeout": 30,           # Wait 30s for a connection from pool
-    })
+    _engine_kwargs.update(
+        {
+            "pool_pre_ping": True,  # Test connections before use
+            "pool_recycle": 300,  # Recycle connections every 5 minutes
+            "pool_size": 5,  # Maintain 5 connections in pool
+            "max_overflow": 10,  # Allow up to 10 overflow connections
+            "pool_timeout": 30,  # Wait 30s for a connection from pool
+        }
+    )
 
 engine = create_engine(settings.DATABASE_URL, **_engine_kwargs)
 

@@ -19,6 +19,7 @@ from pydantic import BaseModel
 
 class BenefitCategory(str, Enum):
     """Categories of community benefits per Santa Monica standards"""
+
     AFFORDABLE_HOUSING = "AFFORDABLE_HOUSING"
     OPEN_SPACE = "OPEN_SPACE"
     CULTURAL_ARTS = "CULTURAL_ARTS"
@@ -30,6 +31,7 @@ class BenefitCategory(str, Enum):
 
 class CommunityBenefit(BaseModel):
     """Definition of a specific community benefit"""
+
     category: BenefitCategory
     name: str
     description: str
@@ -41,6 +43,7 @@ class CommunityBenefit(BaseModel):
 
 class CommunityBenefitsAnalysis(BaseModel):
     """Analysis of community benefits opportunities for a parcel"""
+
     available_benefits: List[CommunityBenefit]
     recommended_benefits: List[str]  # Benefit names recommended for this parcel
     tier_2_requirements: List[str]
@@ -61,8 +64,8 @@ COMMUNITY_BENEFITS_CATALOG = [
             "Most commonly used benefit for tier upgrades",
             "Income targeting: Very Low (≤50% AMI), Low (≤80% AMI), Moderate (≤120% AMI)",
             "Deed restrictions required (55 years minimum)",
-            "Can combine with State Density Bonus Law for additional benefits"
-        ]
+            "Can combine with State Density Bonus Law for additional benefits",
+        ],
     ),
     CommunityBenefit(
         category=BenefitCategory.OPEN_SPACE,
@@ -75,8 +78,8 @@ COMMUNITY_BENEFITS_CATALOG = [
             "Must be truly public (no gates, open during business hours minimum)",
             "Quality matters: landscaping, seating, art, pedestrian amenities required",
             "Maintenance agreement required with City",
-            "Pedestrian through-block connections highly valued"
-        ]
+            "Pedestrian through-block connections highly valued",
+        ],
     ),
     CommunityBenefit(
         category=BenefitCategory.CULTURAL_ARTS,
@@ -89,8 +92,8 @@ COMMUNITY_BENEFITS_CATALOG = [
             "Space must be provided at below-market rent or free",
             "Programming coordination with Santa Monica Cultural Affairs",
             "Public art installations (1% of project cost) may supplement",
-            "Historic preservation and adaptive reuse can qualify"
-        ]
+            "Historic preservation and adaptive reuse can qualify",
+        ],
     ),
     CommunityBenefit(
         category=BenefitCategory.CHILDCARE,
@@ -103,8 +106,8 @@ COMMUNITY_BENEFITS_CATALOG = [
             "Must meet California childcare licensing requirements",
             "Preference for subsidized spots for low-income families",
             "Long-term operational commitment required",
-            "High demand in Downtown and Bergamot areas"
-        ]
+            "High demand in Downtown and Bergamot areas",
+        ],
     ),
     CommunityBenefit(
         category=BenefitCategory.ENVIRONMENTAL,
@@ -117,8 +120,8 @@ COMMUNITY_BENEFITS_CATALOG = [
             "All-electric buildings preferred (per Santa Monica's climate goals)",
             "Solar PV, battery storage, EV charging beyond minimums",
             "Greywater systems, green roofs, urban heat island mitigation",
-            "Must exceed Title 24 by measurable amount"
-        ]
+            "Must exceed Title 24 by measurable amount",
+        ],
     ),
     CommunityBenefit(
         category=BenefitCategory.TRANSPORTATION,
@@ -131,8 +134,8 @@ COMMUNITY_BENEFITS_CATALOG = [
             "Especially valuable near Expo Line and Big Blue Bus corridors",
             "Bike parking and facilities beyond Title 24 minimums",
             "Transit pass subsidies for residents/employees",
-            "AB 2097 allows zero parking near transit - can be structured as benefit"
-        ]
+            "AB 2097 allows zero parking near transit - can be structured as benefit",
+        ],
     ),
     CommunityBenefit(
         category=BenefitCategory.PUBLIC_SERVICES,
@@ -145,17 +148,14 @@ COMMUNITY_BENEFITS_CATALOG = [
             "Preference for local businesses and community services",
             "Grocery stores, pharmacies, healthcare particularly valued",
             "Enhanced pedestrian realm (wider sidewalks, parklets, outdoor dining)",
-            "Long-term affordability for small businesses"
-        ]
+            "Long-term affordability for small businesses",
+        ],
     ),
 ]
 
 
 def get_available_benefits(
-    lot_size_sqft: float,
-    base_tier: int,
-    near_transit: bool,
-    in_downtown: bool
+    lot_size_sqft: float, base_tier: int, near_transit: bool, in_downtown: bool
 ) -> CommunityBenefitsAnalysis:
     """
     Determine which community benefits are feasible for a parcel.
@@ -178,7 +178,10 @@ def get_available_benefits(
     # Filter benefits by parcel characteristics
     for benefit in COMMUNITY_BENEFITS_CATALOG:
         # Small lots (<5,000 sf) may struggle with open space or childcare
-        if lot_size_sqft < 5000 and benefit.category in [BenefitCategory.OPEN_SPACE, BenefitCategory.CHILDCARE]:
+        if lot_size_sqft < 5000 and benefit.category in [
+            BenefitCategory.OPEN_SPACE,
+            BenefitCategory.CHILDCARE,
+        ]:
             notes.append(f"{benefit.name} may be challenging on small lot (<5,000 sqft)")
             continue
 
@@ -191,7 +194,7 @@ def get_available_benefits(
         "Affordable Housing: Typically 15-20% affordable units at very low to moderate income levels",
         "OR Public Open Space: 10-15% of lot area as publicly accessible plaza",
         "OR Arts/Cultural Space: 2,000-3,000 sqft at below-market rent",
-        "OR Equivalent benefit as approved by Community Development Director"
+        "OR Equivalent benefit as approved by Community Development Director",
     ]
 
     # Tier 3 requirements (multiple benefits or exceptional single benefit)
@@ -200,7 +203,7 @@ def get_available_benefits(
         "Affordable Housing: 25%+ affordable units OR 100% affordable project",
         "OR Combination: e.g., 15% affordable + public plaza + sustainability features",
         "Public benefits must be substantial and directly serve Santa Monica community",
-        "Planning Commission approval required for Tier 3 designation"
+        "Planning Commission approval required for Tier 3 designation",
     ]
 
     # Recommendations based on parcel characteristics
@@ -228,14 +231,18 @@ def get_available_benefits(
         notes.append("Parcel at Tier 2 - additional benefits can unlock Tier 3")
         recommended.append("Above-Minimum Affordable Housing")
         recommended.append("Public Open Space or Plaza")
-        notes.append("Tier 3 requires multiple benefits - consider affordable housing + public space")
+        notes.append(
+            "Tier 3 requires multiple benefits - consider affordable housing + public space"
+        )
 
     else:  # Tier 3
         notes.append("Parcel already at maximum Tier 3 - community benefits may still be required")
 
     # General notes
     notes.append("Community benefits must be secured through Development Agreement")
-    notes.append("Benefits are in addition to standard development requirements (setbacks, parking, etc.)")
+    notes.append(
+        "Benefits are in addition to standard development requirements (setbacks, parking, etc.)"
+    )
     notes.append("Contact Santa Monica Planning Division for pre-application guidance")
 
     return CommunityBenefitsAnalysis(
@@ -243,14 +250,12 @@ def get_available_benefits(
         recommended_benefits=recommended,
         tier_2_requirements=tier_2_reqs,
         tier_3_requirements=tier_3_reqs,
-        notes=notes
+        notes=notes,
     )
 
 
 def estimate_affordable_housing_benefit(
-    base_units: int,
-    affordability_pct: float,
-    income_level: str = "very_low"
+    base_units: int, affordability_pct: float, income_level: str = "very_low"
 ) -> Dict[str, any]:
     """
     Estimate the affordable housing component for tier upgrade.
@@ -268,17 +273,17 @@ def estimate_affordable_housing_benefit(
     # Santa Monica Area Median Income (AMI) estimates (2024)
     # CITE: HCD Income Limits (Los Angeles County)
     ami_thresholds = {
-        "very_low": 0.50,    # ≤50% AMI (~$50,000 for 2-person household)
-        "low": 0.80,         # ≤80% AMI (~$80,000 for 2-person household)
-        "moderate": 1.20     # ≤120% AMI (~$120,000 for 2-person household)
+        "very_low": 0.50,  # ≤50% AMI (~$50,000 for 2-person household)
+        "low": 0.80,  # ≤80% AMI (~$80,000 for 2-person household)
+        "moderate": 1.20,  # ≤120% AMI (~$120,000 for 2-person household)
     }
 
     # Rough market-rate vs affordable rent estimates (Santa Monica)
     market_rate_rent = 3500  # Average 1-2BR market rent in Santa Monica
     affordable_rents = {
-        "very_low": 1400,    # ~30% of income at 50% AMI
-        "low": 2200,         # ~30% of income at 80% AMI
-        "moderate": 3000     # ~30% of income at 120% AMI
+        "very_low": 1400,  # ~30% of income at 50% AMI
+        "low": 2200,  # ~30% of income at 80% AMI
+        "moderate": 3000,  # ~30% of income at 120% AMI
     }
 
     affordable_rent = affordable_rents.get(income_level, 1400)
@@ -298,8 +303,8 @@ def estimate_affordable_housing_benefit(
             "Revenue impact is approximate - actual rents vary by unit size and location",
             "Tax credits (LIHTC) and local subsidies may offset revenue loss",
             "Deed restrictions typically required for 55 years",
-            f"Target households earning ≤{int(ami_thresholds.get(income_level, 0.5) * 100)}% Area Median Income"
-        ]
+            f"Target households earning ≤{int(ami_thresholds.get(income_level, 0.5) * 100)}% Area Median Income",
+        ],
     }
 
 
@@ -318,20 +323,14 @@ def format_benefits_for_display(analysis: CommunityBenefitsAnalysis) -> Dict[str
                 "description": benefit.description,
                 "tier_eligibility": benefit.tier_eligibility,
                 "typical_provision": benefit.typical_provision,
-                "notes": benefit.notes
+                "notes": benefit.notes,
             }
             for benefit in analysis.available_benefits
         ],
         "recommended": analysis.recommended_benefits,
-        "tier_2_path": {
-            "title": "Path to Tier 2",
-            "requirements": analysis.tier_2_requirements
-        },
-        "tier_3_path": {
-            "title": "Path to Tier 3",
-            "requirements": analysis.tier_3_requirements
-        },
-        "notes": analysis.notes
+        "tier_2_path": {"title": "Path to Tier 2", "requirements": analysis.tier_2_requirements},
+        "tier_3_path": {"title": "Path to Tier 3", "requirements": analysis.tier_3_requirements},
+        "notes": analysis.notes,
     }
 
 

@@ -39,6 +39,7 @@ Common concessions:
 - Reduced parking
 - Modified FAR
 """
+
 from app.models.analysis import DevelopmentScenario
 from app.models.parcel import ParcelBase
 from typing import Optional
@@ -49,7 +50,7 @@ def apply_density_bonus(
     base_scenario: DevelopmentScenario,
     parcel: ParcelBase,
     affordability_pct: float = 10.0,
-    income_level: str = "low"
+    income_level: str = "low",
 ) -> Optional[DevelopmentScenario]:
     """
     Apply state density bonus law to create enhanced scenario.
@@ -87,7 +88,9 @@ def apply_density_bonus(
     num_concessions = calculate_concessions(affordability_pct)
 
     # Moderate-income (for-sale) track gating: require for-sale projects
-    if income_level.lower().replace(" ", "_") == "moderate" and not bool(getattr(parcel, "for_sale", False)):
+    if income_level.lower().replace(" ", "_") == "moderate" and not bool(
+        getattr(parcel, "for_sale", False)
+    ):
         return None
 
     # Apply concessions (§ 65915(d))
@@ -101,7 +104,9 @@ def apply_density_bonus(
         # Concession 1: Height increase (up to 33 feet or 3 stories per § 65915(d)(2)(B))
         max_height_ft = min(max_height_ft + 33, max_height_ft * 1.5)
         max_stories = min(max_stories + 3, int(max_height_ft / 11))
-        concessions_applied.append("Height increase to {:.0f} ft / {} stories".format(max_height_ft, max_stories))
+        concessions_applied.append(
+            "Height increase to {:.0f} ft / {} stories".format(max_height_ft, max_stories)
+        )
 
     if num_concessions >= 2:
         # Concession 2: Parking reduction (§ 65915(p))
@@ -163,7 +168,7 @@ def apply_density_bonus(
         parking_per_unit = min(base_ratio, cap_by_bedrooms, cap_by_income)
 
     # Apply concession reduction
-    parking_per_unit *= (1 - parking_reduction)
+    parking_per_unit *= 1 - parking_reduction
 
     parking_spaces_required = int(max_units * max(parking_per_unit, 0.0))
 
@@ -199,25 +204,33 @@ def apply_density_bonus(
     elif parking_reduction > 0:
         notes.append(f"Parking (§ 65915(p)): Reduced to {parking_per_unit:.2f} spaces/unit")
     else:
-        notes.append(f"Parking (§ 65915(p)): {parking_per_unit:.2f} spaces/unit (bedroom/income caps applied)")
+        notes.append(
+            f"Parking (§ 65915(p)): {parking_per_unit:.2f} spaces/unit (bedroom/income caps applied)"
+        )
 
     # Document fourth concession FAR increase if applicable
     if far_increase > 0:
-        notes.append(f"Fourth concession FAR increase: +{far_increase} FAR = +{far_bonus_sqft:,.0f} sq ft")
+        notes.append(
+            f"Fourth concession FAR increase: +{far_increase} FAR = +{far_bonus_sqft:,.0f} sq ft"
+        )
 
     notes.append("Ministerial approval required for concessions (§ 65915(d)(1))")
-    notes.append("Note: Waivers (§ 65915(e)) are tracked separately from concessions. Waivers are unlimited but require demonstrating that a standard physically precludes construction of the affordable housing project.")
+    notes.append(
+        "Note: Waivers (§ 65915(e)) are tracked separately from concessions. Waivers are unlimited but require demonstrating that a standard physically precludes construction of the affordable housing project."
+    )
 
     # Calculate lot coverage (greater flexibility for 100% affordable)
     allowance_multiplier = 1.3 if affordability_pct >= 100 else 1.2
     lot_coverage_pct = min(
         (max_building_sqft / parcel.lot_size_sqft) * 100,
-        base_scenario.lot_coverage_pct * allowance_multiplier
+        base_scenario.lot_coverage_pct * allowance_multiplier,
     )
 
     # Waivers (§ 65915(e)) - tracked separately from concessions
     # Waivers are unlimited and require demonstration that standard physically precludes affordable housing
-    waivers_applied = []  # Empty list - waivers would be added based on specific project constraints
+    waivers_applied = (
+        []
+    )  # Empty list - waivers would be added based on specific project constraints
 
     scenario = DevelopmentScenario(
         scenario_name=f"Density Bonus ({affordability_pct}% Affordable)",
@@ -233,16 +246,13 @@ def apply_density_bonus(
         estimated_buildable_sqft=max_building_sqft * 0.85,
         notes=notes,
         concessions_applied=concessions_applied if concessions_applied else None,
-        waivers_applied=waivers_applied if waivers_applied else None
+        waivers_applied=waivers_applied if waivers_applied else None,
     )
 
     return scenario
 
 
-def calculate_density_bonus_percentage(
-    affordability_pct: float,
-    income_level: str
-) -> float:
+def calculate_density_bonus_percentage(affordability_pct: float, income_level: str) -> float:
     """
     Calculate density bonus percentage based on affordability per § 65915(f).
 
@@ -337,36 +347,36 @@ def get_density_bonus_tiers() -> list:
             "income_level": "Very Low Income",
             "min_affordability_pct": 5,
             "density_bonus_pct": 20,
-            "concessions": 1
+            "concessions": 1,
         },
         {
             "income_level": "Very Low Income",
             "min_affordability_pct": 10,
             "density_bonus_pct": 35,
-            "concessions": 1
+            "concessions": 1,
         },
         {
             "income_level": "Low Income",
             "min_affordability_pct": 10,
             "density_bonus_pct": 20,
-            "concessions": 1
+            "concessions": 1,
         },
         {
             "income_level": "Low Income",
             "min_affordability_pct": 17,
             "density_bonus_pct": 35,
-            "concessions": 2
+            "concessions": 2,
         },
         {
             "income_level": "Moderate Income (For-Sale)",
             "min_affordability_pct": 10,
             "density_bonus_pct": 5,
-            "concessions": 1
+            "concessions": 1,
         },
         {
             "income_level": "100% Affordable (Lower Income)",
             "min_affordability_pct": 100,
             "density_bonus_pct": 80,
-            "concessions": 4
-        }
+            "concessions": 4,
+        },
     ]

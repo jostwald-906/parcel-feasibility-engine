@@ -32,13 +32,13 @@ def is_in_dcp_area(parcel: ParcelBase) -> bool:
     zoning = parcel.zoning_code.upper()
 
     # Check zoning code
-    if zoning.startswith('TA') or zoning.startswith('NV'):
+    if zoning.startswith("TA") or zoning.startswith("NV"):
         return True
 
     # Check overlay codes
-    if hasattr(parcel, 'overlay_codes') and parcel.overlay_codes:
+    if hasattr(parcel, "overlay_codes") and parcel.overlay_codes:
         for code in parcel.overlay_codes:
-            if 'DCP' in code.upper() or 'DOWNTOWN' in code.upper():
+            if "DCP" in code.upper() or "DOWNTOWN" in code.upper():
                 return True
 
     return False
@@ -56,26 +56,23 @@ def get_dcp_district(parcel: ParcelBase) -> Optional[str]:
     """
     zoning = parcel.zoning_code.upper()
 
-    if zoning.startswith('TA'):
-        return 'TA'
-    elif zoning.startswith('NV'):
-        return 'NV'
+    if zoning.startswith("TA"):
+        return "TA"
+    elif zoning.startswith("NV"):
+        return "NV"
 
     # Check overlay codes as fallback
-    if hasattr(parcel, 'overlay_codes') and parcel.overlay_codes:
+    if hasattr(parcel, "overlay_codes") and parcel.overlay_codes:
         for code in parcel.overlay_codes:
-            if 'TA' in code.upper():
-                return 'TA'
-            elif 'NV' in code.upper():
-                return 'NV'
+            if "TA" in code.upper():
+                return "TA"
+            elif "NV" in code.upper():
+                return "NV"
 
     return None
 
 
-def create_dcp_tier_1_scenario(
-    parcel: ParcelBase,
-    district: str
-) -> Optional[DevelopmentScenario]:
+def create_dcp_tier_1_scenario(parcel: ParcelBase, district: str) -> Optional[DevelopmentScenario]:
     """
     Create Tier 1 (base) DCP scenario - no community benefits required.
 
@@ -88,14 +85,14 @@ def create_dcp_tier_1_scenario(
     Returns:
         DevelopmentScenario for Tier 1 development
     """
-    standards = DCP_TA_STANDARDS if district == 'TA' else DCP_NV_STANDARDS
-    tier_1 = standards.get('1')
+    standards = DCP_TA_STANDARDS if district == "TA" else DCP_NV_STANDARDS
+    tier_1 = standards.get("1")
 
     if not tier_1:
         return None
 
-    far = tier_1['far']
-    height = tier_1['height']
+    far = tier_1["far"]
+    height = tier_1["height"]
 
     # Calculate max building sqft from FAR
     max_building_sqft = parcel.lot_size_sqft * far
@@ -108,11 +105,7 @@ def create_dcp_tier_1_scenario(
     max_stories = int(height / 11)  # ~11 ft per story
 
     # Standard setbacks for downtown
-    setbacks = {
-        "front": 0,    # Build to property line for street activation
-        "rear": 10,
-        "side": 5
-    }
+    setbacks = {"front": 0, "rear": 10, "side": 5}  # Build to property line for street activation
 
     scenario = DevelopmentScenario(
         scenario_name=f"DCP Tier 1 ({district})",
@@ -129,17 +122,15 @@ def create_dcp_tier_1_scenario(
             f"Tier 1 base standards: FAR {far}, Height {height} ft",
             "No community benefits required at Tier 1",
             "Ground-floor commercial encouraged (not required)",
-            "Standard development review process"
-        ]
+            "Standard development review process",
+        ],
     )
 
     return scenario
 
 
 def create_dcp_tier_2_scenario(
-    parcel: ParcelBase,
-    district: str,
-    with_housing_bonus: bool = False
+    parcel: ParcelBase, district: str, with_housing_bonus: bool = False
 ) -> Optional[DevelopmentScenario]:
     """
     Create Tier 2 DCP scenario - requires community benefits.
@@ -155,21 +146,21 @@ def create_dcp_tier_2_scenario(
     Returns:
         DevelopmentScenario for Tier 2 development
     """
-    standards = DCP_TA_STANDARDS if district == 'TA' else DCP_NV_STANDARDS
+    standards = DCP_TA_STANDARDS if district == "TA" else DCP_NV_STANDARDS
 
     # Select appropriate tier 2 standard
-    if district == 'TA':
-        tier_key = '2_housing' if with_housing_bonus else '2_nonres'
+    if district == "TA":
+        tier_key = "2_housing" if with_housing_bonus else "2_nonres"
     else:  # NV
-        tier_key = '2_housing' if with_housing_bonus else '2_nonres'
+        tier_key = "2_housing" if with_housing_bonus else "2_nonres"
 
     tier_2 = standards.get(tier_key)
 
     if not tier_2:
         return None
 
-    far = tier_2['far']
-    height = tier_2['height']
+    far = tier_2["far"]
+    height = tier_2["height"]
 
     # Calculate max building sqft from FAR
     max_building_sqft = parcel.lot_size_sqft * far
@@ -182,11 +173,7 @@ def create_dcp_tier_2_scenario(
     max_stories = int(height / 11)
 
     # Standard setbacks
-    setbacks = {
-        "front": 0,
-        "rear": 10,
-        "side": 5
-    }
+    setbacks = {"front": 0, "rear": 10, "side": 5}
 
     scenario_name = f"DCP Tier 2 ({district})" + (" + Housing Bonus" if with_housing_bonus else "")
     housing_note = " with residential use" if with_housing_bonus else ""
@@ -207,8 +194,8 @@ def create_dcp_tier_2_scenario(
             "✅ REQUIRES: One or more community benefits (see Community Benefits tab)",
             "Typical: 15-20% affordable housing OR public plaza OR arts/cultural space",
             "Community Development Director approval required",
-            "Enhanced sustainability encouraged (LEED Silver+)"
-        ]
+            "Enhanced sustainability encouraged (LEED Silver+)",
+        ],
     )
 
     if with_housing_bonus:
@@ -218,9 +205,7 @@ def create_dcp_tier_2_scenario(
 
 
 def create_dcp_tier_3_scenario(
-    parcel: ParcelBase,
-    district: str,
-    is_100pct_affordable: bool = False
+    parcel: ParcelBase, district: str, is_100pct_affordable: bool = False
 ) -> Optional[DevelopmentScenario]:
     """
     Create Tier 3 (maximum) DCP scenario - requires substantial community benefits.
@@ -236,25 +221,25 @@ def create_dcp_tier_3_scenario(
     Returns:
         DevelopmentScenario for Tier 3 development
     """
-    standards = DCP_TA_STANDARDS if district == 'TA' else DCP_NV_STANDARDS
+    standards = DCP_TA_STANDARDS if district == "TA" else DCP_NV_STANDARDS
 
     # NV district Tier 3 is only available for 100% affordable housing
-    if district == 'NV':
+    if district == "NV":
         if not is_100pct_affordable:
             return None  # NV doesn't allow market-rate Tier 3
-        tier_3 = standards.get('100pct_affordable')
+        tier_3 = standards.get("100pct_affordable")
     else:  # TA district
         if is_100pct_affordable:
             # Use special standards for 100% affordable (if defined)
-            tier_3 = standards.get('3')  # TA allows Tier 3 for market-rate with benefits
+            tier_3 = standards.get("3")  # TA allows Tier 3 for market-rate with benefits
         else:
-            tier_3 = standards.get('3')
+            tier_3 = standards.get("3")
 
     if not tier_3:
         return None
 
-    far = tier_3['far']
-    height = tier_3['height']
+    far = tier_3["far"]
+    height = tier_3["height"]
 
     # Calculate max building sqft from FAR
     max_building_sqft = parcel.lot_size_sqft * far
@@ -267,11 +252,7 @@ def create_dcp_tier_3_scenario(
     max_stories = int(height / 11)
 
     # Standard setbacks
-    setbacks = {
-        "front": 0,
-        "rear": 10,
-        "side": 5
-    }
+    setbacks = {"front": 0, "rear": 10, "side": 5}
 
     if is_100pct_affordable:
         scenario_name = f"DCP Tier 3 - 100% Affordable ({district})"
@@ -287,36 +268,42 @@ def create_dcp_tier_3_scenario(
         max_building_sqft=max_building_sqft,
         max_height_ft=height,
         max_stories=max_stories,
-        parking_spaces_required=int(max_units * 0.4) if not is_100pct_affordable else 0,  # Reduced for affordable
+        parking_spaces_required=(
+            int(max_units * 0.4) if not is_100pct_affordable else 0
+        ),  # Reduced for affordable
         affordable_units_required=max_units if is_100pct_affordable else 0,
         setbacks=setbacks,
         lot_coverage_pct=85.0,
         notes=[
             f"Tier 3 maximum standards: FAR {far}, Height {height} ft",
-            f"Project type: {affordability_note}"
-        ]
+            f"Project type: {affordability_note}",
+        ],
     )
 
     if is_100pct_affordable:
-        scenario.notes.extend([
-            "✅ 100% affordable housing qualifies for Tier 3",
-            "Zero parking requirement (near transit + affordable)",
-            "Expedited approval process",
-            "May combine with State Density Bonus for additional benefits"
-        ])
+        scenario.notes.extend(
+            [
+                "✅ 100% affordable housing qualifies for Tier 3",
+                "Zero parking requirement (near transit + affordable)",
+                "Expedited approval process",
+                "May combine with State Density Bonus for additional benefits",
+            ]
+        )
     else:
-        scenario.notes.extend([
-            "✅ REQUIRES: Multiple substantial community benefits",
-            "Typical: 25%+ affordable housing + public plaza + sustainability features",
-            "Planning Commission approval required",
-            "Development Agreement required",
-            "LEED Gold or higher expected",
-            "Highest level of community benefit contribution"
-        ])
+        scenario.notes.extend(
+            [
+                "✅ REQUIRES: Multiple substantial community benefits",
+                "Typical: 25%+ affordable housing + public plaza + sustainability features",
+                "Planning Commission approval required",
+                "Development Agreement required",
+                "LEED Gold or higher expected",
+                "Highest level of community benefit contribution",
+            ]
+        )
 
     # Special case for large sites in TA
-    if district == 'TA' and parcel.lot_size_sqft > 50000:
-        large_site_standards = DCP_TA_STANDARDS.get('3_large_site')
+    if district == "TA" and parcel.lot_size_sqft > 50000:
+        large_site_standards = DCP_TA_STANDARDS.get("3_large_site")
         if large_site_standards:
             scenario.notes.append(
                 f"✅ Large site (>{50000:,} sqft): May qualify for height up to {large_site_standards['height']} ft with enhanced design"
@@ -359,13 +346,13 @@ def generate_all_dcp_scenarios(parcel: ParcelBase) -> List[DevelopmentScenario]:
         scenarios.append(tier_2_nonres)
 
     # Tier 2 (with housing bonus) - only for TA
-    if district == 'TA':
+    if district == "TA":
         tier_2_housing = create_dcp_tier_2_scenario(parcel, district, with_housing_bonus=True)
         if tier_2_housing:
             scenarios.append(tier_2_housing)
 
     # Tier 3 (market-rate) - only for TA
-    if district == 'TA':
+    if district == "TA":
         tier_3_market = create_dcp_tier_3_scenario(parcel, district, is_100pct_affordable=False)
         if tier_3_market:
             scenarios.append(tier_3_market)
@@ -395,9 +382,10 @@ def get_current_dcp_tier(parcel: ParcelBase) -> Optional[int]:
         return None
 
     # Check if parcel has explicit tier designation
-    if hasattr(parcel, 'development_tier') and parcel.development_tier:
+    if hasattr(parcel, "development_tier") and parcel.development_tier:
         import re
-        tier_match = re.search(r'\d+', str(parcel.development_tier))
+
+        tier_match = re.search(r"\d+", str(parcel.development_tier))
         if tier_match:
             return int(tier_match.group())
 

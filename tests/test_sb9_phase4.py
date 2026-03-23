@@ -4,7 +4,8 @@ SB9 Phase 4 accuracy tests
 Focus: Environmental exclusions and protected housing constraints cause
 categorical ineligibility in proposal helpers.
 """
-from app.rules import sb9
+
+from app.rules.state_law import sb9
 
 
 def base_parcel(**overrides):
@@ -47,4 +48,3 @@ def test_rent_controlled_ineligible():
     res = sb9.can_apply(parcel, proposal)
     assert res["eligible"] is False
     assert any("rent-controlled" in r.lower() for r in res["reasons"])  # explanation present
-

@@ -39,6 +39,7 @@ References:
 - FRED DGS10: 10-Year Treasury Rate
 - RAND Corporation: California construction cost study (2.3x national average)
 """
+
 from app.models.financial import (
     ConstructionInputs,
     EconomicAssumptions,
@@ -46,7 +47,7 @@ from app.models.financial import (
     HardCostBreakdown,
     SoftCostBreakdown,
 )
-from app.services.fred_client import FredClient, get_fred_client
+from app.clients.fred_client import FREDClient as FredClient, get_fred_client
 from app.core.config import settings
 from typing import Optional, Tuple, Dict
 import logging
@@ -276,7 +277,9 @@ async def estimate_construction_cost(
     # Build source notes
     source_notes: Dict[str, str] = {}
     source_notes["base_cost_per_sf"] = f"${ref_cost_per_sf:.0f} (2025 US baseline)"
-    source_notes["location_factor"] = f"{inputs.location_factor:.1f}x (user input, RAND CA avg 2.3x)"
+    source_notes["location_factor"] = (
+        f"{inputs.location_factor:.1f}x (user input, RAND CA avg 2.3x)"
+    )
 
     # =========================================================================
     # 1. HARD COSTS CALCULATION
@@ -347,7 +350,9 @@ async def estimate_construction_cost(
 
     # Permits & Fees
     permits_cost = inputs.permit_fees_per_unit * inputs.num_units
-    source_notes["permits_fees"] = f"${inputs.permit_fees_per_unit:,.0f}/unit × {inputs.num_units} units"
+    source_notes["permits_fees"] = (
+        f"${inputs.permit_fees_per_unit:,.0f}/unit × {inputs.num_units} units"
+    )
 
     # Construction Financing
     construction_rate, rate_note = await get_construction_financing_rate(fred_client)
@@ -375,14 +380,10 @@ async def estimate_construction_cost(
 
     # Developer Fee (on hard + soft)
     developer_fee = subtotal_before_dev_fee * developer_fee_pct
-    source_notes["developer_fee"] = (
-        f"{developer_fee_pct*100:.0f}% of (hard + soft before dev fee)"
-    )
+    source_notes["developer_fee"] = f"{developer_fee_pct*100:.0f}% of (hard + soft before dev fee)"
 
     # Total soft costs
-    total_soft_cost = (
-        architecture_cost + permits_cost + financing_cost + legal_cost + developer_fee
-    )
+    total_soft_cost = architecture_cost + permits_cost + financing_cost + legal_cost + developer_fee
 
     soft_costs = SoftCostBreakdown(
         architecture_engineering=architecture_cost,

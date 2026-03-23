@@ -4,6 +4,7 @@ Tests for zoning overlay district rules.
 Tests overlay modifications to base zoning including TOD, historic,
 and affordable housing overlays.
 """
+
 import pytest
 from app.rules.overlays import (
     apply_overlay_modifications,
@@ -13,7 +14,7 @@ from app.rules.overlays import (
     get_overlay_info,
     list_all_overlays,
     create_tod_scenario,
-    OVERLAY_DISTRICTS
+    OVERLAY_DISTRICTS,
 )
 from app.rules.base_zoning import analyze_base_zoning
 from app.models.parcel import ParcelBase
@@ -48,7 +49,7 @@ class TestOverlayIdentification:
             lot_size_sqft=5000.0,
             zoning_code="R2",
             existing_units=0,
-            existing_building_sqft=0
+            existing_building_sqft=0,
         )
 
         assert check_overlay_applicability(small_city_parcel, "TOD") is False
@@ -57,15 +58,18 @@ class TestOverlayIdentification:
 class TestTransitProximity:
     """Tests for transit proximity identification."""
 
-    @pytest.mark.parametrize("city_name,expected_near_transit", [
-        ("San Francisco", True),
-        ("Oakland", True),
-        ("Los Angeles", True),
-        ("San Diego", True),
-        ("Berkeley", True),
-        ("Small Town", False),
-        ("Rural City", False),
-    ])
+    @pytest.mark.parametrize(
+        "city_name,expected_near_transit",
+        [
+            ("San Francisco", True),
+            ("Oakland", True),
+            ("Los Angeles", True),
+            ("San Diego", True),
+            ("Berkeley", True),
+            ("Small Town", False),
+            ("Rural City", False),
+        ],
+    )
     def test_transit_proximity_by_city(self, city_name, expected_near_transit):
         """Test transit proximity for various cities."""
         parcel = ParcelBase(
@@ -77,7 +81,7 @@ class TestTransitProximity:
             lot_size_sqft=5000.0,
             zoning_code="R2",
             existing_units=0,
-            existing_building_sqft=0
+            existing_building_sqft=0,
         )
 
         assert is_near_transit(parcel) == expected_near_transit
@@ -128,7 +132,7 @@ class TestTODOverlay:
             lot_size_sqft=5000.0,
             zoning_code="R2",
             existing_units=0,
-            existing_building_sqft=0
+            existing_building_sqft=0,
         )
 
         base_scenario = analyze_base_zoning(non_transit_parcel)
@@ -240,9 +244,7 @@ class TestMultipleOverlays:
         base_scenario = analyze_base_zoning(transit_adjacent_parcel)
 
         modified = apply_overlay_modifications(
-            base_scenario,
-            transit_adjacent_parcel,
-            ["TOD", "AHO"]
+            base_scenario, transit_adjacent_parcel, ["TOD", "AHO"]
         )
 
         # Should have modifications from both overlays
@@ -254,11 +256,7 @@ class TestMultipleOverlays:
         base_units = base_scenario.max_units
 
         # Apply TOD (1.5x) and AHO (1.3x)
-        modified = apply_overlay_modifications(
-            base_scenario,
-            r2_parcel,
-            ["TOD", "AHO"]
-        )
+        modified = apply_overlay_modifications(base_scenario, r2_parcel, ["TOD", "AHO"])
 
         # Should have multiplied effects
         # Note: actual implementation may vary
@@ -268,11 +266,7 @@ class TestMultipleOverlays:
         """Test with empty overlay list."""
         base_scenario = analyze_base_zoning(r2_parcel)
 
-        modified = apply_overlay_modifications(
-            base_scenario,
-            r2_parcel,
-            []
-        )
+        modified = apply_overlay_modifications(base_scenario, r2_parcel, [])
 
         # Should be unchanged
         assert modified.max_units == base_scenario.max_units
@@ -431,7 +425,9 @@ class TestOverlayEdgeCases:
         # Test with lowercase
         modified1 = apply_overlay_modifications(base_scenario, r2_parcel, ["tod"])
         # Test with uppercase
-        modified2 = apply_overlay_modifications(base_scenario.model_copy(deep=True), r2_parcel, ["TOD"])
+        modified2 = apply_overlay_modifications(
+            base_scenario.model_copy(deep=True), r2_parcel, ["TOD"]
+        )
 
         # Should have same result
         assert modified1.max_units == modified2.max_units
@@ -440,11 +436,7 @@ class TestOverlayEdgeCases:
         """Test that unknown overlay codes are ignored."""
         base_scenario = analyze_base_zoning(r2_parcel)
 
-        modified = apply_overlay_modifications(
-            base_scenario,
-            r2_parcel,
-            ["UNKNOWN_OVERLAY"]
-        )
+        modified = apply_overlay_modifications(base_scenario, r2_parcel, ["UNKNOWN_OVERLAY"])
 
         # Should be unchanged
         assert modified.max_units == base_scenario.max_units
@@ -465,4 +457,6 @@ class TestTODScenarioCreation:
         base_scenario = analyze_base_zoning(transit_adjacent_parcel)
         tod_scenario = create_tod_scenario(base_scenario, transit_adjacent_parcel)
 
-        assert "Transit-Oriented" in tod_scenario.legal_basis or "Overlay" in tod_scenario.legal_basis
+        assert (
+            "Transit-Oriented" in tod_scenario.legal_basis or "Overlay" in tod_scenario.legal_basis
+        )

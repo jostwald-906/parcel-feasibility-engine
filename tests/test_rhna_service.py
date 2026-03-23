@@ -37,34 +37,34 @@ class TestRHNADataService:
         """Test summary statistics."""
         stats = service.get_summary_stats()
 
-        assert 'total_jurisdictions' in stats
-        assert 'exempt_count' in stats
-        assert 'requires_10_pct_count' in stats
-        assert 'requires_50_pct_count' in stats
+        assert "total_jurisdictions" in stats
+        assert "exempt_count" in stats
+        assert "requires_10_pct_count" in stats
+        assert "requires_50_pct_count" in stats
 
         if service.data_file.exists():
             # Should have data for California jurisdictions
-            assert stats['total_jurisdictions'] > 0
+            assert stats["total_jurisdictions"] > 0
             # Sum of categories should equal total (roughly)
             total_categorized = (
-                stats['exempt_count'] +
-                stats['requires_10_pct_count'] +
-                stats['requires_50_pct_count']
+                stats["exempt_count"]
+                + stats["requires_10_pct_count"]
+                + stats["requires_50_pct_count"]
             )
-            assert total_categorized == stats['total_jurisdictions']
+            assert total_categorized == stats["total_jurisdictions"]
 
     def test_known_high_performing_jurisdiction(self, service):
         """Test known high-performing jurisdiction (San Francisco)."""
         result = service.get_sb35_affordability("San Francisco")
 
         assert result is not None
-        assert 'percentage' in result
-        assert 'income_levels' in result
-        assert 'source' in result
-        assert 'notes' in result
+        assert "percentage" in result
+        assert "income_levels" in result
+        assert "source" in result
+        assert "notes" in result
 
         # Check that result is valid (could be 0%, 10%, or 50% based on actual HCD data)
-        assert result['percentage'] in [0.0, 10.0, 50.0]
+        assert result["percentage"] in [0.0, 10.0, 50.0]
 
     def test_known_low_performing_jurisdiction(self, service):
         """Test jurisdiction with HCD data."""
@@ -72,10 +72,10 @@ class TestRHNADataService:
         result = service.get_sb35_affordability("Adelanto")
 
         assert result is not None
-        assert 'percentage' in result
+        assert "percentage" in result
 
         # Should return one of the valid percentages based on actual HCD data
-        assert result['percentage'] in [0.0, 10.0, 50.0]
+        assert result["percentage"] in [0.0, 10.0, 50.0]
 
     def test_case_insensitive_lookup(self, service):
         """Test that jurisdiction lookup is case-insensitive."""
@@ -85,19 +85,19 @@ class TestRHNADataService:
         result3 = service.get_sb35_affordability("los angeles")
 
         # Should all return same result
-        assert result1['percentage'] == result2['percentage']
-        assert result2['percentage'] == result3['percentage']
+        assert result1["percentage"] == result2["percentage"]
+        assert result2["percentage"] == result3["percentage"]
 
     def test_unknown_jurisdiction_fallback(self, service):
         """Test fallback behavior for unknown jurisdiction."""
         result = service.get_sb35_affordability("Totally Fake City")
 
         assert result is not None
-        assert 'percentage' in result
+        assert "percentage" in result
         # Should use fallback logic (conservative 50% or 10% for known high performers)
-        assert result['percentage'] in [10.0, 50.0]
+        assert result["percentage"] in [10.0, 50.0]
         # Should indicate it's estimated
-        assert 'Estimated' in result['source'] or 'estimated' in result['source'].lower()
+        assert "Estimated" in result["source"] or "estimated" in result["source"].lower()
 
     def test_exempt_jurisdiction(self, service):
         """Test jurisdiction that is exempt from SB35."""
@@ -106,16 +106,16 @@ class TestRHNADataService:
 
         # Find an exempt jurisdiction in the data
         exempt_jurisdictions = [
-            data['jurisdiction']
+            data["jurisdiction"]
             for data in service.cache.values()
-            if data.get('is_exempt') and ' - ' not in data.get('jurisdiction', '')
+            if data.get("is_exempt") and " - " not in data.get("jurisdiction", "")
         ]
 
         if exempt_jurisdictions:
             result = service.get_sb35_affordability(exempt_jurisdictions[0])
-            assert result['percentage'] == 0.0
-            assert result['is_exempt'] is True
-            assert 'EXEMPT' in ' '.join(result['notes']).upper()
+            assert result["percentage"] == 0.0
+            assert result["is_exempt"] is True
+            assert "EXEMPT" in " ".join(result["notes"]).upper()
 
     def test_10_percent_requirement(self, service):
         """Test jurisdiction with 10% affordability requirement."""
@@ -124,16 +124,16 @@ class TestRHNADataService:
 
         # Find a jurisdiction with 10% requirement
         ten_pct_jurisdictions = [
-            data['jurisdiction']
+            data["jurisdiction"]
             for data in service.cache.values()
-            if data.get('requires_10_pct') and ' - ' not in data.get('jurisdiction', '')
+            if data.get("requires_10_pct") and " - " not in data.get("jurisdiction", "")
         ]
 
         if ten_pct_jurisdictions:
             result = service.get_sb35_affordability(ten_pct_jurisdictions[0])
-            assert result['percentage'] == 10.0
-            assert 'Lower Income' in result['income_levels']
-            assert result['is_exempt'] is False
+            assert result["percentage"] == 10.0
+            assert "Lower Income" in result["income_levels"]
+            assert result["is_exempt"] is False
 
     def test_50_percent_requirement(self, service):
         """Test jurisdiction with 50% affordability requirement."""
@@ -142,18 +142,18 @@ class TestRHNADataService:
 
         # Find a jurisdiction with 50% requirement
         fifty_pct_jurisdictions = [
-            data['jurisdiction']
+            data["jurisdiction"]
             for data in service.cache.values()
-            if data.get('requires_50_pct') and ' - ' not in data.get('jurisdiction', '')
+            if data.get("requires_50_pct") and " - " not in data.get("jurisdiction", "")
         ]
 
         if fifty_pct_jurisdictions:
             result = service.get_sb35_affordability(fifty_pct_jurisdictions[0])
-            assert result['percentage'] == 50.0
-            assert len(result['income_levels']) > 0
+            assert result["percentage"] == 50.0
+            assert len(result["income_levels"]) > 0
             # Should include Very Low Income and Lower Income
-            assert any('Very Low' in level for level in result['income_levels'])
-            assert result['is_exempt'] is False
+            assert any("Very Low" in level for level in result["income_levels"])
+            assert result["is_exempt"] is False
 
     def test_list_jurisdictions(self, service):
         """Test listing all jurisdictions."""
@@ -168,10 +168,10 @@ class TestRHNADataService:
         # Check structure
         if jurisdictions:
             first = jurisdictions[0]
-            assert 'jurisdiction' in first
-            assert 'county' in first
-            assert 'affordability_pct' in first
-            assert 'is_exempt' in first
+            assert "jurisdiction" in first
+            assert "county" in first
+            assert "affordability_pct" in first
+            assert "is_exempt" in first
 
     def test_list_jurisdictions_with_county_filter(self, service):
         """Test listing jurisdictions filtered by county."""
@@ -185,7 +185,7 @@ class TestRHNADataService:
 
         # All should be in Los Angeles County
         for juris in la_jurisdictions:
-            assert juris['county'].upper() == "LOS ANGELES"
+            assert juris["county"].upper() == "LOS ANGELES"
 
     def test_above_moderate_progress_data(self, service):
         """Test that above-moderate progress data is included."""
@@ -194,27 +194,27 @@ class TestRHNADataService:
 
         result = service.get_sb35_affordability("Los Angeles")
 
-        assert 'above_moderate_progress' in result
+        assert "above_moderate_progress" in result
         # May be None if data not available, or a number
-        if result['above_moderate_progress'] is not None:
-            assert isinstance(result['above_moderate_progress'], (int, float))
-            assert result['above_moderate_progress'] >= 0
+        if result["above_moderate_progress"] is not None:
+            assert isinstance(result["above_moderate_progress"], (int, float))
+            assert result["above_moderate_progress"] >= 0
 
     def test_notes_include_verification_warning(self, service):
         """Test that all results include verification warnings."""
         result = service.get_sb35_affordability("San Francisco")
 
         # Notes should include disclaimer to verify with planning department
-        notes_text = ' '.join(result['notes']).upper()
-        assert 'VERIFY' in notes_text or 'VERIFICATION' in notes_text
+        notes_text = " ".join(result["notes"]).upper()
+        assert "VERIFY" in notes_text or "VERIFICATION" in notes_text
 
     def test_notes_include_data_source(self, service):
         """Test that results include data source information."""
         result = service.get_sb35_affordability("Los Angeles")
 
         # Should include data source in notes
-        notes_text = ' '.join(result['notes'])
-        assert 'HCD' in notes_text or 'data.ca.gov' in notes_text or result['source']
+        notes_text = " ".join(result["notes"])
+        assert "HCD" in notes_text or "data.ca.gov" in notes_text or result["source"]
 
     def test_county_disambiguation(self, service):
         """Test that county parameter helps with disambiguation."""
@@ -223,16 +223,13 @@ class TestRHNADataService:
 
         # Some jurisdiction names may exist in multiple counties
         # Providing county should help disambiguate
-        result = service.get_sb35_affordability(
-            jurisdiction="Alameda",
-            county="Alameda"
-        )
+        result = service.get_sb35_affordability(jurisdiction="Alameda", county="Alameda")
 
         assert result is not None
-        assert 'county' in result
+        assert "county" in result
         # Should match the requested county (case-insensitive)
-        if result['county'].upper() != "UNKNOWN":
-            assert result['county'].upper() == "ALAMEDA"
+        if result["county"].upper() != "UNKNOWN":
+            assert result["county"].upper() == "ALAMEDA"
 
 
 class TestRHNAServiceIntegrationWithSB35:
@@ -254,19 +251,19 @@ class TestRHNAServiceIntegrationWithSB35:
             lot_size_sqft=10000,
             zoning_code="R3",
             existing_units=0,
-            existing_building_sqft=0
+            existing_building_sqft=0,
         )
 
         result = get_affordability_requirement(parcel)
 
         # Should return valid result
         assert result is not None
-        assert 'percentage' in result
-        assert 'income_levels' in result
-        assert 'notes' in result
+        assert "percentage" in result
+        assert "income_levels" in result
+        assert "notes" in result
 
         # Percentage should be valid
-        assert result['percentage'] in [0.0, 10.0, 50.0]
+        assert result["percentage"] in [0.0, 10.0, 50.0]
 
     def test_rhna_status_check(self):
         """Test RHNA status check function."""
@@ -283,15 +280,15 @@ class TestRHNAServiceIntegrationWithSB35:
             lot_size_sqft=10000,
             zoning_code="R3",
             existing_units=0,
-            existing_building_sqft=0
+            existing_building_sqft=0,
         )
 
         result = _check_rhna_status(parcel)
 
-        assert 'on_track' in result
-        assert 'performance_level' in result
-        assert isinstance(result['on_track'], bool)
-        assert result['performance_level'] in ['high', 'low']
+        assert "on_track" in result
+        assert "performance_level" in result
+        assert isinstance(result["on_track"], bool)
+        assert result["performance_level"] in ["high", "low"]
 
 
 class TestRHNAServiceEdgeCases:
@@ -310,7 +307,7 @@ class TestRHNAServiceEdgeCases:
         # Should fall back gracefully
         result = service.get_sb35_affordability("Any City")
         assert result is not None
-        assert result['percentage'] in [10.0, 50.0]
+        assert result["percentage"] in [10.0, 50.0]
 
     def test_empty_jurisdiction_name(self):
         """Test with empty jurisdiction name."""
@@ -319,7 +316,7 @@ class TestRHNAServiceEdgeCases:
 
         # Should fall back gracefully
         assert result is not None
-        assert 'percentage' in result
+        assert "percentage" in result
 
     def test_whitespace_in_jurisdiction_name(self):
         """Test jurisdiction name with extra whitespace."""
@@ -328,7 +325,7 @@ class TestRHNAServiceEdgeCases:
 
         # Should handle whitespace correctly
         assert result is not None
-        assert 'percentage' in result
+        assert "percentage" in result
 
 
 if __name__ == "__main__":

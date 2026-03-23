@@ -1,4 +1,5 @@
 """Autocomplete API endpoints for parcel search."""
+
 from fastapi import APIRouter, Query, HTTPException, Request
 from typing import List
 from sqlmodel import Session, select, or_
@@ -12,6 +13,7 @@ router = APIRouter(prefix="/api/v1/autocomplete", tags=["Autocomplete"])
 
 class AutocompleteResult(BaseModel):
     """Autocomplete result for a parcel."""
+
     apn: str
     address: str
     zoning_code: str | None = None
@@ -23,7 +25,7 @@ class AutocompleteResult(BaseModel):
 async def autocomplete_parcels(
     request: Request,
     q: str = Query(..., min_length=2, description="Search query (APN or address)"),
-    limit: int = Query(10, ge=1, le=50, description="Maximum results")
+    limit: int = Query(10, ge=1, le=50, description="Maximum results"),
 ):
     """
     Autocomplete search for Santa Monica parcels.
@@ -44,12 +46,7 @@ async def autocomplete_parcels(
             # Search by APN or address
             statement = (
                 select(ParcelCache)
-                .where(
-                    or_(
-                        ParcelCache.apn.ilike(f"{q}%"),
-                        ParcelCache.address.ilike(f"%{q}%")
-                    )
-                )
+                .where(or_(ParcelCache.apn.ilike(f"{q}%"), ParcelCache.address.ilike(f"%{q}%")))
                 .limit(limit)
             )
 
@@ -60,7 +57,7 @@ async def autocomplete_parcels(
                     apn=p.apn,
                     address=p.address or "",
                     zoning_code=p.zoning_code,
-                    lot_size_sqft=p.lot_size_sqft
+                    lot_size_sqft=p.lot_size_sqft,
                 )
                 for p in parcels
             ]

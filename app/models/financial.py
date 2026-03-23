@@ -3,6 +3,7 @@ Financial analysis models.
 
 Models for construction cost estimation, economic assumptions, and financial inputs.
 """
+
 from pydantic import BaseModel, Field
 from typing import Optional, Dict, Literal
 
@@ -48,7 +49,10 @@ class EconomicAssumptions(BaseModel):
         False, description="Use CCCI escalation instead of FRED PPI (if available)"
     )
     architecture_pct: Optional[float] = Field(
-        None, ge=0, le=1, description="Architecture/Engineering as % of hard cost (default from settings)"
+        None,
+        ge=0,
+        le=1,
+        description="Architecture/Engineering as % of hard cost (default from settings)",
     )
     legal_pct: Optional[float] = Field(
         None, ge=0, le=1, description="Legal/Consulting as % of hard cost (default from settings)"
@@ -105,7 +109,9 @@ class ConstructionCostEstimate(BaseModel):
     """Comprehensive construction cost estimate with detailed breakdown."""
 
     # Summary
-    total_cost: float = Field(..., description="Total construction cost (hard + soft + contingency)")
+    total_cost: float = Field(
+        ..., description="Total construction cost (hard + soft + contingency)"
+    )
     cost_per_unit: float = Field(..., description="Cost per residential unit")
     cost_per_buildable_sf: float = Field(..., description="Cost per buildable square foot")
 

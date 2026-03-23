@@ -12,15 +12,15 @@ from app.rules.bergamot_scenarios import (
     generate_all_bergamot_scenarios,
     create_bergamot_tier_1_scenario,
     create_bergamot_tier_2_scenario,
-    create_bergamot_tier_3_scenario
+    create_bergamot_tier_3_scenario,
 )
 
 
 def test_btv_district():
     """Test Transit Village district scenarios."""
-    print("\n" + "="*80)
+    print("\n" + "=" * 80)
     print("TEST 1: Bergamot Transit Village (BTV) District")
-    print("="*80)
+    print("=" * 80)
 
     parcel = Parcel(
         id=1,
@@ -32,7 +32,7 @@ def test_btv_district():
         zoning_code="BTV",
         lot_size_sqft=25000,
         existing_units=0,
-        overlay_codes=["BERGAMOT"]
+        overlay_codes=["BERGAMOT"],
     )
 
     print(f"\nParcel: {parcel.apn}")
@@ -54,7 +54,9 @@ def test_btv_district():
         print(f"   Max Building: {scenario.max_building_sqft:,} sqft")
         print(f"   Parking: {scenario.parking_spaces_required} spaces")
         print(f"   Lot Coverage: {scenario.lot_coverage_pct}%")
-        print(f"   Setbacks: Front {scenario.setbacks['front']}', Rear {scenario.setbacks['rear']}', Side {scenario.setbacks['side']}'")
+        print(
+            f"   Setbacks: Front {scenario.setbacks['front']}', Rear {scenario.setbacks['rear']}', Side {scenario.setbacks['side']}'"
+        )
         print(f"   Key Notes:")
         for note in scenario.notes[:3]:
             print(f"   - {note}")
@@ -63,9 +65,9 @@ def test_btv_district():
 
 def test_muc_district():
     """Test Mixed-Use Creative district scenarios."""
-    print("\n" + "="*80)
+    print("\n" + "=" * 80)
     print("TEST 2: Bergamot Mixed-Use Creative (MUC) District")
-    print("="*80)
+    print("=" * 80)
 
     parcel = Parcel(
         id=2,
@@ -77,7 +79,7 @@ def test_muc_district():
         zoning_code="MUC",
         lot_size_sqft=15000,
         existing_units=2,
-        overlay_codes=["BERGAMOT"]
+        overlay_codes=["BERGAMOT"],
     )
 
     print(f"\nParcel: {parcel.apn}")
@@ -96,15 +98,17 @@ def test_muc_district():
         print(f"   FAR: {scenario.max_building_sqft / parcel.lot_size_sqft:.2f}")
         print(f"   Max Height: {scenario.max_height_ft} ft")
         print(f"   Max Units: {scenario.max_units}")
-        print(f"   Parking Ratio: {scenario.parking_spaces_required / scenario.max_units:.2f} spaces/unit")
+        print(
+            f"   Parking Ratio: {scenario.parking_spaces_required / scenario.max_units:.2f} spaces/unit"
+        )
         print()
 
 
 def test_cac_small_site():
     """Test Conservation Art Center small site (<100,000 sqft)."""
-    print("\n" + "="*80)
+    print("\n" + "=" * 80)
     print("TEST 3: Bergamot Conservation Art Center (CAC) - Small Site")
-    print("="*80)
+    print("=" * 80)
 
     parcel = Parcel(
         id=3,
@@ -116,7 +120,7 @@ def test_cac_small_site():
         zoning_code="CAC",
         lot_size_sqft=50000,  # Small site (<100,000)
         existing_units=0,
-        overlay_codes=["BERGAMOT"]
+        overlay_codes=["BERGAMOT"],
     )
 
     print(f"\nParcel: {parcel.apn}")
@@ -135,16 +139,18 @@ def test_cac_small_site():
         print(f"   Max Height: {scenario.max_height_ft} ft")
         print(f"   Max Units: {scenario.max_units}")
         print(f"   Max Building: {scenario.max_building_sqft:,} sqft")
-        print(f"   Setbacks: Front {scenario.setbacks['front']}', Rear {scenario.setbacks['rear']}', Side {scenario.setbacks['side']}'")
+        print(
+            f"   Setbacks: Front {scenario.setbacks['front']}', Rear {scenario.setbacks['rear']}', Side {scenario.setbacks['side']}'"
+        )
         print(f"   Special Note: {scenario.notes[-1]}")
         print()
 
 
 def test_cac_large_site():
     """Test Conservation Art Center large site (≥100,000 sqft)."""
-    print("\n" + "="*80)
+    print("\n" + "=" * 80)
     print("TEST 4: Bergamot Conservation Art Center (CAC) - Large Site")
-    print("="*80)
+    print("=" * 80)
 
     parcel = Parcel(
         id=4,
@@ -156,7 +162,7 @@ def test_cac_large_site():
         zoning_code="CAC",
         lot_size_sqft=125000,  # Large site (≥100,000)
         existing_units=0,
-        overlay_codes=["BERGAMOT"]
+        overlay_codes=["BERGAMOT"],
     )
 
     print(f"\nParcel: {parcel.apn}")
@@ -171,7 +177,9 @@ def test_cac_large_site():
 
     for i, scenario in enumerate(scenarios, 1):
         print(f"{i}. {scenario.scenario_name}")
-        print(f"   FAR: {scenario.max_building_sqft / parcel.lot_size_sqft:.2f} (SAME across all tiers)")
+        print(
+            f"   FAR: {scenario.max_building_sqft / parcel.lot_size_sqft:.2f} (SAME across all tiers)"
+        )
         print(f"   Max Height: {scenario.max_height_ft} ft (increases by tier)")
         print(f"   Max Units: {scenario.max_units}")
         print(f"   Max Building: {scenario.max_building_sqft:,} sqft")
@@ -183,22 +191,24 @@ def test_cac_large_site():
 
 def test_comparison_table():
     """Generate comparison table across all districts."""
-    print("\n" + "="*80)
+    print("\n" + "=" * 80)
     print("TEST 5: Tier Comparison Across All Districts (10,000 sqft lot)")
-    print("="*80)
+    print("=" * 80)
 
     lot_size = 10000
 
     districts = [
         ("BTV", "Transit Village"),
         ("MUC", "Mixed-Use Creative"),
-        ("CAC", "Conservation Art Center (Small)")
+        ("CAC", "Conservation Art Center (Small)"),
     ]
 
     print(f"\nLot Size: {lot_size:,} sqft")
-    print("\n{:<30} {:<15} {:<15} {:<15} {:<15}".format(
-        "District/Tier", "FAR", "Height (ft)", "Max Units", "Parking Ratio"
-    ))
+    print(
+        "\n{:<30} {:<15} {:<15} {:<15} {:<15}".format(
+            "District/Tier", "FAR", "Height (ft)", "Max Units", "Parking Ratio"
+        )
+    )
     print("-" * 90)
 
     for i, (district_code, district_name) in enumerate(districts, 5):
@@ -211,7 +221,7 @@ def test_comparison_table():
             zip_code="90404",
             zoning_code=district_code,
             lot_size_sqft=lot_size,
-            existing_units=0
+            existing_units=0,
         )
 
         for tier in [1, 2, 3]:
@@ -224,22 +234,28 @@ def test_comparison_table():
 
             if scenario:
                 far = scenario.max_building_sqft / lot_size
-                parking_ratio = scenario.parking_spaces_required / scenario.max_units if scenario.max_units > 0 else 0
+                parking_ratio = (
+                    scenario.parking_spaces_required / scenario.max_units
+                    if scenario.max_units > 0
+                    else 0
+                )
 
-                print("{:<30} {:<15.2f} {:<15.0f} {:<15} {:<15.2f}".format(
-                    f"{district_name} T{tier}",
-                    far,
-                    scenario.max_height_ft,
-                    scenario.max_units,
-                    parking_ratio
-                ))
+                print(
+                    "{:<30} {:<15.2f} {:<15.0f} {:<15} {:<15.2f}".format(
+                        f"{district_name} T{tier}",
+                        far,
+                        scenario.max_height_ft,
+                        scenario.max_units,
+                        parking_ratio,
+                    )
+                )
 
 
 def test_edge_cases():
     """Test edge cases and error handling."""
-    print("\n" + "="*80)
+    print("\n" + "=" * 80)
     print("TEST 6: Edge Cases")
-    print("="*80)
+    print("=" * 80)
 
     # Non-Bergamot parcel
     print("\n1. Non-Bergamot parcel (should return empty list):")
@@ -252,7 +268,7 @@ def test_edge_cases():
         zip_code="90404",
         zoning_code="R2",
         lot_size_sqft=5000,
-        existing_units=0
+        existing_units=0,
     )
     scenarios = generate_all_bergamot_scenarios(parcel)
     print(f"   In Bergamot: {is_in_bergamot_area(parcel)}")
@@ -270,7 +286,7 @@ def test_edge_cases():
         zoning_code="R3",
         lot_size_sqft=10000,
         existing_units=0,
-        overlay_codes=["BERGAMOT"]
+        overlay_codes=["BERGAMOT"],
     )
     scenarios = generate_all_bergamot_scenarios(parcel)
     print(f"   In Bergamot: {is_in_bergamot_area(parcel)}")
@@ -288,7 +304,7 @@ def test_edge_cases():
         zip_code="90404",
         zoning_code="CAC",
         lot_size_sqft=100000,
-        existing_units=0
+        existing_units=0,
     )
     tier_1 = create_bergamot_tier_1_scenario(parcel, "CAC")
     print(f"   Lot size: {parcel.lot_size_sqft:,} sqft")
@@ -306,7 +322,7 @@ def test_edge_cases():
         zip_code="90404",
         zoning_code="CAC",
         lot_size_sqft=99999,
-        existing_units=0
+        existing_units=0,
     )
     tier_3 = create_bergamot_tier_3_scenario(parcel, "CAC")
     print(f"   Lot size: {parcel.lot_size_sqft:,} sqft")
@@ -316,9 +332,9 @@ def test_edge_cases():
 
 
 if __name__ == "__main__":
-    print("\n" + "#"*80)
+    print("\n" + "#" * 80)
     print("# BERGAMOT AREA PLAN SCENARIOS MODULE - TEST SUITE")
-    print("#"*80)
+    print("#" * 80)
 
     test_btv_district()
     test_muc_district()
@@ -327,7 +343,7 @@ if __name__ == "__main__":
     test_comparison_table()
     test_edge_cases()
 
-    print("\n" + "#"*80)
+    print("\n" + "#" * 80)
     print("# TEST SUITE COMPLETE")
-    print("#"*80)
+    print("#" * 80)
     print("\nAll tests completed successfully!")

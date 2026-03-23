@@ -8,6 +8,7 @@ This module tests the tier-aware FAR and height resolution logic that handles:
 - Affordable Housing Overlay (AHO) bonuses
 - Combined overlay scenarios
 """
+
 import pytest
 from app.rules.tiered_standards import (
     get_base_far,
@@ -30,25 +31,28 @@ from app.models.parcel import ParcelBase
 class TestBaseFAR:
     """Tests for base FAR lookup by zoning code."""
 
-    @pytest.mark.parametrize("zoning_code,expected_far", [
-        ("R1", 0.5),
-        ("R2", 0.75),
-        ("R3", 1.5),
-        ("R4", 2.5),
-        ("NV", 1.0),
-        ("WT", 1.75),
-        ("MUBL", 1.5),
-        ("MUBM", 2.0),
-        ("MUBH", 3.0),
-        ("MUB", 2.0),
-        ("MUCR", 2.0),
-        ("C1", 2.0),
-        ("C2", 2.0),
-        ("C3", 2.0),
-        ("OC", 2.0),
-        ("OP", 1.5),
-        ("I", 1.5),
-    ])
+    @pytest.mark.parametrize(
+        "zoning_code,expected_far",
+        [
+            ("R1", 0.5),
+            ("R2", 0.75),
+            ("R3", 1.5),
+            ("R4", 2.5),
+            ("NV", 1.0),
+            ("WT", 1.75),
+            ("MUBL", 1.5),
+            ("MUBM", 2.0),
+            ("MUBH", 3.0),
+            ("MUB", 2.0),
+            ("MUCR", 2.0),
+            ("C1", 2.0),
+            ("C2", 2.0),
+            ("C3", 2.0),
+            ("OC", 2.0),
+            ("OP", 1.5),
+            ("I", 1.5),
+        ],
+    )
     def test_base_far_exact_match(self, zoning_code, expected_far):
         """Test exact match for standard zoning codes."""
         assert get_base_far(zoning_code) == expected_far
@@ -59,11 +63,14 @@ class TestBaseFAR:
         assert get_base_far("R2") == 0.75
         assert get_base_far("r2") == get_base_far("R2")
 
-    @pytest.mark.parametrize("zoning_code,expected_far", [
-        ("R2A", 0.75),  # R2 with suffix
-        ("R3-HD", 1.5),  # R3 with suffix
-        ("MUBL-1", 1.5),  # MUBL with suffix
-    ])
+    @pytest.mark.parametrize(
+        "zoning_code,expected_far",
+        [
+            ("R2A", 0.75),  # R2 with suffix
+            ("R3-HD", 1.5),  # R3 with suffix
+            ("MUBL-1", 1.5),  # MUBL with suffix
+        ],
+    )
     def test_base_far_partial_match(self, zoning_code, expected_far):
         """Test partial match for codes with suffixes."""
         assert get_base_far(zoning_code) == expected_far
@@ -77,25 +84,28 @@ class TestBaseFAR:
 class TestBaseHeight:
     """Tests for base height lookup by zoning code."""
 
-    @pytest.mark.parametrize("zoning_code,expected_height", [
-        ("R1", 35.0),
-        ("R2", 40.0),
-        ("R3", 55.0),
-        ("R4", 75.0),
-        ("NV", 35.0),
-        ("WT", 50.0),
-        ("MUBL", 45.0),
-        ("MUBM", 55.0),
-        ("MUBH", 84.0),
-        ("MUB", 65.0),
-        ("MUCR", 65.0),
-        ("C1", 65.0),
-        ("C2", 65.0),
-        ("C3", 65.0),
-        ("OC", 65.0),
-        ("OP", 55.0),
-        ("I", 45.0),
-    ])
+    @pytest.mark.parametrize(
+        "zoning_code,expected_height",
+        [
+            ("R1", 35.0),
+            ("R2", 40.0),
+            ("R3", 55.0),
+            ("R4", 75.0),
+            ("NV", 35.0),
+            ("WT", 50.0),
+            ("MUBL", 45.0),
+            ("MUBM", 55.0),
+            ("MUBH", 84.0),
+            ("MUB", 65.0),
+            ("MUCR", 65.0),
+            ("C1", 65.0),
+            ("C2", 65.0),
+            ("C3", 65.0),
+            ("OC", 65.0),
+            ("OP", 55.0),
+            ("I", 45.0),
+        ],
+    )
     def test_base_height_exact_match(self, zoning_code, expected_height):
         """Test exact match for standard zoning codes."""
         assert get_base_height(zoning_code) == expected_height
@@ -105,11 +115,14 @@ class TestBaseHeight:
         assert get_base_height("r3") == 55.0
         assert get_base_height("R3") == 55.0
 
-    @pytest.mark.parametrize("zoning_code,expected_height", [
-        ("R2A", 40.0),
-        ("R4-HD", 75.0),
-        ("MUBH-2", 84.0),
-    ])
+    @pytest.mark.parametrize(
+        "zoning_code,expected_height",
+        [
+            ("R2A", 40.0),
+            ("R4-HD", 75.0),
+            ("MUBH-2", 84.0),
+        ],
+    )
     def test_base_height_partial_match(self, zoning_code, expected_height):
         """Test partial match for codes with suffixes."""
         assert get_base_height(zoning_code) == expected_height
@@ -776,20 +789,20 @@ class TestConstantValues:
 
     def test_dcp_tier_multipliers(self):
         """Test DCP tier multiplier constants."""
-        assert DCP_TIER_FAR_MULTIPLIER['1'] == 1.0
-        assert DCP_TIER_FAR_MULTIPLIER['2'] == 1.25
-        assert DCP_TIER_FAR_MULTIPLIER['3'] == 1.5
+        assert DCP_TIER_FAR_MULTIPLIER["1"] == 1.0
+        assert DCP_TIER_FAR_MULTIPLIER["2"] == 1.25
+        assert DCP_TIER_FAR_MULTIPLIER["3"] == 1.5
 
     def test_dcp_tier_height_bonuses(self):
         """Test DCP tier height bonus constants."""
-        assert DCP_TIER_HEIGHT_BONUS['1'] == 0
-        assert DCP_TIER_HEIGHT_BONUS['2'] == 10
-        assert DCP_TIER_HEIGHT_BONUS['3'] == 20
+        assert DCP_TIER_HEIGHT_BONUS["1"] == 0
+        assert DCP_TIER_HEIGHT_BONUS["2"] == 10
+        assert DCP_TIER_HEIGHT_BONUS["3"] == 20
 
     def test_bergamot_standards(self):
         """Test Bergamot area plan constants."""
-        assert BERGAMOT_FAR['default'] == 2.0
-        assert BERGAMOT_HEIGHT['default'] == 65.0
+        assert BERGAMOT_FAR["default"] == 2.0
+        assert BERGAMOT_HEIGHT["default"] == 65.0
 
     def test_aho_bonuses(self):
         """Test AHO bonus constants."""
@@ -798,7 +811,7 @@ class TestConstantValues:
 
     def test_base_zone_completeness(self):
         """Test that base zone tables include expected codes."""
-        expected_zones = ['R1', 'R2', 'R3', 'R4', 'NV', 'WT', 'MUBL', 'MUBM', 'MUBH', 'MUB', 'MUCR']
+        expected_zones = ["R1", "R2", "R3", "R4", "NV", "WT", "MUBL", "MUBM", "MUBH", "MUB", "MUCR"]
 
         for zone in expected_zones:
             assert zone in BASE_ZONE_FAR, f"{zone} missing from BASE_ZONE_FAR"

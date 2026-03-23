@@ -3,6 +3,7 @@ Metadata API endpoints.
 
 Provides reference data like zoning codes, overlay types, cities, etc.
 """
+
 from fastapi import APIRouter, HTTPException
 from typing import Dict, List, Optional
 from app.constants.zoning_codes import (
@@ -11,7 +12,7 @@ from app.constants.zoning_codes import (
     get_all_zoning_codes_for_dropdown,
     get_categorized_zoning_codes,
     get_zoning_description,
-    get_zoning_category
+    get_zoning_category,
 )
 from app.cities.registry import city_registry, get_city_config
 
@@ -53,7 +54,7 @@ async def get_zoning_code_info(code: str) -> Dict[str, str]:
     return {
         "code": code.upper(),
         "description": get_zoning_description(code),
-        "category": get_zoning_category(code)
+        "category": get_zoning_category(code),
     }
 
 
@@ -80,6 +81,7 @@ async def get_zoning_categories() -> Dict[str, List[str]]:
 
 
 # City Configuration Endpoints
+
 
 @router.get("/cities")
 async def list_cities() -> List[Dict[str, str]]:
@@ -128,11 +130,7 @@ async def get_city_zoning_codes(city_code: str) -> List[Dict[str, str]]:
     try:
         city = get_city_config(city_code)
         return [
-            {
-                "code": z.code,
-                "description": z.description,
-                "category": z.category
-            }
+            {"code": z.code, "description": z.description, "category": z.category}
             for z in city.get_zoning_codes()
         ]
     except ValueError as e:
@@ -158,7 +156,7 @@ async def get_city_overlays(city_code: str) -> List[Dict[str, str]]:
                 "code": o.code,
                 "description": o.description,
                 "applies_by_zoning": o.applies_by_zoning,
-                "affected_zones": o.affected_zones
+                "affected_zones": o.affected_zones,
             }
             for o in city.get_overlay_zones()
         ]

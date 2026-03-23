@@ -46,7 +46,7 @@ class ComprehensiveAnalysis:
         include_density_bonus: bool = True,
         include_adu: bool = True,
         target_affordability_pct: Optional[float] = None,
-        include_timeline: bool = True
+        include_timeline: bool = True,
     ) -> Dict:
         """
         Run comprehensive analysis combining all applicable programs.
@@ -109,7 +109,9 @@ class ComprehensiveAnalysis:
         if bergamot_scenarios:
             self.scenarios.extend(bergamot_scenarios)
             self.applicable_programs.append("Bergamot Area Plan (SMMC Chapter 9.12)")
-            logger.info(f"Generated {len(bergamot_scenarios)} Bergamot scenarios for {self.parcel.apn}")
+            logger.info(
+                f"Generated {len(bergamot_scenarios)} Bergamot scenarios for {self.parcel.apn}"
+            )
 
     def _analyze_dcp(self):
         """Generate Downtown Community Plan scenarios."""
@@ -117,38 +119,47 @@ class ComprehensiveAnalysis:
         if dcp_scenarios:
             self.scenarios.extend(dcp_scenarios)
             district = get_dcp_district(self.parcel)
-            self.applicable_programs.append(f"Downtown Community Plan - {district} District (SMMC Chapter 9.10)")
+            self.applicable_programs.append(
+                f"Downtown Community Plan - {district} District (SMMC Chapter 9.10)"
+            )
             logger.info(f"Generated {len(dcp_scenarios)} DCP scenarios for {self.parcel.apn}")
 
     def _analyze_sb35(self):
         """Check SB35 eligibility and generate scenario if applicable."""
         eligibility = can_apply_sb35(self.parcel)
 
-        if eligibility['eligible']:
+        if eligibility["eligible"]:
             sb35_scenario = analyze_sb35(self.parcel)
             if sb35_scenario:
                 self.scenarios.append(sb35_scenario)
-                self.applicable_programs.append("SB35 Streamlined Ministerial Approval (Gov Code § 65913.4)")
+                self.applicable_programs.append(
+                    "SB35 Streamlined Ministerial Approval (Gov Code § 65913.4)"
+                )
                 logger.info(f"SB35 applicable for {self.parcel.apn}")
         else:
             # Log first exclusion reason
-            if eligibility.get('exclusions'):
+            if eligibility.get("exclusions"):
                 self.warnings.append(f"SB35 not applicable: {eligibility['exclusions'][0]}")
 
     def _analyze_ab2011(self):
         """Check AB 2011 eligibility and generate scenario if applicable."""
         eligibility = can_apply_ab2011(self.parcel)
 
-        if eligibility['eligible']:
+        if eligibility["eligible"]:
             ab2011_scenario = analyze_ab2011(self.parcel)
             if ab2011_scenario:
                 self.scenarios.append(ab2011_scenario)
-                self.applicable_programs.append("AB 2011 Office-to-Residential Conversion (Gov Code § 65912.100)")
+                self.applicable_programs.append(
+                    "AB 2011 Office-to-Residential Conversion (Gov Code § 65912.100)"
+                )
                 logger.info(f"AB 2011 applicable for {self.parcel.apn}")
         else:
             # Only warn if parcel is in commercial/office zone (where AB2011 might be relevant)
-            if 'commercial' in self.parcel.zoning_code.lower() or 'office' in self.parcel.zoning_code.lower():
-                if eligibility.get('reasons'):
+            if (
+                "commercial" in self.parcel.zoning_code.lower()
+                or "office" in self.parcel.zoning_code.lower()
+            ):
+                if eligibility.get("reasons"):
                     self.warnings.append(f"AB 2011 not applicable: {eligibility['reasons'][0]}")
 
     def _analyze_adu(self):
@@ -162,7 +173,9 @@ class ComprehensiveAnalysis:
 
         if adu_scenarios:
             self.scenarios.extend(adu_scenarios)
-            self.applicable_programs.append("ADU/JADU - Accessory Dwelling Units (Gov Code § 65852.2 & § 65852.22)")
+            self.applicable_programs.append(
+                "ADU/JADU - Accessory Dwelling Units (Gov Code § 65852.2 & § 65852.22)"
+            )
             logger.info(f"Generated {len(adu_scenarios)} ADU/JADU scenarios for {self.parcel.apn}")
 
     def _apply_density_bonus_to_scenarios(self, affordability_pct: float):
@@ -177,16 +190,16 @@ class ComprehensiveAnalysis:
         for scenario in self.scenarios:
             # Apply density bonus to base zoning, Bergamot, and DCP scenarios
             # Skip if already a density bonus variant or state law scenario
-            if 'Density Bonus' not in scenario.scenario_name and \
-               'SB35' not in scenario.scenario_name and \
-               'AB2011' not in scenario.scenario_name:
+            if (
+                "Density Bonus" not in scenario.scenario_name
+                and "SB35" not in scenario.scenario_name
+                and "AB2011" not in scenario.scenario_name
+            ):
                 scenarios_to_enhance.append(scenario)
 
         for base_scenario in scenarios_to_enhance:
             db_scenario = apply_density_bonus(
-                base_scenario,
-                self.parcel,
-                affordability_pct=affordability_pct
+                base_scenario, self.parcel, affordability_pct=affordability_pct
             )
             if db_scenario:
                 # Enhance scenario name to show base + density bonus
@@ -211,8 +224,8 @@ class ComprehensiveAnalysis:
         in_dcp = is_in_dcp_area(self.parcel)
 
         # Check for state law preemption scenarios
-        has_sb35 = any('SB35' in s.scenario_name for s in self.scenarios)
-        has_ab2011 = any('AB2011' in s.scenario_name for s in self.scenarios)
+        has_sb35 = any("SB35" in s.scenario_name for s in self.scenarios)
+        has_ab2011 = any("AB2011" in s.scenario_name for s in self.scenarios)
 
         if has_sb35 and (in_bergamot or in_dcp):
             self.warnings.append(
@@ -227,11 +240,14 @@ class ComprehensiveAnalysis:
             )
 
         # Check for density bonus + DCP tier interaction
-        has_density_bonus = any('Density Bonus' in s.scenario_name for s in self.scenarios)
+        has_density_bonus = any("Density Bonus" in s.scenario_name for s in self.scenarios)
         if has_density_bonus and in_dcp:
             # Add helpful note about combining programs
             for scenario in self.scenarios:
-                if 'DCP Tier' in scenario.scenario_name and 'Density Bonus' in scenario.scenario_name:
+                if (
+                    "DCP Tier" in scenario.scenario_name
+                    and "Density Bonus" in scenario.scenario_name
+                ):
                     scenario.notes.append(
                         "💡 Combining DCP tier standards with State Density Bonus can maximize development potential"
                     )
@@ -240,7 +256,9 @@ class ComprehensiveAnalysis:
                     )
 
         # Check for coastal zone + height restrictions
-        if hasattr(self.parcel, 'coastal') and getattr(self.parcel.coastal, 'in_coastal_zone', False):
+        if hasattr(self.parcel, "coastal") and getattr(
+            self.parcel.coastal, "in_coastal_zone", False
+        ):
             max_height = max((s.max_height_ft for s in self.scenarios), default=0)
             if max_height > 50:
                 self.warnings.append(
@@ -256,7 +274,7 @@ class ComprehensiveAnalysis:
                     scenario_name=scenario.scenario_name,
                     legal_basis=scenario.legal_basis,
                     max_units=scenario.max_units,
-                    parcel=self.parcel
+                    parcel=self.parcel,
                 )
                 # Convert to dict for JSON serialization
                 scenario.estimated_timeline = timeline.model_dump()
@@ -287,7 +305,7 @@ def generate_comprehensive_scenarios(
     include_density_bonus: bool = True,
     include_adu: bool = True,
     target_affordability_pct: Optional[float] = 15.0,
-    include_timeline: bool = True
+    include_timeline: bool = True,
 ) -> Dict:
     """
     Convenience function to generate comprehensive development scenarios.
@@ -311,5 +329,5 @@ def generate_comprehensive_scenarios(
         include_density_bonus=include_density_bonus,
         include_adu=include_adu,
         target_affordability_pct=target_affordability_pct,
-        include_timeline=include_timeline
+        include_timeline=include_timeline,
     )

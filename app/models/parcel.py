@@ -1,6 +1,7 @@
 """
 Parcel data models.
 """
+
 from pydantic import BaseModel, Field
 from typing import Optional, List
 
@@ -30,15 +31,22 @@ class ParcelBase(BaseModel):
 
     # Current use information
     use_code: Optional[str] = Field(None, description="Property use code from assessor data")
-    use_type: Optional[str] = Field(None, description="Property use type (e.g., 'Residential', 'Commercial')")
-    use_description: Optional[str] = Field(None, description="Property use description (e.g., 'Single Family Residence', 'Super Market')")
+    use_type: Optional[str] = Field(
+        None, description="Property use type (e.g., 'Residential', 'Commercial')"
+    )
+    use_description: Optional[str] = Field(
+        None,
+        description="Property use description (e.g., 'Single Family Residence', 'Super Market')",
+    )
 
     # Geographic coordinates
     latitude: Optional[float] = Field(None, description="Latitude")
     longitude: Optional[float] = Field(None, description="Longitude")
 
     # Optional project/context fields (used by some rules)
-    for_sale: Optional[bool] = Field(None, description="Project is for-sale (ownership) rather than rental")
+    for_sale: Optional[bool] = Field(
+        None, description="Project is for-sale (ownership) rather than rental"
+    )
     avg_bedrooms_per_unit: Optional[float] = Field(
         None, description="Average bedrooms per unit for parking calculations"
     )
@@ -65,7 +73,7 @@ class ParcelBase(BaseModel):
             "Tier 1 = base standards, Tier 2/3 = enhanced intensity. "
             "See app/rules/tiered_standards.py for tier multipliers/bonuses."
         ),
-        pattern=r'^[1-3]$'  # Enforce valid tier values
+        pattern=r"^[1-3]$",  # Enforce valid tier values
     )
 
     overlay_codes: Optional[List[str]] = Field(
@@ -98,16 +106,15 @@ class ParcelBase(BaseModel):
     is_historic_property: Optional[bool] = Field(
         None, description="Parcel contains a historic resource or structure"
     )
-    in_flood_zone: Optional[bool] = Field(
-        None, description="Parcel is in FEMA flood hazard zone"
-    )
+    in_flood_zone: Optional[bool] = Field(None, description="Parcel is in FEMA flood hazard zone")
     in_coastal_zone: Optional[bool] = Field(
         None, description="Parcel is in California Coastal Zone (may require CDP)"
     )
 
     # Additional environmental GIS fields for SB35/AB2011 site exclusions
     fire_hazard_zone: Optional[str] = Field(
-        None, description="Fire hazard severity zone from CAL FIRE (e.g., 'Very High', 'High', 'Moderate')"
+        None,
+        description="Fire hazard severity zone from CAL FIRE (e.g., 'Very High', 'High', 'Moderate')",
     )
     near_hazardous_waste: Optional[bool] = Field(
         None, description="Parcel is within 500ft of hazardous waste site (DTSC EnviroStor)"
@@ -126,7 +133,7 @@ class ParcelBase(BaseModel):
             "Manual override for rent control status. Valid values: 'yes', 'no', 'unknown'. "
             "Use this when automatic rent control lookup is unavailable or to override API results. "
             "If set, this value takes precedence over has_rent_controlled_units flag."
-        )
+        ),
     )
     has_deed_restricted_affordable: Optional[bool] = Field(
         None, description="Parcel has deed-restricted affordable housing"
@@ -161,12 +168,13 @@ class ParcelBase(BaseModel):
             "70-99 ft = Narrow corridor (40 u/ac, 35 ft height), "
             "100-150 ft = Wide corridor (60 u/ac, 45 ft height). "
             "Can be estimated from street classification or manually entered."
-        )
+        ),
     )
 
 
 class ParcelCreate(ParcelBase):
     """Model for creating a new parcel."""
+
     pass
 
 

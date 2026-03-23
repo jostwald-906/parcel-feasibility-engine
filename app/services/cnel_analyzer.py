@@ -22,6 +22,7 @@ from pydantic import BaseModel
 
 class CNELCategory(str, Enum):
     """CNEL exposure categories per California state standards"""
+
     NORMALLY_ACCEPTABLE = "NORMALLY_ACCEPTABLE"
     CONDITIONALLY_ACCEPTABLE = "CONDITIONALLY_ACCEPTABLE"
     NORMALLY_UNACCEPTABLE = "NORMALLY_UNACCEPTABLE"
@@ -30,6 +31,7 @@ class CNELCategory(str, Enum):
 
 class CNELAnalysis(BaseModel):
     """Result of CNEL noise analysis"""
+
     cnel_db: float
     category: CNELCategory
     description: str
@@ -65,8 +67,8 @@ def classify_cnel(cnel_db: float) -> CNELAnalysis:
             window_stc_requirement=None,
             notes=[
                 "No special noise mitigation required",
-                "Standard construction practices acceptable"
-            ]
+                "Standard construction practices acceptable",
+            ],
         )
 
     elif cnel_db < 65:
@@ -80,13 +82,13 @@ def classify_cnel(cnel_db: float) -> CNELAnalysis:
             mitigation_measures=[
                 "Standard construction noise insulation",
                 "Interior noise level target: 45 dB CNEL or less",
-                "Consider building orientation away from noise source"
+                "Consider building orientation away from noise source",
             ],
             window_stc_requirement=28,  # Minimum STC 28 windows (standard dual-pane)
             notes=[
                 "Residential development acceptable with standard mitigation",
-                "Title 24 compliance ensures adequate interior noise levels"
-            ]
+                "Title 24 compliance ensures adequate interior noise levels",
+            ],
         )
 
     elif cnel_db < 70:
@@ -104,15 +106,15 @@ def classify_cnel(cnel_db: float) -> CNELAnalysis:
                 "Mechanical ventilation to allow closed windows",
                 "Building orientation to shield outdoor spaces from noise",
                 "Sound walls or berms where feasible",
-                "Interior noise level: 45 dB CNEL max (bedrooms/living rooms)"
+                "Interior noise level: 45 dB CNEL max (bedrooms/living rooms)",
             ],
             window_stc_requirement=30,  # STC 30 minimum (laminated or triple-pane glass)
             notes=[
                 "Residential development conditionally acceptable",
                 "Title 24 Section 1207.4 compliance mandatory",
                 "CEQA analysis may require noise impact report",
-                "Outdoor living spaces should be designed away from noise source"
-            ]
+                "Outdoor living spaces should be designed away from noise source",
+            ],
         )
 
     elif cnel_db < 75:
@@ -132,7 +134,7 @@ def classify_cnel(cnel_db: float) -> CNELAnalysis:
                 "Sound walls (10-15 ft height minimum) with absorptive treatment",
                 "Building setbacks maximized from noise source",
                 "Interior noise target: 45 dB CNEL (strict compliance)",
-                "Post-construction noise testing required"
+                "Post-construction noise testing required",
             ],
             window_stc_requirement=38,  # STC 38+ (specialized acoustic windows)
             notes=[
@@ -140,8 +142,8 @@ def classify_cnel(cnel_db: float) -> CNELAnalysis:
                 "Development may proceed with City approval and comprehensive mitigation",
                 "CEQA will likely require detailed noise impact study and mitigation monitoring",
                 "Consider alternative land uses (commercial, industrial, parking)",
-                "Financial feasibility affected by high mitigation costs"
-            ]
+                "Financial feasibility affected by high mitigation costs",
+            ],
         )
 
     else:  # >= 75 dB
@@ -160,7 +162,7 @@ def classify_cnel(cnel_db: float) -> CNELAnalysis:
                 "Underground or heavily shielded parking structures",
                 "No outdoor living spaces on noise-exposed sides",
                 "Continuous noise monitoring during operation",
-                "Noise easements and deed restrictions for future owners"
+                "Noise easements and deed restrictions for future owners",
             ],
             window_stc_requirement=40,  # STC 40+ (maximum acoustic performance)
             notes=[
@@ -169,8 +171,8 @@ def classify_cnel(cnel_db: float) -> CNELAnalysis:
                 "Extreme mitigation costs likely render project financially infeasible",
                 "Consider non-residential uses: office, industrial, warehouse, parking",
                 "CEQA compliance extremely difficult; significant unavoidable impacts likely",
-                "Santa Monica may deny project based on General Plan Noise Element"
-            ]
+                "Santa Monica may deny project based on General Plan Noise Element",
+            ],
         )
 
 
@@ -193,7 +195,7 @@ def get_mitigation_cost_estimate(analysis: CNELAnalysis, building_sqft: float) -
         "hvac_upgrades": 0.0,
         "sound_barriers": 0.0,
         "construction_upgrades": 0.0,
-        "total": 0.0
+        "total": 0.0,
     }
 
     if analysis.category == CNELCategory.NORMALLY_ACCEPTABLE:
@@ -222,7 +224,10 @@ def get_mitigation_cost_estimate(analysis: CNELAnalysis, building_sqft: float) -
         costs["acoustic_windows"] = window_sqft * 50  # $50/sqft for maximum-rated systems
 
     # HVAC upgrades for mechanical ventilation (if needed)
-    if analysis.category in [CNELCategory.CONDITIONALLY_ACCEPTABLE, CNELCategory.NORMALLY_UNACCEPTABLE]:
+    if analysis.category in [
+        CNELCategory.CONDITIONALLY_ACCEPTABLE,
+        CNELCategory.NORMALLY_UNACCEPTABLE,
+    ]:
         costs["hvac_upgrades"] = building_sqft * 3  # $3/sqft for enhanced HVAC with noise isolation
 
     if analysis.category == CNELCategory.CLEARLY_UNACCEPTABLE:
@@ -232,7 +237,7 @@ def get_mitigation_cost_estimate(analysis: CNELAnalysis, building_sqft: float) -
     if analysis.cnel_db >= 65:
         # Rough estimate: $250/linear foot for 10-15 ft sound wall
         # Assume perimeter of lot, simplified as square root approach
-        estimated_barrier_length = (building_sqft ** 0.5) * 2  # Two sides facing noise source
+        estimated_barrier_length = (building_sqft**0.5) * 2  # Two sides facing noise source
         cost_per_lf = 250 if analysis.cnel_db < 70 else 400  # Higher walls cost more
         costs["sound_barriers"] = estimated_barrier_length * cost_per_lf
 
@@ -240,7 +245,9 @@ def get_mitigation_cost_estimate(analysis: CNELAnalysis, building_sqft: float) -
     if analysis.category == CNELCategory.NORMALLY_UNACCEPTABLE:
         costs["construction_upgrades"] = building_sqft * 8  # $8/sqft for specialized construction
     elif analysis.category == CNELCategory.CLEARLY_UNACCEPTABLE:
-        costs["construction_upgrades"] = building_sqft * 15  # $15/sqft for maximum acoustic construction
+        costs["construction_upgrades"] = (
+            building_sqft * 15
+        )  # $15/sqft for maximum acoustic construction
 
     costs["total"] = sum(costs.values())
 
@@ -260,11 +267,7 @@ def check_santa_monica_compliance(analysis: CNELAnalysis) -> Dict[str, any]:
     Returns:
         Dictionary with compliance status and Santa Monica-specific notes
     """
-    compliance = {
-        "compliant": True,
-        "requires_variance": False,
-        "notes": []
-    }
+    compliance = {"compliant": True, "requires_variance": False, "notes": []}
 
     if analysis.category == CNELCategory.NORMALLY_ACCEPTABLE:
         compliance["notes"].append("Compliant with Santa Monica Noise Element standards")
@@ -273,24 +276,36 @@ def check_santa_monica_compliance(analysis: CNELAnalysis) -> Dict[str, any]:
         if analysis.cnel_db < 65:
             compliance["notes"].append("Compliant with standard noise insulation")
         else:
-            compliance["notes"].append("Requires detailed acoustic analysis per Santa Monica standards")
-            compliance["notes"].append("Community Development Director approval required for noise mitigation plan")
+            compliance["notes"].append(
+                "Requires detailed acoustic analysis per Santa Monica standards"
+            )
+            compliance["notes"].append(
+                "Community Development Director approval required for noise mitigation plan"
+            )
 
     elif analysis.category == CNELCategory.NORMALLY_UNACCEPTABLE:
         compliance["compliant"] = False
         compliance["requires_variance"] = True
         compliance["notes"].append("Normally unacceptable per Santa Monica General Plan")
-        compliance["notes"].append("Planning Commission approval required for residential development")
-        compliance["notes"].append("CEQA review will require noise impact analysis and mitigation measures")
+        compliance["notes"].append(
+            "Planning Commission approval required for residential development"
+        )
+        compliance["notes"].append(
+            "CEQA review will require noise impact analysis and mitigation measures"
+        )
         compliance["notes"].append("May require General Plan Amendment or variance")
 
     else:  # CLEARLY_UNACCEPTABLE
         compliance["compliant"] = False
         compliance["requires_variance"] = True
-        compliance["notes"].append("Clearly unacceptable for residential per state and local standards")
+        compliance["notes"].append(
+            "Clearly unacceptable for residential per state and local standards"
+        )
         compliance["notes"].append("City Council approval required (or likely denial)")
         compliance["notes"].append("General Plan Amendment almost certainly required")
-        compliance["notes"].append("Consider alternative land uses per Santa Monica General Plan Land Use Element")
+        compliance["notes"].append(
+            "Consider alternative land uses per Santa Monica General Plan Land Use Element"
+        )
 
     return compliance
 
@@ -308,10 +323,14 @@ def format_cnel_for_display(analysis: CNELAnalysis) -> Dict[str, any]:
         "category_label": analysis.description,
         "suitable_for_residential": analysis.residential_suitable,
         "requires_study": analysis.requires_acoustic_study,
-        "window_requirement": f"STC {analysis.window_stc_requirement} minimum" if analysis.window_stc_requirement else "No special requirements",
+        "window_requirement": (
+            f"STC {analysis.window_stc_requirement} minimum"
+            if analysis.window_stc_requirement
+            else "No special requirements"
+        ),
         "mitigation_measures": analysis.mitigation_measures,
         "notes": analysis.notes,
-        "color": _get_category_color(analysis.category)
+        "color": _get_category_color(analysis.category),
     }
 
 
@@ -321,6 +340,6 @@ def _get_category_color(category: CNELCategory) -> str:
         CNELCategory.NORMALLY_ACCEPTABLE: "green",
         CNELCategory.CONDITIONALLY_ACCEPTABLE: "yellow",
         CNELCategory.NORMALLY_UNACCEPTABLE: "orange",
-        CNELCategory.CLEARLY_UNACCEPTABLE: "red"
+        CNELCategory.CLEARLY_UNACCEPTABLE: "red",
     }
     return color_map.get(category, "gray")

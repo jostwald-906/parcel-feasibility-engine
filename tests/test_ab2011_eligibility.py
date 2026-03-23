@@ -7,8 +7,9 @@ Unit tests for AB 2011 eligibility checks including:
 - Integration with AB 2097 parking
 - Coastal zone handling
 """
+
 import pytest
-from app.rules.ab2011 import (
+from app.rules.state_law.ab2011 import (
     check_corridor_eligibility,
     check_site_exclusions,
     check_protected_housing,
@@ -257,8 +258,7 @@ class TestLaborCompliance:
     def test_skilled_workforce_not_required_small_project(self):
         """Skilled workforce not required for <50 units."""
         parcel = make_test_parcel(
-            prevailing_wage_commitment=True,
-            skilled_trained_workforce_commitment=False
+            prevailing_wage_commitment=True, skilled_trained_workforce_commitment=False
         )
         result = check_labor_compliance(parcel, project_units=25)
         assert result["compliant"] is True
@@ -268,8 +268,7 @@ class TestLaborCompliance:
     def test_skilled_workforce_required_large_project(self):
         """Skilled workforce required for 50+ units."""
         parcel = make_test_parcel(
-            prevailing_wage_commitment=True,
-            skilled_trained_workforce_commitment=False
+            prevailing_wage_commitment=True, skilled_trained_workforce_commitment=False
         )
         result = check_labor_compliance(parcel, project_units=75)
         assert result["compliant"] is False
@@ -279,8 +278,7 @@ class TestLaborCompliance:
     def test_skilled_workforce_met_large_project(self):
         """Skilled workforce commitment should satisfy requirement for 50+ units."""
         parcel = make_test_parcel(
-            prevailing_wage_commitment=True,
-            skilled_trained_workforce_commitment=True
+            prevailing_wage_commitment=True, skilled_trained_workforce_commitment=True
         )
         result = check_labor_compliance(parcel, project_units=75)
         assert result["compliant"] is True
@@ -290,8 +288,7 @@ class TestLaborCompliance:
     def test_healthcare_benefits_best_practice(self):
         """Healthcare benefits should be treated as best practice."""
         parcel = make_test_parcel(
-            prevailing_wage_commitment=True,
-            healthcare_benefits_commitment=True
+            prevailing_wage_commitment=True, healthcare_benefits_commitment=True
         )
         result = check_labor_compliance(parcel, project_units=10)
         assert result["compliant"] is True
@@ -300,8 +297,7 @@ class TestLaborCompliance:
     def test_healthcare_benefits_warning(self):
         """Missing healthcare benefits should generate warning."""
         parcel = make_test_parcel(
-            prevailing_wage_commitment=True,
-            healthcare_benefits_commitment=False
+            prevailing_wage_commitment=True, healthcare_benefits_commitment=False
         )
         result = check_labor_compliance(parcel, project_units=10)
         assert any("healthcare" in w.lower() for w in result["warnings"])
@@ -349,9 +345,7 @@ class TestComprehensiveEligibility:
     def test_multiple_exclusions(self):
         """Multiple exclusions should all be reported."""
         parcel = make_test_parcel(
-            in_wetlands=True,
-            has_rent_controlled_units=True,
-            prevailing_wage_commitment=False
+            in_wetlands=True, has_rent_controlled_units=True, prevailing_wage_commitment=False
         )
         result = can_apply_ab2011(parcel)
         assert result["eligible"] is False
@@ -361,7 +355,7 @@ class TestComprehensiveEligibility:
         """Warnings should not prevent eligibility."""
         parcel = make_test_parcel(
             existing_units=5,  # Generates warning
-            healthcare_benefits_commitment=False  # Generates warning
+            healthcare_benefits_commitment=False,  # Generates warning
         )
         result = can_apply_ab2011(parcel)
         assert result["eligible"] is True
@@ -452,10 +446,7 @@ class TestTierDensityCalculations:
 
     def test_low_tier_density_standards(self):
         """Low tier should apply 30 u/ac and 35 ft standards."""
-        parcel = make_test_parcel(
-            zoning_code="C-1",
-            lot_size_sqft=43560.0  # 1 acre
-        )
+        parcel = make_test_parcel(zoning_code="C-1", lot_size_sqft=43560.0)  # 1 acre
         scenario = analyze_ab2011(parcel)
         assert scenario is not None
         # 1 acre * 30 u/ac = 30 units minimum
@@ -464,10 +455,7 @@ class TestTierDensityCalculations:
 
     def test_mid_tier_density_standards(self):
         """Mid tier should apply 50 u/ac and 45 ft standards."""
-        parcel = make_test_parcel(
-            zoning_code="C-2",
-            lot_size_sqft=43560.0  # 1 acre
-        )
+        parcel = make_test_parcel(zoning_code="C-2", lot_size_sqft=43560.0)  # 1 acre
         scenario = analyze_ab2011(parcel)
         assert scenario is not None
         # 1 acre * 50 u/ac = 50 units minimum
@@ -476,10 +464,7 @@ class TestTierDensityCalculations:
 
     def test_high_tier_density_standards(self):
         """High tier should apply 80 u/ac and 65 ft standards."""
-        parcel = make_test_parcel(
-            zoning_code="C-3",
-            lot_size_sqft=43560.0  # 1 acre
-        )
+        parcel = make_test_parcel(zoning_code="C-3", lot_size_sqft=43560.0)  # 1 acre
         scenario = analyze_ab2011(parcel)
         assert scenario is not None
         # 1 acre * 80 u/ac = 80 units minimum

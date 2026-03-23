@@ -5,7 +5,8 @@ Focus: proposal-based helpers
 - Small-lot duplex eligibility (no hard minimum lot size)
 - Side/rear setback override only
 """
-from app.rules import sb9
+
+from app.rules.state_law import sb9
 
 
 def base_parcel(**overrides):
@@ -45,4 +46,3 @@ def test_apply_sets_only_side_rear_min_setback():
     assert out["standards_overrides"]["min_side_rear_setback"] == 4
     # Do not claim a front setback override here
     assert "front_setback_override" not in out["standards_overrides"]
-

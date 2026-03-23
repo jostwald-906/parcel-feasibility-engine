@@ -5,7 +5,8 @@ Focus:
 - Parking 0 when near transit OR within designated car-share area
 - Note short-term rental prohibition (30+ day terms) in apply()
 """
-from app.rules import sb9
+
+from app.rules.state_law import sb9
 
 
 def base_parcel(**overrides):
@@ -51,4 +52,3 @@ def test_short_term_rental_prohibition_noted():
     assert out["eligible"] is True
     assert out["standards_overrides"].get("short_term_rental_prohibited") is True
     assert any("short-term" in r.lower() and "30" in r for r in out["reasons"])  # note present
-

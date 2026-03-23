@@ -3,6 +3,7 @@ Tests for PDF Report Generator Service.
 
 Tests comprehensive PDF generation for feasibility reports.
 """
+
 import pytest
 from io import BytesIO
 from datetime import datetime
@@ -93,9 +94,7 @@ def sample_analysis(
             "Density bonus with concessions",
             "Community benefits can unlock Tier 2 development standards",
         ],
-        warnings=[
-            "Existing 2 unit(s) may need to be demolished or incorporated"
-        ],
+        warnings=["Existing 2 unit(s) may need to be demolished or incorporated"],
     )
 
 
@@ -151,9 +150,7 @@ class TestPDFGeneration:
         # PDF should be between 5KB and 500KB for typical report
         assert 5_000 < len(pdf_bytes) < 500_000
 
-    def test_pdf_not_empty(
-        self, sample_analysis: AnalysisResponse, r2_parcel: ParcelBase
-    ):
+    def test_pdf_not_empty(self, sample_analysis: AnalysisResponse, r2_parcel: ParcelBase):
         """Test that generated PDF is not empty."""
         pdf_bytes = generate_pdf_report(sample_analysis, r2_parcel)
 
@@ -199,14 +196,10 @@ class TestReportSections:
 
         assert len(elements) > 0
 
-    def test_alternative_scenarios_section(
-        self, sample_alternative_scenario: DevelopmentScenario
-    ):
+    def test_alternative_scenarios_section(self, sample_alternative_scenario: DevelopmentScenario):
         """Test alternative scenarios section."""
         generator = PDFReportGenerator()
-        elements = generator._build_alternative_scenarios_section(
-            [sample_alternative_scenario]
-        )
+        elements = generator._build_alternative_scenarios_section([sample_alternative_scenario])
 
         assert len(elements) > 0
 
@@ -228,9 +221,7 @@ class TestReportSections:
 
         assert len(elements) > 0
 
-    def test_timeline_section_with_timelines(
-        self, sample_analysis: AnalysisResponse
-    ):
+    def test_timeline_section_with_timelines(self, sample_analysis: AnalysisResponse):
         """Test timeline section when timelines are present."""
         generator = PDFReportGenerator()
         elements = generator._build_timeline_section(sample_analysis)
@@ -360,18 +351,14 @@ class TestErrorHandling:
         pdf_bytes = generate_pdf_report(sample_analysis, r2_parcel)
         assert len(pdf_bytes) > 0
 
-    def test_handles_no_warnings(
-        self, sample_analysis: AnalysisResponse, r2_parcel: ParcelBase
-    ):
+    def test_handles_no_warnings(self, sample_analysis: AnalysisResponse, r2_parcel: ParcelBase):
         """Test handles analysis with no warnings."""
         sample_analysis.warnings = []
 
         pdf_bytes = generate_pdf_report(sample_analysis, r2_parcel)
         assert len(pdf_bytes) > 0
 
-    def test_handles_no_incentives(
-        self, sample_analysis: AnalysisResponse, r2_parcel: ParcelBase
-    ):
+    def test_handles_no_incentives(self, sample_analysis: AnalysisResponse, r2_parcel: ParcelBase):
         """Test handles analysis with no incentives."""
         sample_analysis.potential_incentives = []
 
@@ -382,9 +369,7 @@ class TestErrorHandling:
 class TestPDFStructure:
     """Tests for PDF document structure."""
 
-    def test_pdf_has_multiple_pages(
-        self, sample_analysis: AnalysisResponse, r2_parcel: ParcelBase
-    ):
+    def test_pdf_has_multiple_pages(self, sample_analysis: AnalysisResponse, r2_parcel: ParcelBase):
         """Test that PDF has multiple pages for comprehensive report."""
         pdf_bytes = generate_pdf_report(sample_analysis, r2_parcel)
 
@@ -394,9 +379,7 @@ class TestPDFStructure:
         # Look for page indicators (endobj markers typically indicate pages)
         assert pdf_text.count("endobj") > 3  # At least a few objects
 
-    def test_pdf_structure_valid(
-        self, sample_analysis: AnalysisResponse, r2_parcel: ParcelBase
-    ):
+    def test_pdf_structure_valid(self, sample_analysis: AnalysisResponse, r2_parcel: ParcelBase):
         """Test PDF structure is valid."""
         pdf_bytes = generate_pdf_report(sample_analysis, r2_parcel)
 
@@ -433,15 +416,11 @@ class TestCoverageEdgeCases:
         ]
 
         generator = PDFReportGenerator()
-        elements = generator._build_alternative_scenarios_section(
-            [sample_alternative_scenario]
-        )
+        elements = generator._build_alternative_scenarios_section([sample_alternative_scenario])
 
         assert len(elements) > 0
 
-    def test_scenario_with_affordable_units(
-        self, sample_alternative_scenario: DevelopmentScenario
-    ):
+    def test_scenario_with_affordable_units(self, sample_alternative_scenario: DevelopmentScenario):
         """Test scenario with affordable units required."""
         sample_alternative_scenario.affordable_units_required = 3
 
@@ -499,14 +478,9 @@ class TestCoverageEdgeCases:
 
         assert len(elements) > 0
 
-    def test_scenario_with_long_notes_list(
-        self, sample_base_scenario: DevelopmentScenario
-    ):
+    def test_scenario_with_long_notes_list(self, sample_base_scenario: DevelopmentScenario):
         """Test scenario with many notes."""
-        sample_base_scenario.notes = [
-            f"Note {i}: Sample note text for testing"
-            for i in range(20)
-        ]
+        sample_base_scenario.notes = [f"Note {i}: Sample note text for testing" for i in range(20)]
 
         generator = PDFReportGenerator()
         elements = generator._build_base_scenario_section(sample_base_scenario)

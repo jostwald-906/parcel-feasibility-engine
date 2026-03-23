@@ -4,7 +4,8 @@ AB2011 (2022) corridor housing tests.
 Scope: validate eligibility on commercial/office/mixed zoning and application
 of state floors for density and height via the analysis function.
 """
-from app.rules.ab2011 import (
+
+from app.rules.state_law.ab2011 import (
     analyze_ab2011,
     analyze_ab2011_tracks,
     is_ab2011_eligible,

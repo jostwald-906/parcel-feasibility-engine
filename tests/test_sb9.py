@@ -6,13 +6,14 @@ SB9 allows:
 - Urban lot splits creating two parcels
 - Combined: up to 4 units total
 """
+
 import pytest
-from app.rules.sb9 import (
+from app.rules.state_law.sb9 import (
     analyze_sb9,
     is_sb9_eligible,
     can_split_lot,
     create_duplex_scenario,
-    create_lot_split_scenario
+    create_lot_split_scenario,
 )
 from app.models.parcel import ParcelBase
 
@@ -49,20 +50,23 @@ class TestSB9Eligibility:
             lot_size_sqft=1500.0,  # Under 2000 sq ft minimum
             zoning_code="R1",
             existing_units=1,
-            existing_building_sqft=800
+            existing_building_sqft=800,
         )
 
         assert is_sb9_eligible(tiny_parcel) is False
 
-    @pytest.mark.parametrize("zoning_code,expected_eligible", [
-        ("R1", True),
-        ("RS", True),
-        ("R1-5000", True),
-        ("SINGLE FAMILY", True),
-        ("R2", False),
-        ("R3", False),
-        ("C-1", False),
-    ])
+    @pytest.mark.parametrize(
+        "zoning_code,expected_eligible",
+        [
+            ("R1", True),
+            ("RS", True),
+            ("R1-5000", True),
+            ("SINGLE FAMILY", True),
+            ("R2", False),
+            ("R3", False),
+            ("C-1", False),
+        ],
+    )
     def test_zoning_code_eligibility(self, zoning_code, expected_eligible):
         """Test eligibility for various zoning codes."""
         parcel = ParcelBase(
@@ -74,7 +78,7 @@ class TestSB9Eligibility:
             lot_size_sqft=6000.0,
             zoning_code=zoning_code,
             existing_units=0,
-            existing_building_sqft=0
+            existing_building_sqft=0,
         )
 
         assert is_sb9_eligible(parcel) == expected_eligible
@@ -104,7 +108,7 @@ class TestLotSplitFeasibility:
             lot_size_sqft=2400.0,  # Exactly at minimum
             zoning_code="R1",
             existing_units=0,
-            existing_building_sqft=0
+            existing_building_sqft=0,
         )
 
         assert can_split_lot(minimum_parcel) is True
@@ -121,7 +125,7 @@ class TestLotSplitFeasibility:
             lot_width_ft=35.0,  # Narrow but meets area minimum
             zoning_code="R1",
             existing_units=0,
-            existing_building_sqft=0
+            existing_building_sqft=0,
         )
 
         assert can_split_lot(narrow_parcel) is True
@@ -308,7 +312,7 @@ class TestSB9EdgeCases:
             lot_size_sqft=2400.0,
             zoning_code="R1",
             existing_units=0,
-            existing_building_sqft=0
+            existing_building_sqft=0,
         )
 
         assert is_sb9_eligible(parcel) is True
@@ -325,7 +329,7 @@ class TestSB9EdgeCases:
             lot_size_sqft=2399.0,
             zoning_code="R1",
             existing_units=0,
-            existing_building_sqft=0
+            existing_building_sqft=0,
         )
 
         assert can_split_lot(parcel) is False
@@ -342,7 +346,7 @@ class TestSB9EdgeCases:
             lot_width_ft=40.0,
             zoning_code="R1",
             existing_units=0,
-            existing_building_sqft=0
+            existing_building_sqft=0,
         )
 
         assert can_split_lot(parcel) is True
@@ -359,7 +363,7 @@ class TestSB9EdgeCases:
             lot_width_ft=39.9,
             zoning_code="R1",
             existing_units=0,
-            existing_building_sqft=0
+            existing_building_sqft=0,
         )
 
         assert can_split_lot(parcel) is True
@@ -368,12 +372,15 @@ class TestSB9EdgeCases:
 class TestSB9LotSizeCalculations:
     """Tests for unit size calculations in SB9 scenarios."""
 
-    @pytest.mark.parametrize("lot_size,expected_unit_size", [
-        (3000, 800),   # Small lot
-        (4999, 800),   # Just under 5000
-        (5000, 1200),  # At 5000 threshold
-        (8000, 1200),  # Large lot
-    ])
+    @pytest.mark.parametrize(
+        "lot_size,expected_unit_size",
+        [
+            (3000, 800),  # Small lot
+            (4999, 800),  # Just under 5000
+            (5000, 1200),  # At 5000 threshold
+            (8000, 1200),  # Large lot
+        ],
+    )
     def test_unit_size_by_lot_size(self, lot_size, expected_unit_size):
         """Test that unit size varies correctly by lot size."""
         parcel = ParcelBase(
@@ -385,7 +392,7 @@ class TestSB9LotSizeCalculations:
             lot_size_sqft=lot_size,
             zoning_code="R1",
             existing_units=0,
-            existing_building_sqft=0
+            existing_building_sqft=0,
         )
 
         scenario = create_duplex_scenario(parcel)

@@ -7,10 +7,11 @@ Covers:
 - Local-vs-state precedence helper (choose max of local and floor)
 - Standards application to a parcel (min units by lot size)
 """
+
 import math
 import pytest
 
-from app.rules.ab2011 import (
+from app.rules.state_law.ab2011 import (
     ab2011_state_floors,
     ab2011_precedence,
     apply_ab2011_standards,
@@ -74,7 +75,9 @@ class TestPrecedenceHelper:
 class TestApplyStandards:
     def test_min_units_low_tier_half_acre(self):
         parcel = make_parcel_acres(0.5)
-        res = apply_ab2011_standards(parcel, tier="low", local_min_density_u_ac=None, local_max_height_ft=None)
+        res = apply_ab2011_standards(
+            parcel, tier="low", local_min_density_u_ac=None, local_max_height_ft=None
+        )
         # 0.5 acres * 30 u/ac = 15 units (ceil)
         assert res["final_min_density_u_ac"] == 30
         assert res["final_min_units"] == 15
@@ -83,7 +86,9 @@ class TestApplyStandards:
     def test_mid_tier_local_more_permissive(self):
         parcel = make_parcel_acres(0.25)
         # Local is more permissive: density 60 u/ac and height 55 ft
-        res = apply_ab2011_standards(parcel, tier="mid", local_min_density_u_ac=60, local_max_height_ft=55)
+        res = apply_ab2011_standards(
+            parcel, tier="mid", local_min_density_u_ac=60, local_max_height_ft=55
+        )
         assert res["state_min_density_u_ac"] == 50
         assert res["final_min_density_u_ac"] == 60
         assert res["state_min_height_ft"] == 45
@@ -94,9 +99,10 @@ class TestApplyStandards:
     def test_high_tier_local_below_floor(self):
         parcel = make_parcel_acres(1.0)
         # Local constraints below state floor
-        res = apply_ab2011_standards(parcel, tier="high", local_min_density_u_ac=50, local_max_height_ft=50)
+        res = apply_ab2011_standards(
+            parcel, tier="high", local_min_density_u_ac=50, local_max_height_ft=50
+        )
         assert res["final_min_density_u_ac"] == 80  # state floor prevails
-        assert res["final_min_height_ft"] == 65     # state floor prevails
+        assert res["final_min_height_ft"] == 65  # state floor prevails
         # 1.0 ac * 80 = 80 units
         assert res["final_min_units"] == 80
-

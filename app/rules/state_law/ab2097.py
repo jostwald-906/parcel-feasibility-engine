@@ -11,13 +11,13 @@ Major transit includes:
 - Bus rapid transit stops
 - Intersections of two or more bus routes with 15-minute peak service
 """
+
 from app.models.analysis import DevelopmentScenario
 from app.models.parcel import ParcelBase
 
 
 def apply_ab2097_parking_reduction(
-    scenario: DevelopmentScenario,
-    parcel: ParcelBase
+    scenario: DevelopmentScenario, parcel: ParcelBase
 ) -> DevelopmentScenario:
     """
     Apply AB2097 parking reductions if applicable.
@@ -81,7 +81,7 @@ def is_within_transit_area(parcel: ParcelBase) -> bool:
         "Long Beach",
         "Pasadena",
         "San Diego",
-        "Sacramento"
+        "Sacramento",
     ]
 
     # Simple check - in production would use actual distance calculations
@@ -113,26 +113,16 @@ def get_transit_proximity_info(parcel: ParcelBase) -> dict:
         "parking_minimums_eliminated": within_transit,
         "transit_distance_miles": None,  # Would calculate in production
         "nearest_transit_type": None,
-        "notes": []
+        "notes": [],
     }
 
     if within_transit:
-        info["notes"].append(
-            "Parcel appears to be within AB2097 transit area"
-        )
-        info["notes"].append(
-            "No minimum parking requirements per AB2097"
-        )
-        info["notes"].append(
-            "Verify exact transit distance with local planning department"
-        )
+        info["notes"].append("Parcel appears to be within AB2097 transit area")
+        info["notes"].append("No minimum parking requirements per AB2097")
+        info["notes"].append("Verify exact transit distance with local planning department")
     else:
-        info["notes"].append(
-            "Parcel does not appear to be within AB2097 transit area"
-        )
-        info["notes"].append(
-            "Standard parking requirements apply"
-        )
+        info["notes"].append("Parcel does not appear to be within AB2097 transit area")
+        info["notes"].append("Standard parking requirements apply")
 
     return info
 

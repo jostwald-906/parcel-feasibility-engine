@@ -13,6 +13,7 @@ Eligibility requirements:
 - Not a historic property
 - Not prime farmland
 """
+
 from app.models.analysis import DevelopmentScenario
 from app.models.parcel import ParcelBase
 from typing import List, Optional
@@ -122,10 +123,7 @@ def create_duplex_scenario(parcel: ParcelBase) -> Optional[DevelopmentScenario]:
     max_stories = 2
 
     # Setbacks: 4 ft side and rear per SB9; front per local objective standards
-    setbacks = {
-        "rear": 4.0,
-        "side": 4.0
-    }
+    setbacks = {"rear": 4.0, "side": 4.0}
 
     # Parking: Up to 1 space per unit can be required
     parking_spaces_required = 2
@@ -139,7 +137,7 @@ def create_duplex_scenario(parcel: ParcelBase) -> Optional[DevelopmentScenario]:
         "Height subject to local objective standards",
         "4-foot side and rear setbacks; front per local standards",
         "Ministerial approval required (no discretionary review)",
-        "Units may not be used as short-term rentals"
+        "Units may not be used as short-term rentals",
     ]
 
     scenario = DevelopmentScenario(
@@ -154,7 +152,7 @@ def create_duplex_scenario(parcel: ParcelBase) -> Optional[DevelopmentScenario]:
         setbacks=setbacks,
         lot_coverage_pct=lot_coverage_pct,
         estimated_buildable_sqft=max_building_sqft * 0.9,
-        notes=notes
+        notes=notes,
     )
 
     return scenario
@@ -191,10 +189,7 @@ def create_lot_split_scenario(parcel: ParcelBase) -> Optional[DevelopmentScenari
     max_stories = 2
 
     # Setbacks: 4 ft side and rear per SB9; front per local objective standards
-    setbacks = {
-        "rear": 4.0,
-        "side": 4.0
-    }
+    setbacks = {"rear": 4.0, "side": 4.0}
 
     # Parking: 1 space per unit max
     parking_spaces_required = max_units
@@ -211,7 +206,7 @@ def create_lot_split_scenario(parcel: ParcelBase) -> Optional[DevelopmentScenari
         "4-foot side and rear setbacks; front per local standards",
         "Ministerial approval process",
         "3-year owner-occupancy requirement applies to lot split",
-        "Cannot be subdivided again for 10 years"
+        "Cannot be subdivided again for 10 years",
     ]
 
     scenario = DevelopmentScenario(
@@ -226,7 +221,7 @@ def create_lot_split_scenario(parcel: ParcelBase) -> Optional[DevelopmentScenari
         setbacks=setbacks,
         lot_coverage_pct=lot_coverage_pct,
         estimated_buildable_sqft=max_building_sqft * 0.9,
-        notes=notes
+        notes=notes,
     )
 
     return scenario
@@ -274,7 +269,10 @@ def can_apply(parcel: dict, proposal: dict) -> dict:
     wants_lot_split = bool(proposal.get("lot_split", False))
 
     if not (wants_two_unit or wants_lot_split):
-        return {"eligible": False, "reasons": ["No SB9 provisions selected (two-unit or lot split)"]}
+        return {
+            "eligible": False,
+            "reasons": ["No SB9 provisions selected (two-unit or lot split)"],
+        }
 
     zone = str(parcel.get("zone", ""))
     overlays = parcel.get("overlays", {}) or {}
@@ -313,7 +311,9 @@ def can_apply(parcel: dict, proposal: dict) -> dict:
 
     # Hazard overlays: do not categorically deny; note mitigation requirements [CITE]
     if overlays.get("very_high_fire", False):
-        reasons.append("Very High Fire Hazard Zone: allowed with mitigation (hardening/defensible space)")
+        reasons.append(
+            "Very High Fire Hazard Zone: allowed with mitigation (hardening/defensible space)"
+        )
 
     if overlays.get("flood", False):
         reasons.append("Flood zone: allowed with FEMA-compliant mitigation (elevation/drainage)")
@@ -343,7 +343,9 @@ def can_apply(parcel: dict, proposal: dict) -> dict:
             reasons.append("Meets minimum lot size for SB9 lot split")
             # 40/60 split ratio and 1,200 sf min per child lot [CITE]
             min_child_area = max(1200.0, 0.4 * lot_area_sf)
-            reasons.append(f"Lot split must satisfy 40/60 ratio; minimum child lot area ≈ {int(min_child_area)} sq ft")
+            reasons.append(
+                f"Lot split must satisfy 40/60 ratio; minimum child lot area ≈ {int(min_child_area)} sq ft"
+            )
         if wants_two_unit:
             reasons.append("Two-unit development allowed on single-family parcel under SB9")
 
@@ -387,7 +389,9 @@ def apply(parcel: dict, proposal: dict) -> dict:
 
     # Parking per unit: 0 if near transit OR in car-share area; else up to 1 per unit [CITE]
     near_transit = bool(proposal.get("near_transit", False))
-    car_share_area = bool(proposal.get("car_share_area", False)) or bool(parcel.get("car_share_area", False))
+    car_share_area = bool(proposal.get("car_share_area", False)) or bool(
+        parcel.get("car_share_area", False)
+    )
     zero_parking = near_transit or car_share_area
     parking_required = 0 if zero_parking else 1
     if near_transit:
@@ -416,7 +420,9 @@ def apply(parcel: dict, proposal: dict) -> dict:
         max_units_delta = 0
 
     # Short-term rental prohibition (30+ day terms) [CITE]
-    if eligible and (bool(proposal.get("two_unit", False)) or bool(proposal.get("lot_split", False))):
+    if eligible and (
+        bool(proposal.get("two_unit", False)) or bool(proposal.get("lot_split", False))
+    ):
         standards_overrides["short_term_rental_prohibited"] = True
         reasons.append("Short-term rentals prohibited; SB9 units must be for 30+ day terms")
 

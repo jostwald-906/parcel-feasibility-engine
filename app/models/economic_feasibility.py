@@ -13,11 +13,11 @@ References:
 - California Prop 13 tax rate limits (1%)
 - HCD income limits (AMI-based affordable rents)
 """
+
 from pydantic import BaseModel, Field, field_validator
 from typing import Optional, List, Dict, Any
 from datetime import datetime
 from fastapi import HTTPException
-
 
 # ==============================================================================
 # Input Models - Economic Assumptions
@@ -41,7 +41,7 @@ class EconomicAssumptions(BaseModel):
             "Annual discount rate for NPV calculation. "
             "Default 12% = typical real estate investor hurdle rate. "
             "Can be derived from CAPM: discount_rate = risk_free_rate + beta × market_risk_premium + project_risk_premium"
-        )
+        ),
     )
 
     risk_free_rate: Optional[float] = Field(
@@ -53,7 +53,7 @@ class EconomicAssumptions(BaseModel):
             "Optional: If provided, used for CAPM calculation. "
             "Current typical: 0.035 (3.5%). "
             "Source: https://fred.stlouisfed.org/series/DGS10"
-        )
+        ),
     )
 
     market_risk_premium: float = Field(
@@ -64,7 +64,7 @@ class EconomicAssumptions(BaseModel):
             "Market risk premium (equity premium above risk-free rate). "
             "Default 6% = historical US equity premium. "
             "Used in CAPM: Expected Return = Rf + β(Rm - Rf)"
-        )
+        ),
     )
 
     project_risk_premium: float = Field(
@@ -75,7 +75,7 @@ class EconomicAssumptions(BaseModel):
             "Project-specific risk premium above market. "
             "Default 2.5% accounts for development risk, local market risk. "
             "Higher for new markets, complex projects, uncertain approvals."
-        )
+        ),
     )
 
     # Capitalization rate
@@ -88,7 +88,7 @@ class EconomicAssumptions(BaseModel):
             "Default 4.5% = typical for Class A multifamily in major CA markets. "
             "Range: 3% (urban core) to 8% (tertiary markets). "
             "Exit Value = Year 10 NOI / cap_rate"
-        )
+        ),
     )
 
     # Location and quality adjustments
@@ -102,7 +102,7 @@ class EconomicAssumptions(BaseModel):
             "Santa Monica/West LA: ~1.25-1.35, San Francisco: ~1.4-1.5, "
             "Inland Empire: ~0.85-0.95. "
             "Source: RAND Corporation California construction cost indices"
-        )
+        ),
     )
 
     quality_factor: float = Field(
@@ -113,7 +113,7 @@ class EconomicAssumptions(BaseModel):
             "Quality adjustment factor for construction costs. "
             "1.0 = standard quality, 1.1-1.2 = high-end finishes, "
             "0.8-0.9 = basic/affordable finishes"
-        )
+        ),
     )
 
     # Operating assumptions
@@ -126,7 +126,7 @@ class EconomicAssumptions(BaseModel):
             "Default 7% = typical stabilized multifamily. "
             "Lower in supply-constrained markets (3-5%), "
             "higher for new construction lease-up (10-15%)"
-        )
+        ),
     )
 
     tax_rate: float = Field(
@@ -138,7 +138,7 @@ class EconomicAssumptions(BaseModel):
             "Default 1.2% = CA Prop 13 base (1%) + typical local assessments (0.2%). "
             "Prop 13 limits base rate to 1% + voter-approved local bonds. "
             "New construction assessed at market value."
-        )
+        ),
     )
 
     rent_growth_rate: float = Field(
@@ -149,7 +149,7 @@ class EconomicAssumptions(BaseModel):
             "Annual rent growth rate. "
             "Default 3% = long-term inflation + real growth. "
             "CA metros historically 2-4%, supply-constrained markets higher"
-        )
+        ),
     )
 
     expense_growth_rate: float = Field(
@@ -160,7 +160,7 @@ class EconomicAssumptions(BaseModel):
             "Annual operating expense growth rate. "
             "Default 2.5% = slightly below rent growth (operating leverage). "
             "Common range: 2-3.5%"
-        )
+        ),
     )
 
     # Cost escalation
@@ -170,7 +170,7 @@ class EconomicAssumptions(BaseModel):
             "Use Chemical Engineering Cost Construction Index (CCCI) for cost escalation. "
             "If True, applies recent construction cost inflation (2020-2025: ~25%). "
             "If False, uses quality_factor and location_factor only."
-        )
+        ),
     )
 
     # Documentation
@@ -182,7 +182,7 @@ class EconomicAssumptions(BaseModel):
             "tax_rate": "CA Proposition 13 (1978) + local assessments",
             "cap_rate": "CBRE/CoStar multifamily cap rate surveys",
         },
-        description="Data source references for transparency and audit trail"
+        description="Data source references for transparency and audit trail",
     )
 
     class Config:
@@ -202,8 +202,8 @@ class EconomicAssumptions(BaseModel):
                 "use_ccci": False,
                 "source_references": {
                     "location_factor": "RAND Corporation (Santa Monica: 1.3)",
-                    "cap_rate": "CBRE Q1 2025 LA multifamily cap rates (4.5%)"
-                }
+                    "cap_rate": "CBRE Q1 2025 LA multifamily cap rates (4.5%)",
+                },
             }
         }
 
@@ -220,17 +220,9 @@ class ConstructionInputs(BaseModel):
     Used by cost estimator service to calculate total development cost.
     """
 
-    total_buildable_sf: float = Field(
-        ...,
-        gt=0,
-        description="Total buildable square footage"
-    )
+    total_buildable_sf: float = Field(..., gt=0, description="Total buildable square footage")
 
-    num_units: int = Field(
-        ...,
-        gt=0,
-        description="Number of residential units"
-    )
+    num_units: int = Field(..., gt=0, description="Number of residential units")
 
     construction_type: str = Field(
         default="wood_frame",
@@ -240,28 +232,25 @@ class ConstructionInputs(BaseModel):
             "'concrete' (Type I, podium/mid-rise), "
             "'steel' (Type II, high-rise). "
             "Affects base cost per SF."
-        )
+        ),
     )
 
     construction_duration_months: int = Field(
-        ...,
-        gt=0,
-        le=60,
-        description="Construction duration in months"
+        ..., gt=0, le=60, description="Construction duration in months"
     )
 
     predevelopment_duration_months: int = Field(
         ...,
         gt=0,
         le=48,
-        description="Predevelopment duration (entitlements, design, permitting) in months"
+        description="Predevelopment duration (entitlements, design, permitting) in months",
     )
 
     location_factor: float = Field(
         default=1.0,
         ge=0.5,
         le=2.5,
-        description="Location cost multiplier (from EconomicAssumptions)"
+        description="Location cost multiplier (from EconomicAssumptions)",
     )
 
     permit_fees_per_unit: float = Field(
@@ -271,7 +260,7 @@ class ConstructionInputs(BaseModel):
             "Municipal permit and impact fees per unit. "
             "Varies widely: $5k-$50k+ per unit depending on city. "
             "Santa Monica/coastal cities: $20k-$40k typical"
-        )
+        ),
     )
 
     use_wage_adjustment: bool = Field(
@@ -280,7 +269,7 @@ class ConstructionInputs(BaseModel):
             "Apply wage adjustment for prevailing wage requirements. "
             "If True, adds 20-30% labor cost premium for AB 2011/SB 35 projects "
             "with skilled & trained workforce requirements."
-        )
+        ),
     )
 
     @field_validator("construction_type")
@@ -302,7 +291,7 @@ class ConstructionInputs(BaseModel):
                 "predevelopment_duration_months": 12,
                 "location_factor": 1.3,
                 "permit_fees_per_unit": 25000.0,
-                "use_wage_adjustment": True
+                "use_wage_adjustment": True,
             }
         }
 
@@ -315,15 +304,29 @@ class ConstructionCostEstimate(BaseModel):
     """
 
     # Cost breakdown
-    hard_costs: float = Field(..., ge=0, description="Direct construction costs (labor + materials)")
-    soft_costs: float = Field(..., ge=0, description="Total soft costs (A&E + permits + financing + legal + contingency)")
+    hard_costs: float = Field(
+        ..., ge=0, description="Direct construction costs (labor + materials)"
+    )
+    soft_costs: float = Field(
+        ..., ge=0, description="Total soft costs (A&E + permits + financing + legal + contingency)"
+    )
 
     # Soft cost details
-    architecture_engineering: float = Field(..., ge=0, description="Architecture and engineering fees (~5-8% of hard costs)")
-    permits_and_fees: float = Field(..., ge=0, description="Permit fees and development impact fees")
-    construction_financing: float = Field(..., ge=0, description="Construction loan interest and fees")
-    legal_consulting: float = Field(..., ge=0, description="Legal, consulting, and environmental reports")
-    contingency: float = Field(..., ge=0, description="Construction contingency (~5-10% of hard costs)")
+    architecture_engineering: float = Field(
+        ..., ge=0, description="Architecture and engineering fees (~5-8% of hard costs)"
+    )
+    permits_and_fees: float = Field(
+        ..., ge=0, description="Permit fees and development impact fees"
+    )
+    construction_financing: float = Field(
+        ..., ge=0, description="Construction loan interest and fees"
+    )
+    legal_consulting: float = Field(
+        ..., ge=0, description="Legal, consulting, and environmental reports"
+    )
+    contingency: float = Field(
+        ..., ge=0, description="Construction contingency (~5-10% of hard costs)"
+    )
 
     # Total costs
     total_cost: float = Field(..., ge=0, description="Total development cost (hard + soft)")
@@ -336,7 +339,7 @@ class ConstructionCostEstimate(BaseModel):
         description=(
             "Cost escalation factors applied. "
             "Keys: 'materials_index', 'labor_index', 'wage_premium', 'location_factor'"
-        )
+        ),
     )
 
     # Source notes
@@ -345,7 +348,7 @@ class ConstructionCostEstimate(BaseModel):
         description=(
             "Source notes for transparency. "
             "Keys: 'base_cost_source', 'construction_type', 'assumptions', 'date'"
-        )
+        ),
     )
 
     class Config:
@@ -365,14 +368,14 @@ class ConstructionCostEstimate(BaseModel):
                     "materials_index": 1.15,
                     "labor_index": 1.10,
                     "wage_premium": 1.25,
-                    "location_factor": 1.3
+                    "location_factor": 1.3,
                 },
                 "source_notes": {
                     "base_cost_source": "RSMeans 2025 multifamily wood frame",
                     "construction_type": "wood_frame",
                     "assumptions": "30 units, Santa Monica location, prevailing wage",
-                    "date": "2025-01-15"
-                }
+                    "date": "2025-01-15",
+                },
             }
         }
 
@@ -390,27 +393,16 @@ class RevenueInputs(BaseModel):
     """
 
     parcel_zip: str = Field(
-        ...,
-        pattern=r"^\d{5}$",
-        description="5-digit ZIP code for SAFMR lookup"
+        ..., pattern=r"^\d{5}$", description="5-digit ZIP code for SAFMR lookup"
     )
 
     county: str = Field(
-        ...,
-        description="County name for AMI limit lookup (e.g., 'Los Angeles', 'San Francisco')"
+        ..., description="County name for AMI limit lookup (e.g., 'Los Angeles', 'San Francisco')"
     )
 
-    market_units: int = Field(
-        ...,
-        ge=0,
-        description="Number of market-rate units"
-    )
+    market_units: int = Field(..., ge=0, description="Number of market-rate units")
 
-    affordable_units: int = Field(
-        ...,
-        ge=0,
-        description="Number of affordable units"
-    )
+    affordable_units: int = Field(..., ge=0, description="Number of affordable units")
 
     unit_mix: Dict[int, int] = Field(
         ...,
@@ -418,7 +410,7 @@ class RevenueInputs(BaseModel):
             "Unit mix by bedroom count. "
             "Keys: bedrooms (0=studio, 1, 2, 3, 4), Values: unit count. "
             "Example: {0: 5, 1: 15, 2: 10} = 5 studios, 15 1BR, 10 2BR"
-        )
+        ),
     )
 
     use_safmr: bool = Field(
@@ -427,7 +419,7 @@ class RevenueInputs(BaseModel):
             "Use Small Area Fair Market Rent (SAFMR) instead of metro-wide FMR. "
             "SAFMR provides ZIP-code level granularity (recommended for urban areas). "
             "Source: HUD FMR/SAFMR datasets"
-        )
+        ),
     )
 
     quality_factor: float = Field(
@@ -438,7 +430,7 @@ class RevenueInputs(BaseModel):
             "Rent quality adjustment. "
             "1.0 = market average, 1.1-1.3 = luxury/new construction premium, "
             "0.8-0.95 = workforce/moderate-quality"
-        )
+        ),
     )
 
     @field_validator("unit_mix")
@@ -457,14 +449,9 @@ class RevenueInputs(BaseModel):
                 "county": "Los Angeles",
                 "market_units": 25,
                 "affordable_units": 5,
-                "unit_mix": {
-                    0: 5,
-                    1: 15,
-                    2: 8,
-                    3: 2
-                },
+                "unit_mix": {0: 5, 1: 15, 2: 8, 3: 2},
                 "use_safmr": True,
-                "quality_factor": 1.1
+                "quality_factor": 1.1,
             }
         }
 
@@ -479,7 +466,9 @@ class RevenueProjection(BaseModel):
     # Gross income
     annual_gross_income: float = Field(..., ge=0, description="Total annual gross rental income")
     vacancy_loss: float = Field(..., ge=0, description="Vacancy and collection loss")
-    effective_gross_income: float = Field(..., ge=0, description="Effective gross income (gross - vacancy)")
+    effective_gross_income: float = Field(
+        ..., ge=0, description="Effective gross income (gross - vacancy)"
+    )
 
     # Expenses
     operating_expenses: float = Field(..., ge=0, description="Annual operating expenses")
@@ -494,7 +483,7 @@ class RevenueProjection(BaseModel):
         description=(
             "Market-rate rent roll by unit type. "
             "Keys: '0BR', '1BR', '2BR', etc. Values: monthly rent per unit"
-        )
+        ),
     )
 
     affordable_rent_roll: Dict[str, float] = Field(
@@ -502,7 +491,7 @@ class RevenueProjection(BaseModel):
         description=(
             "Affordable rent roll by unit type and AMI %. "
             "Keys: '0BR_50AMI', '1BR_60AMI', etc. Values: monthly rent per unit"
-        )
+        ),
     )
 
     # Expense breakdown
@@ -512,7 +501,7 @@ class RevenueProjection(BaseModel):
             "Operating expense breakdown. "
             "Keys: 'property_management', 'maintenance', 'utilities', 'insurance', "
             "'property_tax', 'reserves', 'other'. Values: annual cost"
-        )
+        ),
     )
 
     # Source notes
@@ -521,7 +510,7 @@ class RevenueProjection(BaseModel):
         description=(
             "Source notes for transparency. "
             "Keys: 'fmr_source', 'ami_source', 'opex_basis', 'date'"
-        )
+        ),
     )
 
     class Config:
@@ -533,30 +522,22 @@ class RevenueProjection(BaseModel):
                 "operating_expenses": 270000.0,
                 "annual_noi": 567000.0,
                 "noi_per_unit": 18900.0,
-                "market_rent_roll": {
-                    "0BR": 2200.0,
-                    "1BR": 2800.0,
-                    "2BR": 3600.0,
-                    "3BR": 4500.0
-                },
-                "affordable_rent_roll": {
-                    "1BR_50AMI": 1200.0,
-                    "2BR_60AMI": 1450.0
-                },
+                "market_rent_roll": {"0BR": 2200.0, "1BR": 2800.0, "2BR": 3600.0, "3BR": 4500.0},
+                "affordable_rent_roll": {"1BR_50AMI": 1200.0, "2BR_60AMI": 1450.0},
                 "expense_breakdown": {
                     "property_management": 45000.0,
                     "maintenance": 90000.0,
                     "utilities": 36000.0,
                     "insurance": 18000.0,
                     "property_tax": 72000.0,
-                    "reserves": 9000.0
+                    "reserves": 9000.0,
                 },
                 "source_notes": {
                     "fmr_source": "HUD SAFMR 2025 ZIP 90401",
                     "ami_source": "HCD 2025 Los Angeles County",
                     "opex_basis": "Industry standard 40% of EGI",
-                    "date": "2025-01-15"
-                }
+                    "date": "2025-01-15",
+                },
             }
         }
 
@@ -570,31 +551,20 @@ class TimelineInputs(BaseModel):
     """Development timeline for cash flow projection."""
 
     predevelopment_months: int = Field(
-        ...,
-        gt=0,
-        le=48,
-        description="Predevelopment duration (entitlements, design, permitting)"
+        ..., gt=0, le=48, description="Predevelopment duration (entitlements, design, permitting)"
     )
 
-    construction_months: int = Field(
-        ...,
-        gt=0,
-        le=60,
-        description="Construction duration"
-    )
+    construction_months: int = Field(..., gt=0, le=60, description="Construction duration")
 
     lease_up_months: int = Field(
-        ...,
-        gt=0,
-        le=24,
-        description="Lease-up period to reach stabilized occupancy"
+        ..., gt=0, le=24, description="Lease-up period to reach stabilized occupancy"
     )
 
     operating_years: int = Field(
         default=10,
         gt=0,
         le=30,
-        description="Operating period for cash flow projection (default 10 years for exit)"
+        description="Operating period for cash flow projection (default 10 years for exit)",
     )
 
     class Config:
@@ -603,7 +573,7 @@ class TimelineInputs(BaseModel):
                 "predevelopment_months": 12,
                 "construction_months": 18,
                 "lease_up_months": 6,
-                "operating_years": 10
+                "operating_years": 10,
             }
         }
 
@@ -613,13 +583,14 @@ class CashFlow(BaseModel):
 
     period: int = Field(..., description="Period number (0 = start)")
     period_type: str = Field(
-        ...,
-        description="Period type: 'predevelopment', 'construction', 'lease_up', 'operations'"
+        ..., description="Period type: 'predevelopment', 'construction', 'lease_up', 'operations'"
     )
 
     revenue: float = Field(default=0.0, description="Revenue in period")
     operating_expenses: float = Field(default=0.0, ge=0, description="Operating expenses in period")
-    capital_expenditure: float = Field(default=0.0, ge=0, description="Capital expenditure in period")
+    capital_expenditure: float = Field(
+        default=0.0, ge=0, description="Capital expenditure in period"
+    )
 
     net_cash_flow: float = Field(..., description="Net cash flow (revenue - opex - capex)")
     cumulative_cash_flow: float = Field(..., description="Cumulative cash flow from period 0")
@@ -652,7 +623,7 @@ class FinancialMetrics(BaseModel):
             "Net Present Value at discount rate. "
             "NPV > 0 indicates project is feasible. "
             "Higher NPV = better returns."
-        )
+        ),
     )
 
     irr: float = Field(
@@ -661,7 +632,7 @@ class FinancialMetrics(BaseModel):
             "Internal Rate of Return (annualized). "
             "IRR > discount_rate indicates project exceeds hurdle. "
             "Expressed as decimal (0.15 = 15% IRR)"
-        )
+        ),
     )
 
     payback_period_years: float = Field(
@@ -670,7 +641,7 @@ class FinancialMetrics(BaseModel):
         description=(
             "Payback period in years (when cumulative cash flow turns positive). "
             "Shorter is better for risk mitigation."
-        )
+        ),
     )
 
     profitability_index: float = Field(
@@ -679,7 +650,7 @@ class FinancialMetrics(BaseModel):
             "Profitability Index (NPV / Initial Investment). "
             "PI > 1.0 indicates positive NPV. "
             "Useful for comparing projects of different scales."
-        )
+        ),
     )
 
     return_on_cost: float = Field(
@@ -688,7 +659,7 @@ class FinancialMetrics(BaseModel):
             "Return on Cost (Stabilized Year 1 NOI / Total Development Cost). "
             "Expressed as decimal (0.06 = 6% RoC). "
             "Compare to cap_rate for value creation analysis."
-        )
+        ),
     )
 
     exit_value: float = Field(
@@ -698,12 +669,11 @@ class FinancialMetrics(BaseModel):
             "Exit value at end of holding period. "
             "Calculated as: Year N NOI / cap_rate. "
             "Assumes sale at stabilized operations."
-        )
+        ),
     )
 
     total_cash_flows: List[CashFlow] = Field(
-        default_factory=list,
-        description="Complete cash flow schedule by period"
+        default_factory=list, description="Complete cash flow schedule by period"
     )
 
     class Config:
@@ -723,9 +693,9 @@ class FinancialMetrics(BaseModel):
                         "operating_expenses": 0.0,
                         "capital_expenditure": 500000.0,
                         "net_cash_flow": -500000.0,
-                        "cumulative_cash_flow": -500000.0
+                        "cumulative_cash_flow": -500000.0,
                     }
-                ]
+                ],
             }
         }
 
@@ -744,7 +714,7 @@ class SensitivityInput(BaseModel):
             "Variable to test. "
             "Options: 'cost_per_sf', 'rent_per_sf', 'cap_rate', 'vacancy_rate', "
             "'construction_duration', 'discount_rate'"
-        )
+        ),
     )
 
     base_value: float = Field(..., description="Base case value")
@@ -756,16 +726,12 @@ class SensitivityInput(BaseModel):
         description=(
             "Percentage change to test (e.g., 0.20 = ±20%). "
             "Creates upside and downside scenarios."
-        )
+        ),
     )
 
     class Config:
         json_schema_extra = {
-            "example": {
-                "variable_name": "cost_per_sf",
-                "base_value": 300.0,
-                "delta_percent": 0.20
-            }
+            "example": {"variable_name": "cost_per_sf", "base_value": 300.0, "delta_percent": 0.20}
         }
 
 
@@ -781,7 +747,7 @@ class TornadoResult(BaseModel):
             "Absolute NPV impact (max NPV - min NPV). "
             "Larger impact = more sensitive variable. "
             "Used for sorting tornado chart."
-        )
+        ),
     )
 
     class Config:
@@ -790,7 +756,7 @@ class TornadoResult(BaseModel):
                 "variable": "cost_per_sf",
                 "downside_npv": 3500000.0,
                 "upside_npv": 1500000.0,
-                "impact": 2000000.0
+                "impact": 2000000.0,
             }
         }
 
@@ -799,17 +765,12 @@ class MonteCarloInputs(BaseModel):
     """Monte Carlo simulation parameters."""
 
     iterations: int = Field(
-        default=10000,
-        ge=1000,
-        le=100000,
-        description="Number of Monte Carlo iterations"
+        default=10000, ge=1000, le=100000, description="Number of Monte Carlo iterations"
     )
 
     # Cost uncertainty (normal distribution)
     cost_per_sf_std: float = Field(
-        ...,
-        ge=0,
-        description="Standard deviation of cost per SF (e.g., 30 for ±$30/SF 1-sigma)"
+        ..., ge=0, description="Standard deviation of cost per SF (e.g., 30 for ±$30/SF 1-sigma)"
     )
 
     # Revenue uncertainty (normal distribution)
@@ -817,7 +778,7 @@ class MonteCarloInputs(BaseModel):
         ...,
         ge=0,
         le=0.10,
-        description="Standard deviation of rent growth rate (e.g., 0.01 = ±1% 1-sigma)"
+        description="Standard deviation of rent growth rate (e.g., 0.01 = ±1% 1-sigma)",
     )
 
     # Exit cap rate uncertainty (triangular distribution)
@@ -830,19 +791,15 @@ class MonteCarloInputs(BaseModel):
         default=0.0,
         ge=-12,
         le=24,
-        description="Mean construction delay in months (0 = on schedule)"
+        description="Mean construction delay in months (0 = on schedule)",
     )
 
     delay_months_std: float = Field(
-        default=3.0,
-        ge=0,
-        le=12,
-        description="Standard deviation of construction delay"
+        default=3.0, ge=0, le=12, description="Standard deviation of construction delay"
     )
 
     random_seed: Optional[int] = Field(
-        default=None,
-        description="Random seed for reproducible testing"
+        default=None, description="Random seed for reproducible testing"
     )
 
     class Config:
@@ -856,7 +813,7 @@ class MonteCarloInputs(BaseModel):
                 "cap_rate_max": 0.06,
                 "delay_months_mean": 0.0,
                 "delay_months_std": 3.0,
-                "random_seed": 42
+                "random_seed": 42,
             }
         }
 
@@ -871,7 +828,7 @@ class MonteCarloResult(BaseModel):
         description=(
             "Probability of NPV > 0 (project is feasible). "
             "Expressed as decimal (0.85 = 85% probability)"
-        )
+        ),
     )
 
     mean_npv: float = Field(..., description="Mean NPV across all iterations")
@@ -882,17 +839,15 @@ class MonteCarloResult(BaseModel):
         description=(
             "NPV percentiles for risk assessment. "
             "Keys: 'p10', 'p25', 'p50' (median), 'p75', 'p90'"
-        )
+        ),
     )
 
     histogram_bins: List[float] = Field(
-        default_factory=list,
-        description="Histogram bin edges for NPV distribution visualization"
+        default_factory=list, description="Histogram bin edges for NPV distribution visualization"
     )
 
     histogram_counts: List[int] = Field(
-        default_factory=list,
-        description="Histogram counts per bin"
+        default_factory=list, description="Histogram counts per bin"
     )
 
     class Config:
@@ -906,10 +861,10 @@ class MonteCarloResult(BaseModel):
                     "p25": 1500000.0,
                     "p50": 2250000.0,
                     "p75": 3100000.0,
-                    "p90": 3800000.0
+                    "p90": 3800000.0,
                 },
                 "histogram_bins": [-1000000.0, 0.0, 1000000.0, 2000000.0, 3000000.0, 4000000.0],
-                "histogram_counts": [130, 1200, 3500, 3800, 1370]
+                "histogram_counts": [130, 1200, 3500, 3800, 1370],
             }
         }
 
@@ -922,13 +877,10 @@ class SensitivityAnalysis(BaseModel):
         description=(
             "Tornado chart results (one-way sensitivity). "
             "Sorted by impact (descending) for visualization."
-        )
+        ),
     )
 
-    monte_carlo: MonteCarloResult = Field(
-        ...,
-        description="Monte Carlo simulation results"
-    )
+    monte_carlo: MonteCarloResult = Field(..., description="Monte Carlo simulation results")
 
 
 # ==============================================================================
@@ -948,25 +900,21 @@ class FeasibilityAnalysis(BaseModel):
 
     # Cost and revenue
     construction_cost_estimate: ConstructionCostEstimate = Field(
-        ...,
-        description="Construction cost breakdown"
+        ..., description="Construction cost breakdown"
     )
 
     revenue_projection: RevenueProjection = Field(
-        ...,
-        description="Annual revenue and NOI projection"
+        ..., description="Annual revenue and NOI projection"
     )
 
     # Financial metrics
     financial_metrics: FinancialMetrics = Field(
-        ...,
-        description="NPV, IRR, payback, and cash flows"
+        ..., description="NPV, IRR, payback, and cash flows"
     )
 
     # Risk analysis
     sensitivity_analysis: SensitivityAnalysis = Field(
-        ...,
-        description="Tornado chart and Monte Carlo results"
+        ..., description="Tornado chart and Monte Carlo results"
     )
 
     # Decision support
@@ -978,7 +926,7 @@ class FeasibilityAnalysis(BaseModel):
             "'Recommended with Caution', "
             "'Not Recommended', "
             "'Further Analysis Required'"
-        )
+        ),
     )
 
     # Audit trail
@@ -987,18 +935,15 @@ class FeasibilityAnalysis(BaseModel):
         description=(
             "Comprehensive source notes and assumptions. "
             "Keys: 'cost_sources', 'revenue_sources', 'assumptions', 'caveats'"
-        )
+        ),
     )
 
     analysis_timestamp: datetime = Field(
-        default_factory=datetime.now,
-        description="Analysis timestamp"
+        default_factory=datetime.now, description="Analysis timestamp"
     )
 
     class Config:
-        json_encoders = {
-            datetime: lambda v: v.isoformat()
-        }
+        json_encoders = {datetime: lambda v: v.isoformat()}
 
         json_schema_extra = {
             "example": {
@@ -1007,31 +952,21 @@ class FeasibilityAnalysis(BaseModel):
                 "construction_cost_estimate": {
                     "total_cost": 7500000.0,
                     "cost_per_unit": 250000.0,
-                    "cost_per_sf": 300.0
+                    "cost_per_sf": 300.0,
                 },
-                "revenue_projection": {
-                    "annual_noi": 567000.0,
-                    "noi_per_unit": 18900.0
-                },
-                "financial_metrics": {
-                    "npv": 2500000.0,
-                    "irr": 0.18,
-                    "payback_period_years": 7.5
-                },
+                "revenue_projection": {"annual_noi": 567000.0, "noi_per_unit": 18900.0},
+                "financial_metrics": {"npv": 2500000.0, "irr": 0.18, "payback_period_years": 7.5},
                 "sensitivity_analysis": {
-                    "monte_carlo": {
-                        "probability_npv_positive": 0.87,
-                        "mean_npv": 2300000.0
-                    }
+                    "monte_carlo": {"probability_npv_positive": 0.87, "mean_npv": 2300000.0}
                 },
                 "decision_recommendation": "Recommended - Strong Feasibility",
                 "source_notes": {
                     "cost_sources": ["RSMeans 2025", "RAND location factor"],
                     "revenue_sources": ["HUD SAFMR 2025", "HCD AMI limits"],
                     "assumptions": "Prevailing wage, 12-month entitlement, 18-month construction",
-                    "caveats": "Subject to approvals, market conditions"
+                    "caveats": "Subject to approvals, market conditions",
                 },
-                "analysis_timestamp": "2025-01-15T10:30:00"
+                "analysis_timestamp": "2025-01-15T10:30:00",
             }
         }
 
@@ -1056,25 +991,20 @@ class FeasibilityRequest(BaseModel):
     # Economic assumptions
     assumptions: EconomicAssumptions = Field(
         default_factory=EconomicAssumptions,
-        description="Economic assumptions (uses defaults if not provided)"
+        description="Economic assumptions (uses defaults if not provided)",
     )
 
     # Revenue inputs (optional - will use defaults if not provided)
     revenue_inputs: Optional[RevenueInputs] = Field(
-        None,
-        description="Revenue inputs (if not provided, will be derived from parcel location)"
+        None, description="Revenue inputs (if not provided, will be derived from parcel location)"
     )
 
     # Analysis options
     run_sensitivity: bool = Field(
-        default=True,
-        description="Run sensitivity analysis (tornado + Monte Carlo)"
+        default=True, description="Run sensitivity analysis (tornado + Monte Carlo)"
     )
 
-    run_monte_carlo: bool = Field(
-        default=True,
-        description="Run Monte Carlo simulation"
-    )
+    run_monte_carlo: bool = Field(default=True, description="Run Monte Carlo simulation")
 
     class Config:
         json_schema_extra = {
@@ -1087,14 +1017,11 @@ class FeasibilityRequest(BaseModel):
                     "predevelopment_months": 12,
                     "construction_months": 18,
                     "lease_up_months": 6,
-                    "operating_years": 10
+                    "operating_years": 10,
                 },
-                "assumptions": {
-                    "discount_rate": 0.12,
-                    "location_factor": 1.3
-                },
+                "assumptions": {"discount_rate": 0.12, "location_factor": 1.3},
                 "run_sensitivity": True,
-                "run_monte_carlo": True
+                "run_monte_carlo": True,
             }
         }
 
@@ -1109,9 +1036,13 @@ class CostIndicesResponse(BaseModel):
 
     as_of_date: str = Field(..., description="Date of latest data")
     materials_ppi: float = Field(..., description="Construction Materials PPI (WPUSI012011)")
-    construction_wages_eci: Optional[float] = Field(None, description="Construction Wages ECI (ECICONWAG)")
+    construction_wages_eci: Optional[float] = Field(
+        None, description="Construction Wages ECI (ECICONWAG)"
+    )
     risk_free_rate_pct: float = Field(..., description="Risk-free rate percentage (DGS10)")
-    data_source: str = Field(default="Federal Reserve Economic Data (FRED)", description="Data source")
+    data_source: str = Field(
+        default="Federal Reserve Economic Data (FRED)", description="Data source"
+    )
     series_ids: Dict[str, str] = Field(..., description="FRED series IDs used")
 
 

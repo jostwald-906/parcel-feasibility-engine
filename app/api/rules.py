@@ -1,6 +1,7 @@
 """
 Rules information API endpoints.
 """
+
 from fastapi import APIRouter, HTTPException
 from typing import List, Dict, Any
 from pydantic import BaseModel
@@ -38,15 +39,15 @@ async def get_all_rules() -> List[RuleInfo]:
                 "Allows lot split creating two parcels minimum 1,200 sq ft each",
                 "Allows up to 2 units per parcel (4 total with split)",
                 "Ministerial approval required",
-                "Maximum 800 sq ft per unit if lot < 5,000 sq ft"
+                "Maximum 800 sq ft per unit if lot < 5,000 sq ft",
             ],
             eligibility_criteria=[
                 "Not in high fire hazard zone",
                 "Not in flood zone",
                 "Not historic property",
                 "Not prime farmland",
-                "Must be in urban area"
-            ]
+                "Must be in urban area",
+            ],
         ),
         RuleInfo(
             name="Senate Bill 35",
@@ -58,14 +59,14 @@ async def get_all_rules() -> List[RuleInfo]:
                 "Ministerial approval (no discretionary review)",
                 "Must meet objective standards",
                 "10% affordable for > 50% RHNA met, 50% affordable otherwise",
-                "Prevailing wage requirements for projects 10+ units"
+                "Prevailing wage requirements for projects 10+ units",
             ],
             eligibility_criteria=[
                 "In locality that hasn't met RHNA targets",
                 "Multifamily development",
                 "Meets local objective standards",
-                "Includes required affordable housing percentage"
-            ]
+                "Includes required affordable housing percentage",
+            ],
         ),
         RuleInfo(
             name="Assembly Bill 2011",
@@ -77,14 +78,14 @@ async def get_all_rules() -> List[RuleInfo]:
                 "Ministerial approval for office-to-residential conversions",
                 "Must meet affordability requirements",
                 "Reduced parking requirements",
-                "Streamlined CEQA review"
+                "Streamlined CEQA review",
             ],
             eligibility_criteria=[
                 "Existing commercial or office building",
                 "At least 15 years old preferred",
                 "Includes affordable housing component",
-                "Meets health and safety codes"
-            ]
+                "Meets health and safety codes",
+            ],
         ),
         RuleInfo(
             name="Assembly Bill 2097",
@@ -96,12 +97,12 @@ async def get_all_rules() -> List[RuleInfo]:
                 "No minimum parking requirements within 0.5 mile of transit",
                 "Applies to all residential and mixed-use",
                 "Transit includes bus stops with 15-min peak service",
-                "Effective January 1, 2023"
+                "Effective January 1, 2023",
             ],
             eligibility_criteria=[
                 "Within 0.5 mile of major transit stop",
-                "Or within 0.25 mile of high-quality bus corridor"
-            ]
+                "Or within 0.25 mile of high-quality bus corridor",
+            ],
         ),
         RuleInfo(
             name="State Density Bonus Law",
@@ -114,16 +115,16 @@ async def get_all_rules() -> List[RuleInfo]:
                 "Up to 80% increase for 100% affordable",
                 "Up to 3 development concessions",
                 "Height increases up to 3 stories/33 feet",
-                "Parking reductions available"
+                "Parking reductions available",
             ],
             eligibility_criteria=[
                 "Minimum 5% very low income, OR",
                 "Minimum 10% lower income, OR",
                 "Minimum 10% moderate income (for sale), OR",
                 "Senior housing, OR",
-                "100% affordable (lower income)"
-            ]
-        )
+                "100% affordable (lower income)",
+            ],
+        ),
     ]
 
     return rules
@@ -148,10 +149,7 @@ async def get_rule_details(rule_code: str) -> RuleInfo:
 
 @router.get("/rules/check-eligibility/{rule_code}")
 async def check_rule_eligibility(
-    rule_code: str,
-    lot_size_sqft: float,
-    zoning_code: str,
-    transit_distance_miles: float = 999.0
+    rule_code: str, lot_size_sqft: float, zoning_code: str, transit_distance_miles: float = 999.0
 ) -> Dict[str, Any]:
     """
     Quick eligibility check for a specific rule.
@@ -208,5 +206,5 @@ async def check_rule_eligibility(
         "rule_code": rule_code,
         "eligible": eligible,
         "reasons": reasons,
-        "note": "This is a preliminary check. Full analysis recommended."
+        "note": "This is a preliminary check. Full analysis recommended.",
     }

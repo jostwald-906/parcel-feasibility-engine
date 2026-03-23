@@ -36,7 +36,7 @@ def mock_fred_api():
         mock_series = pd.Series(
             data=[100.0, 101.5, 103.2, 104.8],
             index=pd.date_range(start="2024-01-01", periods=4, freq="M"),
-            name="WPUSI012011"
+            name="WPUSI012011",
         )
         mock_instance.get_series.return_value = mock_series
 
@@ -93,16 +93,12 @@ class TestFREDClientGetSeries:
         with patch.dict("os.environ", {"FRED_API_KEY": "test_key"}):
             client = FREDClient()
             series = client.get_series(
-                "WPUSI012011",
-                observation_start="2024-01-01",
-                observation_end="2024-12-31"
+                "WPUSI012011", observation_start="2024-01-01", observation_end="2024-12-31"
             )
 
             assert isinstance(series, pd.Series)
             mock_fred_api.get_series.assert_called_once_with(
-                "WPUSI012011",
-                observation_start="2024-01-01",
-                observation_end="2024-12-31"
+                "WPUSI012011", observation_start="2024-01-01", observation_end="2024-12-31"
             )
 
     def test_get_series_caching(self, mock_fred_api):
@@ -160,7 +156,7 @@ class TestFREDClientGetLatestValue:
         # Mock series with null values
         mock_series = pd.Series(
             data=[100.0, None, 103.2, None],
-            index=pd.date_range(start="2024-01-01", periods=4, freq="M")
+            index=pd.date_range(start="2024-01-01", periods=4, freq="M"),
         )
         mock_fred_api.get_series.return_value = mock_series
 
@@ -212,10 +208,7 @@ class TestFREDClientRetry:
         mock_fred_api.get_series.side_effect = [
             Exception("Timeout"),
             Exception("Timeout"),
-            pd.Series(
-                data=[100.0],
-                index=pd.date_range(start="2024-01-01", periods=1, freq="M")
-            )
+            pd.Series(data=[100.0], index=pd.date_range(start="2024-01-01", periods=1, freq="M")),
         ]
 
         with patch.dict("os.environ", {"FRED_API_KEY": "test_key"}):
@@ -255,11 +248,14 @@ class TestFREDClientConvenience:
             assert client1 is client2
 
 
-@pytest.mark.parametrize("series_id,expected_keyword", [
-    ("WPUSI012011", "Producer Price Index"),
-    ("ECICONWAG", "Employment Cost Index"),
-    ("DGS10", "Treasury"),
-])
+@pytest.mark.parametrize(
+    "series_id,expected_keyword",
+    [
+        ("WPUSI012011", "Producer Price Index"),
+        ("ECICONWAG", "Employment Cost Index"),
+        ("DGS10", "Treasury"),
+    ],
+)
 def test_supported_series_names(series_id, expected_keyword):
     """Test that supported series have expected keywords in names."""
     supported = FREDClient.get_supported_series()

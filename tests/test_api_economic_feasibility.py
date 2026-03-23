@@ -19,7 +19,7 @@ from app.main import app
 from app.models.economic_feasibility import (
     FeasibilityRequest,
     EconomicAssumptions,
-    Timeline,
+    TimelineInputs as Timeline,
     CostIndicesResponse,
     MarketRentResponse,
 )
@@ -45,7 +45,7 @@ def sample_feasibility_request():
             "predevelopment_months": 12,
             "construction_months": 24,
             "lease_up_months": 6,
-            "operating_years": 10
+            "operating_years": 10,
         },
         "assumptions": {
             "discount_rate": 0.12,
@@ -56,10 +56,10 @@ def sample_feasibility_request():
             "operating_expense_ratio": 0.35,
             "vacancy_rate": 0.05,
             "annual_rent_growth": 0.03,
-            "annual_expense_growth": 0.025
+            "annual_expense_growth": 0.025,
         },
         "run_sensitivity": True,
-        "run_monte_carlo": False
+        "run_monte_carlo": False,
     }
 
 
@@ -75,7 +75,7 @@ def sample_economic_assumptions():
         "operating_expense_ratio": 0.35,
         "vacancy_rate": 0.05,
         "annual_rent_growth": 0.03,
-        "annual_expense_growth": 0.025
+        "annual_expense_growth": 0.025,
     }
 
 
@@ -83,30 +83,31 @@ class TestComputeFeasibility:
     """Tests for POST /compute endpoint."""
 
     @pytest.mark.skip(reason="Requires FRED/HUD client implementation")
-    @patch('app.api.economic_feasibility.EconomicFeasibilityCalculator')
+    @patch("app.api.economic_feasibility.EconomicFeasibilityCalculator")
     async def test_compute_feasibility_success(
         self, mock_calculator_class, client, sample_feasibility_request
     ):
         """Test successful feasibility analysis computation."""
         # Mock calculator instance
         mock_calculator = Mock()
-        mock_calculator.compute_feasibility = AsyncMock(return_value={
-            "parcel_apn": "4293-001-015",
-            "scenario_name": "Base Zoning",
-            "analysis_date": datetime.now().isoformat(),
-            "npv": 2450000.0,
-            "irr": 0.185,
-            "profitability_index": 1.45,
-            "payback_years": 6.2,
-            "recommendation": "Proceed",
-            "data_sources": {}
-        })
+        mock_calculator.compute_feasibility = AsyncMock(
+            return_value={
+                "parcel_apn": "4293-001-015",
+                "scenario_name": "Base Zoning",
+                "analysis_date": datetime.now().isoformat(),
+                "npv": 2450000.0,
+                "irr": 0.185,
+                "profitability_index": 1.45,
+                "payback_years": 6.2,
+                "recommendation": "Proceed",
+                "data_sources": {},
+            }
+        )
         mock_calculator_class.return_value = mock_calculator
 
         # Make request
         response = client.post(
-            "/api/v1/economic-feasibility/compute",
-            json=sample_feasibility_request
+            "/api/v1/economic-feasibility/compute", json=sample_feasibility_request
         )
 
         # Verify response
@@ -124,22 +125,20 @@ class TestComputeFeasibility:
             # Missing required fields
         }
 
-        response = client.post(
-            "/api/v1/economic-feasibility/compute",
-            json=invalid_request
-        )
+        response = client.post("/api/v1/economic-feasibility/compute", json=invalid_request)
 
         assert response.status_code == 422  # Validation error
 
     @pytest.mark.skip(reason="Requires data source mocking")
     def test_compute_feasibility_data_source_error(self, client, sample_feasibility_request):
         """Test handling of data source unavailability."""
-        with patch('app.services.fred_client.FredClient') as mock_fred:
-            mock_fred.return_value.get_current_indices.side_effect = Exception("FRED API unavailable")
+        with patch("app.clients.fred_client.FREDClient") as mock_fred:
+            mock_fred.return_value.get_current_indices.side_effect = Exception(
+                "FRED API unavailable"
+            )
 
             response = client.post(
-                "/api/v1/economic-feasibility/compute",
-                json=sample_feasibility_request
+                "/api/v1/economic-feasibility/compute", json=sample_feasibility_request
             )
 
             assert response.status_code == 503
@@ -151,23 +150,25 @@ class TestCostIndices:
     """Tests for GET /cost-indices endpoint."""
 
     @pytest.mark.skip(reason="Requires FRED client implementation")
-    @patch('app.api.economic_feasibility.get_fred_client')
+    @patch("app.api.economic_feasibility.get_fred_client")
     async def test_get_cost_indices_success(self, mock_get_client, client):
         """Test successful cost indices retrieval."""
         # Mock FRED client
         mock_client = AsyncMock()
-        mock_client.get_current_indices = AsyncMock(return_value=CostIndicesResponse(
-            as_of_date="2025-09-30",
-            materials_ppi=315.2,
-            construction_wages_eci=142.8,
-            risk_free_rate_pct=4.15,
-            data_source="Federal Reserve Economic Data (FRED)",
-            series_ids={
-                "materials": "WPUSI012011",
-                "wages": "ECICONWAG",
-                "risk_free_rate": "DGS10"
-            }
-        ))
+        mock_client.get_current_indices = AsyncMock(
+            return_value=CostIndicesResponse(
+                as_of_date="2025-09-30",
+                materials_ppi=315.2,
+                construction_wages_eci=142.8,
+                risk_free_rate_pct=4.15,
+                data_source="Federal Reserve Economic Data (FRED)",
+                series_ids={
+                    "materials": "WPUSI012011",
+                    "wages": "ECICONWAG",
+                    "risk_free_rate": "DGS10",
+                },
+            )
+        )
         mock_get_client.return_value = mock_client
 
         response = client.get("/api/v1/economic-feasibility/cost-indices")
@@ -181,7 +182,7 @@ class TestCostIndices:
     @pytest.mark.skip(reason="Requires FRED client implementation")
     def test_get_cost_indices_fred_unavailable(self, client):
         """Test cost indices when FRED API is unavailable."""
-        with patch('app.services.fred_client.FredClient') as mock_fred:
+        with patch("app.clients.fred_client.FREDClient") as mock_fred:
             mock_fred.return_value.get_current_indices.side_effect = Exception("API timeout")
 
             response = client.get("/api/v1/economic-feasibility/cost-indices")
@@ -193,26 +194,22 @@ class TestMarketRents:
     """Tests for GET /market-rents/{zip_code} endpoint."""
 
     @pytest.mark.skip(reason="Requires HUD client implementation")
-    @patch('app.api.economic_feasibility.get_hud_client')
+    @patch("app.api.economic_feasibility.get_hud_client")
     async def test_get_market_rents_success(self, mock_get_client, client):
         """Test successful market rent retrieval."""
         # Mock HUD client
         mock_client = AsyncMock()
-        mock_client.get_fmr_by_zip = AsyncMock(return_value=MarketRentResponse(
-            zip_code="90401",
-            year=2025,
-            rents_by_bedroom={
-                "0": 1850.0,
-                "1": 2100.0,
-                "2": 2650.0,
-                "3": 3450.0,
-                "4": 4100.0
-            },
-            fmr_type="SAFMR",
-            metro_area="Los Angeles-Long Beach-Anaheim, CA",
-            data_source="HUD FMR 2025",
-            effective_date="2024-10-01"
-        ))
+        mock_client.get_fmr_by_zip = AsyncMock(
+            return_value=MarketRentResponse(
+                zip_code="90401",
+                year=2025,
+                rents_by_bedroom={"0": 1850.0, "1": 2100.0, "2": 2650.0, "3": 3450.0, "4": 4100.0},
+                fmr_type="SAFMR",
+                metro_area="Los Angeles-Long Beach-Anaheim, CA",
+                data_source="HUD FMR 2025",
+                effective_date="2024-10-01",
+            )
+        )
         mock_get_client.return_value = mock_client
 
         response = client.get("/api/v1/economic-feasibility/market-rents/90401")
@@ -234,7 +231,7 @@ class TestMarketRents:
     @pytest.mark.skip(reason="Requires HUD client implementation")
     def test_get_market_rents_not_found(self, client):
         """Test market rents for ZIP not in database."""
-        with patch('app.services.hud_fmr_client.HudFMRClient') as mock_hud:
+        with patch("app.services.hud_fmr_client.HudFMRClient") as mock_hud:
             mock_hud.return_value.get_fmr_by_zip.return_value = None
 
             response = client.get("/api/v1/economic-feasibility/market-rents/99999")
@@ -248,8 +245,7 @@ class TestValidateAssumptions:
     def test_validate_assumptions_valid(self, client, sample_economic_assumptions):
         """Test validation with valid assumptions."""
         response = client.post(
-            "/api/v1/economic-feasibility/assumptions/validate",
-            json=sample_economic_assumptions
+            "/api/v1/economic-feasibility/assumptions/validate", json=sample_economic_assumptions
         )
 
         assert response.status_code == 200
@@ -263,8 +259,7 @@ class TestValidateAssumptions:
         sample_economic_assumptions["discount_rate"] = 0.02  # 2% (too low)
 
         response = client.post(
-            "/api/v1/economic-feasibility/assumptions/validate",
-            json=sample_economic_assumptions
+            "/api/v1/economic-feasibility/assumptions/validate", json=sample_economic_assumptions
         )
 
         assert response.status_code == 200
@@ -277,8 +272,7 @@ class TestValidateAssumptions:
         sample_economic_assumptions["discount_rate"] = 0.30  # 30% (too high)
 
         response = client.post(
-            "/api/v1/economic-feasibility/assumptions/validate",
-            json=sample_economic_assumptions
+            "/api/v1/economic-feasibility/assumptions/validate", json=sample_economic_assumptions
         )
 
         assert response.status_code == 200
@@ -286,13 +280,14 @@ class TestValidateAssumptions:
         assert data["is_valid"] is False
         assert any("exceeds 25%" in error for error in data["errors"])
 
-    def test_validate_assumptions_high_discount_rate_warning(self, client, sample_economic_assumptions):
+    def test_validate_assumptions_high_discount_rate_warning(
+        self, client, sample_economic_assumptions
+    ):
         """Test validation with high but valid discount rate."""
         sample_economic_assumptions["discount_rate"] = 0.20  # 20% (high but valid)
 
         response = client.post(
-            "/api/v1/economic-feasibility/assumptions/validate",
-            json=sample_economic_assumptions
+            "/api/v1/economic-feasibility/assumptions/validate", json=sample_economic_assumptions
         )
 
         assert response.status_code == 200
@@ -306,8 +301,7 @@ class TestValidateAssumptions:
         sample_economic_assumptions["cap_rate"] = 0.02  # 2% (unusual)
 
         response = client.post(
-            "/api/v1/economic-feasibility/assumptions/validate",
-            json=sample_economic_assumptions
+            "/api/v1/economic-feasibility/assumptions/validate", json=sample_economic_assumptions
         )
 
         assert response.status_code == 200
@@ -318,21 +312,21 @@ class TestValidateAssumptions:
         sample_economic_assumptions["cap_rate"] = 0.10  # 10% (high)
 
         response = client.post(
-            "/api/v1/economic-feasibility/assumptions/validate",
-            json=sample_economic_assumptions
+            "/api/v1/economic-feasibility/assumptions/validate", json=sample_economic_assumptions
         )
 
         data = response.json()
         assert any("above 8%" in warning for warning in data["warnings"])
 
-    def test_validate_assumptions_quality_factor_warnings(self, client, sample_economic_assumptions):
+    def test_validate_assumptions_quality_factor_warnings(
+        self, client, sample_economic_assumptions
+    ):
         """Test validation with extreme quality factors."""
         # Test low quality factor
         sample_economic_assumptions["quality_factor"] = 0.7  # Below 0.8
 
         response = client.post(
-            "/api/v1/economic-feasibility/assumptions/validate",
-            json=sample_economic_assumptions
+            "/api/v1/economic-feasibility/assumptions/validate", json=sample_economic_assumptions
         )
 
         assert response.status_code == 200
@@ -343,8 +337,7 @@ class TestValidateAssumptions:
         sample_economic_assumptions["quality_factor"] = 1.3  # Above 1.2
 
         response = client.post(
-            "/api/v1/economic-feasibility/assumptions/validate",
-            json=sample_economic_assumptions
+            "/api/v1/economic-feasibility/assumptions/validate", json=sample_economic_assumptions
         )
 
         data = response.json()
@@ -355,14 +348,12 @@ class TestDefaultAssumptions:
     """Tests for GET /defaults endpoint."""
 
     @pytest.mark.skip(reason="Requires FRED client implementation")
-    @patch('app.api.economic_feasibility.get_fred_client')
+    @patch("app.api.economic_feasibility.get_fred_client")
     async def test_get_default_assumptions_success(self, mock_get_client, client):
         """Test successful default assumptions generation."""
         # Mock FRED client
         mock_client = AsyncMock()
-        mock_client.get_current_indices = AsyncMock(return_value=Mock(
-            risk_free_rate_pct=4.15
-        ))
+        mock_client.get_current_indices = AsyncMock(return_value=Mock(risk_free_rate_pct=4.15))
         mock_get_client.return_value = mock_client
 
         response = client.get("/api/v1/economic-feasibility/defaults")
@@ -378,9 +369,7 @@ class TestDefaultAssumptions:
     @pytest.mark.skip(reason="Requires FRED client implementation")
     def test_get_default_assumptions_with_county(self, client):
         """Test default assumptions for specific county."""
-        response = client.get(
-            "/api/v1/economic-feasibility/defaults?county=San Francisco"
-        )
+        response = client.get("/api/v1/economic-feasibility/defaults?county=San Francisco")
 
         assert response.status_code == 200
         data = response.json()
@@ -390,7 +379,7 @@ class TestDefaultAssumptions:
     @pytest.mark.skip(reason="Requires FRED client implementation")
     def test_get_default_assumptions_fred_fallback(self, client):
         """Test default assumptions when FRED is unavailable."""
-        with patch('app.services.fred_client.FredClient') as mock_fred:
+        with patch("app.clients.fred_client.FREDClient") as mock_fred:
             mock_fred.return_value.get_current_indices.side_effect = Exception("API timeout")
 
             response = client.get("/api/v1/economic-feasibility/defaults")
@@ -411,7 +400,7 @@ class TestErrorHandling:
         response = client.post(
             "/api/v1/economic-feasibility/compute",
             data="invalid json",
-            headers={"Content-Type": "application/json"}
+            headers={"Content-Type": "application/json"},
         )
 
         assert response.status_code == 422
@@ -423,10 +412,7 @@ class TestErrorHandling:
             # Missing all other required fields
         }
 
-        response = client.post(
-            "/api/v1/economic-feasibility/compute",
-            json=incomplete_request
-        )
+        response = client.post("/api/v1/economic-feasibility/compute", json=incomplete_request)
 
         assert response.status_code == 422
 
@@ -439,10 +425,7 @@ class TestErrorHandling:
             "buildable_sf": "also_not_a_number",  # Should be float
         }
 
-        response = client.post(
-            "/api/v1/economic-feasibility/compute",
-            json=invalid_request
-        )
+        response = client.post("/api/v1/economic-feasibility/compute", json=invalid_request)
 
         assert response.status_code == 422
 
@@ -508,9 +491,9 @@ class TestRateLimiting:
 @pytest.fixture
 def mock_all_clients():
     """Mock all external clients for integration testing."""
-    with patch('app.services.fred_client.FredClient') as mock_fred, \
-         patch('app.services.hud_fmr_client.HudFMRClient') as mock_hud, \
-         patch('app.services.ami_calculator.get_ami_calculator') as mock_ami:
+    with patch("app.clients.fred_client.FREDClient") as mock_fred, patch(
+        "app.services.hud_fmr_client.HudFMRClient"
+    ) as mock_hud, patch("app.services.ami_calculator.get_ami_calculator") as mock_ami:
 
         # Configure mocks
         mock_fred_instance = Mock()
@@ -524,11 +507,7 @@ def mock_all_clients():
         mock_ami_instance = Mock()
         mock_ami.return_value = mock_ami_instance
 
-        yield {
-            'fred': mock_fred_instance,
-            'hud': mock_hud_instance,
-            'ami': mock_ami_instance
-        }
+        yield {"fred": mock_fred_instance, "hud": mock_hud_instance, "ami": mock_ami_instance}
 
 
 class TestDependencyInjection:

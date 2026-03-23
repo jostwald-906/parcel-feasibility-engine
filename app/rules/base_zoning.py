@@ -1,6 +1,7 @@
 """
 Base zoning analysis rules.
 """
+
 from app.models.analysis import DevelopmentScenario
 from app.models.parcel import ParcelBase
 from app.rules.tiered_standards import compute_max_far, compute_max_height, get_tier_info
@@ -87,7 +88,9 @@ def analyze_base_zoning(parcel: ParcelBase) -> DevelopmentScenario:
         lot_coverage_pct = 80.0
         parking_per_unit = 1.0
 
-    elif "MU" in zoning_code or "MIXED" in zoning_code or "NV" in zoning_code or "WT" in zoning_code:
+    elif (
+        "MU" in zoning_code or "MIXED" in zoning_code or "NV" in zoning_code or "WT" in zoning_code
+    ):
         # Mixed-use zones (MUBL, MUBM, MUBH, MUB, MUCR, NV - Neighborhood Village, WT - Wilshire Transition)
         if "NV" in zoning_code:
             # Neighborhood Village - moderate density mixed-use
@@ -155,7 +158,7 @@ def analyze_base_zoning(parcel: ParcelBase) -> DevelopmentScenario:
     # Calculate maximum building square footage
     max_building_sqft = min(
         parcel.lot_size_sqft * max_far,
-        parcel.lot_size_sqft * (lot_coverage_pct / 100) * max_stories
+        parcel.lot_size_sqft * (lot_coverage_pct / 100) * max_stories,
     )
 
     # Calculate parking requirement
@@ -165,7 +168,7 @@ def analyze_base_zoning(parcel: ParcelBase) -> DevelopmentScenario:
     setbacks: Dict[str, float] = {
         "front": front_setback,
         "rear": rear_setback,
-        "side": side_setback
+        "side": side_setback,
     }
 
     # Create notes
@@ -173,7 +176,7 @@ def analyze_base_zoning(parcel: ParcelBase) -> DevelopmentScenario:
         f"Base zoning: {parcel.zoning_code}",
         f"Density calculation: {max_units} units allowed by zoning",
         f"FAR limit: {max_far} ({far_source})",
-        f"Height limit: {max_height_ft} ft / {max_stories} stories ({height_source})"
+        f"Height limit: {max_height_ft} ft / {max_stories} stories ({height_source})",
     ]
 
     # Add tier info if applicable
@@ -197,7 +200,7 @@ def analyze_base_zoning(parcel: ParcelBase) -> DevelopmentScenario:
         setbacks=setbacks,
         lot_coverage_pct=lot_coverage_pct,
         estimated_buildable_sqft=max_building_sqft * 0.85,  # Account for circulation, walls
-        notes=notes
+        notes=notes,
     )
 
     return scenario

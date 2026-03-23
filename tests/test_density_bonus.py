@@ -3,12 +3,13 @@ Tests for State Density Bonus Law (Government Code Section 65915).
 
 Tests density bonuses and concessions for projects with affordable housing.
 """
+
 import pytest
-from app.rules.density_bonus import (
+from app.rules.state_law.density_bonus import (
     apply_density_bonus,
     calculate_density_bonus_percentage,
     calculate_concessions,
-    get_density_bonus_tiers
+    get_density_bonus_tiers,
 )
 from app.rules.base_zoning import analyze_base_zoning
 from app.models.parcel import ParcelBase
@@ -17,17 +18,20 @@ from app.models.parcel import ParcelBase
 class TestDensityBonusPercentages:
     """Tests for density bonus percentage calculations."""
 
-    @pytest.mark.parametrize("affordability,income,expected_bonus", [
-        (5, "very_low", 20),
-        (10, "very_low", 35),
-        (15, "very_low", 50),
-        (10, "low", 20),
-        (17, "low", 35),
-        (24, "low", 50),
-        (10, "moderate", 5),
-        (40, "moderate", 35),
-        (100, "very_low", 80),
-    ])
+    @pytest.mark.parametrize(
+        "affordability,income,expected_bonus",
+        [
+            (5, "very_low", 20),
+            (10, "very_low", 35),
+            (15, "very_low", 50),
+            (10, "low", 20),
+            (17, "low", 35),
+            (24, "low", 50),
+            (10, "moderate", 5),
+            (40, "moderate", 35),
+            (100, "very_low", 80),
+        ],
+    )
     def test_bonus_percentages(self, affordability, income, expected_bonus):
         """Test density bonus percentage calculations."""
         bonus = calculate_density_bonus_percentage(affordability, income)
@@ -81,16 +85,19 @@ class TestConcessionCalculations:
         assert calculate_concessions(9) == 0
         assert calculate_concessions(5) == 0
 
-    @pytest.mark.parametrize("affordability,expected_concessions", [
-        (5, 0),
-        (10, 1),
-        (15, 1),
-        (20, 2),
-        (25, 2),
-        (30, 3),
-        (50, 3),
-        (100, 4),  # Fourth concession for 100% affordable per § 65915(d)(2)(D)
-    ])
+    @pytest.mark.parametrize(
+        "affordability,expected_concessions",
+        [
+            (5, 0),
+            (10, 1),
+            (15, 1),
+            (20, 2),
+            (25, 2),
+            (30, 3),
+            (50, 3),
+            (100, 4),  # Fourth concession for 100% affordable per § 65915(d)(2)(D)
+        ],
+    )
     def test_concession_tiers(self, affordability, expected_concessions):
         """Test concession tiers for various affordability percentages."""
         assert calculate_concessions(affordability) == expected_concessions
@@ -105,10 +112,7 @@ class TestDensityBonusApplication:
         base_units = base_scenario.max_units
 
         bonus_scenario = apply_density_bonus(
-            base_scenario,
-            r2_parcel,
-            affordability_pct=10,
-            income_level="low"
+            base_scenario, r2_parcel, affordability_pct=10, income_level="low"
         )
 
         assert bonus_scenario.max_units > base_units
@@ -119,10 +123,7 @@ class TestDensityBonusApplication:
         base_units = base_scenario.max_units
 
         bonus_scenario = apply_density_bonus(
-            base_scenario,
-            r2_parcel,
-            affordability_pct=10,
-            income_level="low"
+            base_scenario, r2_parcel, affordability_pct=10, income_level="low"
         )
 
         # 10% low income = 20% density bonus
@@ -134,10 +135,7 @@ class TestDensityBonusApplication:
         base_scenario = analyze_base_zoning(r2_parcel)
 
         bonus_scenario = apply_density_bonus(
-            base_scenario,
-            r2_parcel,
-            affordability_pct=10,
-            income_level="low"
+            base_scenario, r2_parcel, affordability_pct=10, income_level="low"
         )
 
         # Should require at least 10% of total units to be affordable
@@ -149,10 +147,7 @@ class TestDensityBonusApplication:
         base_scenario = analyze_base_zoning(r2_parcel)
 
         bonus_scenario = apply_density_bonus(
-            base_scenario,
-            r2_parcel,
-            affordability_pct=3,  # Too low
-            income_level="low"
+            base_scenario, r2_parcel, affordability_pct=3, income_level="low"  # Too low
         )
 
         assert bonus_scenario is None
@@ -167,10 +162,7 @@ class TestConcessionApplication:
         base_height = base_scenario.max_height_ft
 
         bonus_scenario = apply_density_bonus(
-            base_scenario,
-            r2_parcel,
-            affordability_pct=10,  # 1 concession
-            income_level="low"
+            base_scenario, r2_parcel, affordability_pct=10, income_level="low"  # 1 concession
         )
 
         # Height should increase
@@ -181,10 +173,7 @@ class TestConcessionApplication:
         base_scenario = analyze_base_zoning(r2_parcel)
 
         bonus_scenario = apply_density_bonus(
-            base_scenario,
-            r2_parcel,
-            affordability_pct=20,  # 2 concessions
-            income_level="low"
+            base_scenario, r2_parcel, affordability_pct=20, income_level="low"  # 2 concessions
         )
 
         # Parking per unit should be reduced
@@ -198,10 +187,7 @@ class TestConcessionApplication:
         base_scenario = analyze_base_zoning(r2_parcel)
 
         bonus_scenario = apply_density_bonus(
-            base_scenario,
-            r2_parcel,
-            affordability_pct=30,  # 3 concessions
-            income_level="low"
+            base_scenario, r2_parcel, affordability_pct=30, income_level="low"  # 3 concessions
         )
 
         # Setbacks should be reduced
@@ -214,10 +200,7 @@ class TestConcessionApplication:
         base_height = base_scenario.max_height_ft
 
         bonus_scenario = apply_density_bonus(
-            base_scenario,
-            r2_parcel,
-            affordability_pct=10,
-            income_level="low"
+            base_scenario, r2_parcel, affordability_pct=10, income_level="low"
         )
 
         # Height increase should be reasonable (not more than 50% or 33 feet)
@@ -233,10 +216,7 @@ class TestParkingReductions:
         base_scenario = analyze_base_zoning(r2_parcel)
 
         bonus_scenario = apply_density_bonus(
-            base_scenario,
-            r2_parcel,
-            affordability_pct=10,
-            income_level="very_low"
+            base_scenario, r2_parcel, affordability_pct=10, income_level="very_low"
         )
 
         parking_ratio = bonus_scenario.parking_spaces_required / bonus_scenario.max_units
@@ -247,10 +227,7 @@ class TestParkingReductions:
         base_scenario = analyze_base_zoning(r2_parcel)
 
         bonus_scenario = apply_density_bonus(
-            base_scenario,
-            r2_parcel,
-            affordability_pct=10,
-            income_level="low"
+            base_scenario, r2_parcel, affordability_pct=10, income_level="low"
         )
 
         parking_ratio = bonus_scenario.parking_spaces_required / bonus_scenario.max_units
@@ -261,10 +238,7 @@ class TestParkingReductions:
         base_scenario = analyze_base_zoning(r2_parcel)
 
         bonus_scenario = apply_density_bonus(
-            base_scenario,
-            r2_parcel,
-            affordability_pct=20,
-            income_level="low"
+            base_scenario, r2_parcel, affordability_pct=20, income_level="low"
         )
 
         # With 2 concessions, parking should be further reduced
@@ -280,10 +254,7 @@ class TestBuildingSizeCalculations:
         base_scenario = analyze_base_zoning(r2_parcel)
 
         bonus_scenario = apply_density_bonus(
-            base_scenario,
-            r2_parcel,
-            affordability_pct=10,
-            income_level="low"
+            base_scenario, r2_parcel, affordability_pct=10, income_level="low"
         )
 
         assert bonus_scenario.max_building_sqft > base_scenario.max_building_sqft
@@ -293,10 +264,7 @@ class TestBuildingSizeCalculations:
         base_scenario = analyze_base_zoning(r2_parcel)
 
         bonus_scenario = apply_density_bonus(
-            base_scenario,
-            r2_parcel,
-            affordability_pct=10,
-            income_level="low"
+            base_scenario, r2_parcel, affordability_pct=10, income_level="low"
         )
 
         # Lot coverage may increase but should have limits
@@ -311,10 +279,7 @@ class TestScenarioDocumentation:
         base_scenario = analyze_base_zoning(r2_parcel)
 
         bonus_scenario = apply_density_bonus(
-            base_scenario,
-            r2_parcel,
-            affordability_pct=15,
-            income_level="very_low"
+            base_scenario, r2_parcel, affordability_pct=15, income_level="very_low"
         )
 
         assert "15%" in bonus_scenario.scenario_name
@@ -325,23 +290,20 @@ class TestScenarioDocumentation:
         base_scenario = analyze_base_zoning(r2_parcel)
 
         bonus_scenario = apply_density_bonus(
-            base_scenario,
-            r2_parcel,
-            affordability_pct=10,
-            income_level="low"
+            base_scenario, r2_parcel, affordability_pct=10, income_level="low"
         )
 
-        assert "State Density Bonus" in bonus_scenario.legal_basis or "Density Bonus Law" in bonus_scenario.legal_basis
+        assert (
+            "State Density Bonus" in bonus_scenario.legal_basis
+            or "Density Bonus Law" in bonus_scenario.legal_basis
+        )
 
     def test_notes_document_bonus_details(self, r2_parcel):
         """Test that notes document bonus percentage and units."""
         base_scenario = analyze_base_zoning(r2_parcel)
 
         bonus_scenario = apply_density_bonus(
-            base_scenario,
-            r2_parcel,
-            affordability_pct=10,
-            income_level="low"
+            base_scenario, r2_parcel, affordability_pct=10, income_level="low"
         )
 
         notes_text = " ".join(bonus_scenario.notes)
@@ -354,10 +316,7 @@ class TestScenarioDocumentation:
         base_scenario = analyze_base_zoning(r2_parcel)
 
         bonus_scenario = apply_density_bonus(
-            base_scenario,
-            r2_parcel,
-            affordability_pct=20,
-            income_level="low"
+            base_scenario, r2_parcel, affordability_pct=20, income_level="low"
         )
 
         notes_text = " ".join(bonus_scenario.notes).lower()
@@ -395,10 +354,7 @@ class TestLargeProjects:
         base_units = base_scenario.max_units
 
         bonus_scenario = apply_density_bonus(
-            base_scenario,
-            large_r4_parcel,
-            affordability_pct=15,
-            income_level="very_low"
+            base_scenario, large_r4_parcel, affordability_pct=15, income_level="very_low"
         )
 
         # 15% very low income = 50% density bonus
@@ -411,10 +367,7 @@ class TestLargeProjects:
         base_units = base_scenario.max_units
 
         bonus_scenario = apply_density_bonus(
-            base_scenario,
-            r2_parcel,
-            affordability_pct=100,
-            income_level="very_low"
+            base_scenario, r2_parcel, affordability_pct=100, income_level="very_low"
         )
 
         # Should get 80% bonus
@@ -430,10 +383,7 @@ class TestEdgeCases:
         base_scenario = analyze_base_zoning(r2_parcel)
 
         bonus_scenario = apply_density_bonus(
-            base_scenario,
-            r2_parcel,
-            affordability_pct=5.0,
-            income_level="very_low"
+            base_scenario, r2_parcel, affordability_pct=5.0, income_level="very_low"
         )
 
         assert bonus_scenario is not None
@@ -444,10 +394,7 @@ class TestEdgeCases:
         base_scenario = analyze_base_zoning(r2_parcel)
 
         bonus_scenario = apply_density_bonus(
-            base_scenario,
-            r2_parcel,
-            affordability_pct=4.9,
-            income_level="very_low"
+            base_scenario, r2_parcel, affordability_pct=4.9, income_level="very_low"
         )
 
         assert bonus_scenario is None
@@ -463,7 +410,7 @@ class TestEdgeCases:
             lot_size_sqft=5000.0,
             zoning_code="R1",
             existing_units=0,
-            existing_building_sqft=0
+            existing_building_sqft=0,
         )
 
         base_scenario = analyze_base_zoning(single_unit_parcel)
@@ -472,10 +419,7 @@ class TestEdgeCases:
 
         # Density bonus should still apply
         bonus_scenario = apply_density_bonus(
-            base_scenario,
-            single_unit_parcel,
-            affordability_pct=10,
-            income_level="low"
+            base_scenario, single_unit_parcel, affordability_pct=10, income_level="low"
         )
 
         # 1 unit + 20% = 1.2, rounds to 1 additional unit
@@ -486,12 +430,15 @@ class TestEdgeCases:
 class TestIncomeLevelVariations:
     """Tests for different income level strings."""
 
-    @pytest.mark.parametrize("income_level", [
-        "very_low",
-        "VERY_LOW",
-        "Very Low",
-        "very low",
-    ])
+    @pytest.mark.parametrize(
+        "income_level",
+        [
+            "very_low",
+            "VERY_LOW",
+            "Very Low",
+            "very low",
+        ],
+    )
     def test_income_level_string_variations(self, income_level):
         """Test that income level handles various string formats."""
         bonus = calculate_density_bonus_percentage(10, income_level)
@@ -511,17 +458,11 @@ class TestFourthConcession:
 
         # Compare 30% affordable (3 concessions) vs 100% affordable (4 concessions)
         scenario_3_concessions = apply_density_bonus(
-            base_scenario,
-            r2_parcel,
-            affordability_pct=30,
-            income_level="low"
+            base_scenario, r2_parcel, affordability_pct=30, income_level="low"
         )
 
         scenario_4_concessions = apply_density_bonus(
-            base_scenario,
-            r2_parcel,
-            affordability_pct=100,
-            income_level="very_low"
+            base_scenario, r2_parcel, affordability_pct=100, income_level="very_low"
         )
 
         # Fourth concession should increase building size beyond just density bonus
@@ -533,26 +474,23 @@ class TestFourthConcession:
         base_scenario = analyze_base_zoning(r2_parcel)
 
         scenario_4_concessions = apply_density_bonus(
-            base_scenario,
-            r2_parcel,
-            affordability_pct=100,
-            income_level="very_low"
+            base_scenario, r2_parcel, affordability_pct=100, income_level="very_low"
         )
 
         # Fourth concession should add 15 ft beyond concession 1's 33 ft
         # Total should be at least 48 ft more than base (33 + 15)
         min_expected_increase = 33  # At minimum, should get concession 1's increase
-        assert scenario_4_concessions.max_height_ft >= base_scenario.max_height_ft + min_expected_increase
+        assert (
+            scenario_4_concessions.max_height_ft
+            >= base_scenario.max_height_ft + min_expected_increase
+        )
 
     def test_fourth_concession_documented_in_notes(self, r2_parcel):
         """Test that fourth concession is documented in scenario notes."""
         base_scenario = analyze_base_zoning(r2_parcel)
 
         scenario = apply_density_bonus(
-            base_scenario,
-            r2_parcel,
-            affordability_pct=100,
-            income_level="very_low"
+            base_scenario, r2_parcel, affordability_pct=100, income_level="very_low"
         )
 
         notes_text = " ".join(scenario.notes)
@@ -563,10 +501,7 @@ class TestFourthConcession:
         base_scenario = analyze_base_zoning(r2_parcel)
 
         scenario = apply_density_bonus(
-            base_scenario,
-            r2_parcel,
-            affordability_pct=100,
-            income_level="very_low"
+            base_scenario, r2_parcel, affordability_pct=100, income_level="very_low"
         )
 
         assert scenario.concessions_applied is not None
@@ -584,10 +519,7 @@ class TestOwnershipGating:
         base_scenario = analyze_base_zoning(r2_parcel)
 
         bonus_scenario = apply_density_bonus(
-            base_scenario,
-            r2_parcel,
-            affordability_pct=10,
-            income_level="moderate"
+            base_scenario, r2_parcel, affordability_pct=10, income_level="moderate"
         )
 
         # Should return None for rental projects
@@ -601,10 +533,7 @@ class TestOwnershipGating:
         base_scenario = analyze_base_zoning(r2_parcel)
 
         bonus_scenario = apply_density_bonus(
-            base_scenario,
-            r2_parcel,
-            affordability_pct=10,
-            income_level="moderate"
+            base_scenario, r2_parcel, affordability_pct=10, income_level="moderate"
         )
 
         # Should work for for-sale projects
@@ -619,10 +548,7 @@ class TestOwnershipGating:
         base_scenario = analyze_base_zoning(r2_parcel)
 
         bonus_scenario = apply_density_bonus(
-            base_scenario,
-            r2_parcel,
-            affordability_pct=10,
-            income_level="very_low"
+            base_scenario, r2_parcel, affordability_pct=10, income_level="very_low"
         )
 
         # Should work for rental projects
@@ -636,10 +562,7 @@ class TestOwnershipGating:
         base_scenario = analyze_base_zoning(r2_parcel)
 
         bonus_scenario = apply_density_bonus(
-            base_scenario,
-            r2_parcel,
-            affordability_pct=10,
-            income_level="low"
+            base_scenario, r2_parcel, affordability_pct=10, income_level="low"
         )
 
         # Should work for rental projects
@@ -657,10 +580,7 @@ class TestBedroomBasedCaps:
         base_scenario = analyze_base_zoning(r2_parcel)
 
         bonus_scenario = apply_density_bonus(
-            base_scenario,
-            r2_parcel,
-            affordability_pct=10,
-            income_level="low"
+            base_scenario, r2_parcel, affordability_pct=10, income_level="low"
         )
 
         parking_ratio = bonus_scenario.parking_spaces_required / bonus_scenario.max_units
@@ -675,10 +595,7 @@ class TestBedroomBasedCaps:
         base_scenario = analyze_base_zoning(r2_parcel)
 
         bonus_scenario = apply_density_bonus(
-            base_scenario,
-            r2_parcel,
-            affordability_pct=10,
-            income_level="low"
+            base_scenario, r2_parcel, affordability_pct=10, income_level="low"
         )
 
         parking_ratio = bonus_scenario.parking_spaces_required / bonus_scenario.max_units
@@ -693,10 +610,7 @@ class TestBedroomBasedCaps:
         base_scenario = analyze_base_zoning(r2_parcel)
 
         bonus_scenario = apply_density_bonus(
-            base_scenario,
-            r2_parcel,
-            affordability_pct=10,
-            income_level="low"
+            base_scenario, r2_parcel, affordability_pct=10, income_level="low"
         )
 
         parking_ratio = bonus_scenario.parking_spaces_required / bonus_scenario.max_units
@@ -711,10 +625,7 @@ class TestBedroomBasedCaps:
         base_scenario = analyze_base_zoning(r2_parcel)
 
         bonus_scenario = apply_density_bonus(
-            base_scenario,
-            r2_parcel,
-            affordability_pct=10,
-            income_level="low"
+            base_scenario, r2_parcel, affordability_pct=10, income_level="low"
         )
 
         parking_ratio = bonus_scenario.parking_spaces_required / bonus_scenario.max_units
@@ -732,10 +643,7 @@ class TestAB2097Integration:
         base_scenario = analyze_base_zoning(r2_parcel)
 
         bonus_scenario = apply_density_bonus(
-            base_scenario,
-            r2_parcel,
-            affordability_pct=10,
-            income_level="low"
+            base_scenario, r2_parcel, affordability_pct=10, income_level="low"
         )
 
         # Parking should be 0
@@ -748,10 +656,7 @@ class TestAB2097Integration:
         base_scenario = analyze_base_zoning(r2_parcel)
 
         bonus_scenario = apply_density_bonus(
-            base_scenario,
-            r2_parcel,
-            affordability_pct=10,
-            income_level="low"
+            base_scenario, r2_parcel, affordability_pct=10, income_level="low"
         )
 
         # Parking should be > 0
@@ -764,10 +669,7 @@ class TestAB2097Integration:
         base_scenario = analyze_base_zoning(r2_parcel)
 
         bonus_scenario = apply_density_bonus(
-            base_scenario,
-            r2_parcel,
-            affordability_pct=10,
-            income_level="low"
+            base_scenario, r2_parcel, affordability_pct=10, income_level="low"
         )
 
         notes_text = " ".join(bonus_scenario.notes).lower()
@@ -781,10 +683,7 @@ class TestAB2097Integration:
 
         # Even with 2 concessions (which includes parking reduction)
         bonus_scenario = apply_density_bonus(
-            base_scenario,
-            r2_parcel,
-            affordability_pct=20,  # 2 concessions
-            income_level="low"
+            base_scenario, r2_parcel, affordability_pct=20, income_level="low"  # 2 concessions
         )
 
         # AB 2097 should still result in 0 parking
@@ -799,28 +698,22 @@ class TestWaiverTracking:
         base_scenario = analyze_base_zoning(r2_parcel)
 
         bonus_scenario = apply_density_bonus(
-            base_scenario,
-            r2_parcel,
-            affordability_pct=10,
-            income_level="low"
+            base_scenario, r2_parcel, affordability_pct=10, income_level="low"
         )
 
         # Field should exist (may be None or empty list)
-        assert hasattr(bonus_scenario, 'waivers_applied')
+        assert hasattr(bonus_scenario, "waivers_applied")
 
     def test_concessions_field_exists(self, r2_parcel):
         """Test that concessions_applied field exists and is populated."""
         base_scenario = analyze_base_zoning(r2_parcel)
 
         bonus_scenario = apply_density_bonus(
-            base_scenario,
-            r2_parcel,
-            affordability_pct=10,
-            income_level="low"
+            base_scenario, r2_parcel, affordability_pct=10, income_level="low"
         )
 
         # Field should exist and have at least one concession
-        assert hasattr(bonus_scenario, 'concessions_applied')
+        assert hasattr(bonus_scenario, "concessions_applied")
         assert bonus_scenario.concessions_applied is not None
         assert len(bonus_scenario.concessions_applied) >= 1
 
@@ -829,10 +722,7 @@ class TestWaiverTracking:
         base_scenario = analyze_base_zoning(r2_parcel)
 
         bonus_scenario = apply_density_bonus(
-            base_scenario,
-            r2_parcel,
-            affordability_pct=10,
-            income_level="low"
+            base_scenario, r2_parcel, affordability_pct=10, income_level="low"
         )
 
         notes_text = " ".join(bonus_scenario.notes).lower()

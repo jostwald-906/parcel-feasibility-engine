@@ -45,6 +45,7 @@ class CashFlow:
         cumulative: Cumulative cash flow to date
         phase: Development phase (predevelopment, construction, lease_up, operations, exit)
     """
+
     period: int
     description: str
     amount: float
@@ -63,6 +64,7 @@ class SensitivityInput:
         delta_pct: Percentage change to test (e.g., 0.15 for ±15%)
         label: Human-readable label for display
     """
+
     variable_name: str
     base_value: float
     delta_pct: float
@@ -84,6 +86,7 @@ class TornadoResult:
         downside_value: Variable value for downside case
         upside_value: Variable value for upside case
     """
+
     variable_name: str
     label: str
     base_npv: float
@@ -110,6 +113,7 @@ class MonteCarloInputs:
         construction_delay_mean: Mean construction delay in months (lognormal)
         construction_delay_std: Std dev of construction delay (lognormal)
     """
+
     iterations: int = 10000
     seed: int = 42
     cost_per_sf_std: float = 25.0  # ±$25/SF typical variation
@@ -140,6 +144,7 @@ class MonteCarloResult:
         histogram_bins: Histogram bin edges for visualization
         histogram_counts: Histogram counts per bin
     """
+
     iterations: int
     npv_array: np.ndarray
     probability_positive: float
@@ -165,6 +170,7 @@ class TimelineInputs:
         lease_up_months: Lease-up phase duration
         operations_years: Stabilized operations years before sale
     """
+
     predevelopment_months: int = 6
     construction_months: int = 18
     lease_up_months: int = 6
@@ -177,9 +183,7 @@ class TimelineInputs:
 
 
 def calculate_npv(
-    cash_flows: List[float],
-    discount_rate: float,
-    initial_investment: float
+    cash_flows: List[float], discount_rate: float, initial_investment: float
 ) -> float:
     """
     Calculate Net Present Value (NPV).
@@ -227,7 +231,7 @@ def calculate_irr(
     cash_flows: List[float],
     initial_investment: float,
     max_iterations: int = 100,
-    tolerance: float = 1e-6
+    tolerance: float = 1e-6,
 ) -> Optional[float]:
     """
     Calculate Internal Rate of Return (IRR) using Newton-Raphson method.
@@ -296,10 +300,7 @@ def calculate_irr(
         return None
 
 
-def calculate_payback_period(
-    cash_flows: List[float],
-    initial_investment: float
-) -> float:
+def calculate_payback_period(cash_flows: List[float], initial_investment: float) -> float:
     """
     Calculate payback period in years (with fractional year interpolation).
 
@@ -320,7 +321,7 @@ def calculate_payback_period(
         2.75
     """
     if not cash_flows:
-        return float('inf')
+        return float("inf")
 
     cumulative = 0.0
     for i, cf in enumerate(cash_flows):
@@ -337,13 +338,10 @@ def calculate_payback_period(
             return float(i + fraction)
 
     # Never paid back
-    return float('inf')
+    return float("inf")
 
 
-def calculate_profitability_index(
-    npv: float,
-    initial_investment: float
-) -> float:
+def calculate_profitability_index(npv: float, initial_investment: float) -> float:
     """
     Calculate Profitability Index (PI).
 
@@ -386,7 +384,7 @@ def calculate_profitability_index(
 def calculate_tornado_sensitivity(
     base_scenario: Dict[str, Any],
     variables_to_test: List[SensitivityInput],
-    npv_function: Callable[[Dict[str, Any]], float]
+    npv_function: Callable[[Dict[str, Any]], float],
 ) -> List[TornadoResult]:
     """
     Perform one-way sensitivity analysis (Tornado diagram).
@@ -442,16 +440,18 @@ def calculate_tornado_sensitivity(
         # Calculate impact
         impact = abs(upside_npv - downside_npv)
 
-        results.append(TornadoResult(
-            variable_name=variable.variable_name,
-            label=variable.label,
-            base_npv=base_npv,
-            downside_npv=downside_npv,
-            upside_npv=upside_npv,
-            impact=impact,
-            downside_value=downside_value,
-            upside_value=upside_value
-        ))
+        results.append(
+            TornadoResult(
+                variable_name=variable.variable_name,
+                label=variable.label,
+                base_npv=base_npv,
+                downside_npv=downside_npv,
+                upside_npv=upside_npv,
+                impact=impact,
+                downside_value=downside_value,
+                upside_value=upside_value,
+            )
+        )
 
     # Sort by impact (descending)
     results.sort(key=lambda x: x.impact, reverse=True)
@@ -462,7 +462,7 @@ def calculate_tornado_sensitivity(
 def run_monte_carlo_simulation(
     base_params: Dict[str, Any],
     monte_carlo_inputs: MonteCarloInputs,
-    npv_function: Callable[[Dict[str, Any]], float]
+    npv_function: Callable[[Dict[str, Any]], float],
 ) -> MonteCarloResult:
     """
     Run Monte Carlo simulation with vectorized NumPy operations.
@@ -492,23 +492,17 @@ def run_monte_carlo_simulation(
 
     # Pre-generate all random samples (vectorized)
     # Cost per SF: Normal distribution
-    cost_per_sf_base = base_params.get('cost_per_sf', 400)
+    cost_per_sf_base = base_params.get("cost_per_sf", 400)
     cost_samples = np.random.normal(
-        loc=cost_per_sf_base,
-        scale=monte_carlo_inputs.cost_per_sf_std,
-        size=n
+        loc=cost_per_sf_base, scale=monte_carlo_inputs.cost_per_sf_std, size=n
     )
 
     # Rent growth: Normal distribution, clipped at 0
-    rent_growth_base = base_params.get('rent_growth_rate', 0.03)
+    rent_growth_base = base_params.get("rent_growth_rate", 0.03)
     rent_growth_samples = np.clip(
-        np.random.normal(
-            loc=rent_growth_base,
-            scale=monte_carlo_inputs.rent_growth_std,
-            size=n
-        ),
+        np.random.normal(loc=rent_growth_base, scale=monte_carlo_inputs.rent_growth_std, size=n),
         a_min=0,  # Can't have negative rent growth
-        a_max=None
+        a_max=None,
     )
 
     # Exit cap rate: Triangular distribution
@@ -516,7 +510,7 @@ def run_monte_carlo_simulation(
         left=monte_carlo_inputs.cap_rate_min,
         mode=monte_carlo_inputs.cap_rate_mode,
         right=monte_carlo_inputs.cap_rate_max,
-        size=n
+        size=n,
     )
 
     # Construction delay: Lognormal distribution (in months)
@@ -531,10 +525,7 @@ def run_monte_carlo_simulation(
         # Var[X] = (exp(σ²) - 1) * exp(2μ + σ²)
         # We want to parameterize by mean and std of the delay
         # For small delays, approximate with normal clamped at 0
-        delay_samples = np.maximum(
-            np.random.normal(loc=mu, scale=sigma, size=n),
-            0
-        )
+        delay_samples = np.maximum(np.random.normal(loc=mu, scale=sigma, size=n), 0)
     else:
         delay_samples = np.zeros(n)
 
@@ -543,10 +534,10 @@ def run_monte_carlo_simulation(
     for i in range(n):
         # Create scenario with sampled parameters
         scenario = base_params.copy()
-        scenario['cost_per_sf'] = cost_samples[i]
-        scenario['rent_growth_rate'] = rent_growth_samples[i]
-        scenario['exit_cap_rate'] = cap_rate_samples[i]
-        scenario['construction_delay_months'] = delay_samples[i]
+        scenario["cost_per_sf"] = cost_samples[i]
+        scenario["rent_growth_rate"] = rent_growth_samples[i]
+        scenario["exit_cap_rate"] = cap_rate_samples[i]
+        scenario["construction_delay_months"] = delay_samples[i]
 
         # Calculate NPV for this scenario
         npv_results[i] = npv_function(scenario)
@@ -579,7 +570,7 @@ def run_monte_carlo_simulation(
         percentile_75=percentile_75,
         percentile_95=percentile_95,
         histogram_bins=histogram_bins,
-        histogram_counts=histogram_counts
+        histogram_counts=histogram_counts,
     )
 
 
@@ -594,7 +585,7 @@ def generate_development_cash_flows(
     timeline: TimelineInputs,
     exit_cap_rate: float,
     soft_cost_pct: float = 0.20,
-    predevelopment_spend_pct: float = 0.50
+    predevelopment_spend_pct: float = 0.50,
 ) -> List[CashFlow]:
     """
     Generate period-by-period cash flows for a development project.
@@ -636,13 +627,15 @@ def generate_development_cash_flows(
     # Phase 1: Predevelopment
     predevelopment_years = timeline.predevelopment_months / 12.0
     if predevelopment_years > 0:
-        cash_flows.append(CashFlow(
-            period=period,
-            description=f"Predevelopment ({timeline.predevelopment_months} months)",
-            amount=-predevelopment_costs,
-            cumulative=cumulative - predevelopment_costs,
-            phase="predevelopment"
-        ))
+        cash_flows.append(
+            CashFlow(
+                period=period,
+                description=f"Predevelopment ({timeline.predevelopment_months} months)",
+                amount=-predevelopment_costs,
+                cumulative=cumulative - predevelopment_costs,
+                phase="predevelopment",
+            )
+        )
         cumulative -= predevelopment_costs
         period += 1
 
@@ -654,13 +647,15 @@ def generate_development_cash_flows(
     construction_draw_per_period = total_construction_outlay / construction_periods
 
     for i in range(construction_periods):
-        cash_flows.append(CashFlow(
-            period=period,
-            description=f"Construction Year {i+1}",
-            amount=-construction_draw_per_period,
-            cumulative=cumulative - construction_draw_per_period,
-            phase="construction"
-        ))
+        cash_flows.append(
+            CashFlow(
+                period=period,
+                description=f"Construction Year {i+1}",
+                amount=-construction_draw_per_period,
+                cumulative=cumulative - construction_draw_per_period,
+                phase="construction",
+            )
+        )
         cumulative -= construction_draw_per_period
         period += 1
 
@@ -673,46 +668,49 @@ def generate_development_cash_flows(
         occupancy_pct = (i + 1) / lease_up_periods
         lease_up_noi = annual_noi * occupancy_pct
 
-        cash_flows.append(CashFlow(
-            period=period,
-            description=f"Lease-up Year {i+1} ({occupancy_pct*100:.0f}% occupied)",
-            amount=lease_up_noi,
-            cumulative=cumulative + lease_up_noi,
-            phase="lease_up"
-        ))
+        cash_flows.append(
+            CashFlow(
+                period=period,
+                description=f"Lease-up Year {i+1} ({occupancy_pct*100:.0f}% occupied)",
+                amount=lease_up_noi,
+                cumulative=cumulative + lease_up_noi,
+                phase="lease_up",
+            )
+        )
         cumulative += lease_up_noi
         period += 1
 
     # Phase 4: Stabilized Operations
     for i in range(timeline.operations_years):
-        cash_flows.append(CashFlow(
-            period=period,
-            description=f"Operations Year {i+1}",
-            amount=annual_noi,
-            cumulative=cumulative + annual_noi,
-            phase="operations"
-        ))
+        cash_flows.append(
+            CashFlow(
+                period=period,
+                description=f"Operations Year {i+1}",
+                amount=annual_noi,
+                cumulative=cumulative + annual_noi,
+                phase="operations",
+            )
+        )
         cumulative += annual_noi
         period += 1
 
     # Phase 5: Exit (Sale)
     exit_value = calculate_exit_value(annual_noi, exit_cap_rate)
 
-    cash_flows.append(CashFlow(
-        period=period,
-        description=f"Exit (Sale at {exit_cap_rate*100:.1f}% cap rate)",
-        amount=exit_value,
-        cumulative=cumulative + exit_value,
-        phase="exit"
-    ))
+    cash_flows.append(
+        CashFlow(
+            period=period,
+            description=f"Exit (Sale at {exit_cap_rate*100:.1f}% cap rate)",
+            amount=exit_value,
+            cumulative=cumulative + exit_value,
+            phase="exit",
+        )
+    )
 
     return cash_flows
 
 
-def calculate_exit_value(
-    stabilized_noi: float,
-    exit_cap_rate: float
-) -> float:
+def calculate_exit_value(stabilized_noi: float, exit_cap_rate: float) -> float:
     """
     Calculate exit value using direct capitalization.
 
@@ -761,7 +759,7 @@ def format_currency(amount: float) -> str:
         >>> format_currency(-5000)
         '-$5,000'
     """
-    sign = '-' if amount < 0 else ''
+    sign = "-" if amount < 0 else ""
     abs_amount = abs(amount)
     return f"{sign}${abs_amount:,.0f}"
 

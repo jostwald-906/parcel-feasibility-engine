@@ -1,4 +1,5 @@
 """Parcel cache model for fast autocomplete lookups."""
+
 from sqlmodel import SQLModel, Field
 from typing import Optional
 from datetime import datetime
@@ -6,6 +7,7 @@ from datetime import datetime
 
 class ParcelCache(SQLModel, table=True):
     """Cached Santa Monica parcel data for quick lookups."""
+
     __tablename__ = "parcel_cache"
 
     id: Optional[int] = Field(default=None, primary_key=True)

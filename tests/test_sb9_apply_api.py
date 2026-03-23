@@ -9,6 +9,7 @@ Outputs (apply):
 - {eligible: bool, reasons: [..], standards_overrides: {min_side_rear_setback: 4, ...},
    max_units_delta: 1 or 3, parking_required: 0|1 per unit}
 """
+
 import pytest
 
 from app.rules import sb9
@@ -38,14 +39,18 @@ class TestCanApply:
         proposal = base_proposal(two_unit=True, lot_split=False)
         result = sb9.can_apply(parcel, proposal)
         assert result["eligible"] is True
-        assert any("Two-unit" in r or "two-unit" in r for r in result["reasons"])  # messaging present
+        assert any(
+            "Two-unit" in r or "two-unit" in r for r in result["reasons"]
+        )  # messaging present
 
     def test_lot_split_on_adequate_lot_is_eligible(self):
         parcel = base_parcel(lot_area_sf=6000)
         proposal = base_proposal(two_unit=False, lot_split=True)
         result = sb9.can_apply(parcel, proposal)
         assert result["eligible"] is True
-        assert any("lot split" in r.lower() for r in result["reasons"])  # mentions lot split sufficiency
+        assert any(
+            "lot split" in r.lower() for r in result["reasons"]
+        )  # mentions lot split sufficiency
 
     def test_lot_split_too_small_is_ineligible(self):
         parcel = base_parcel(lot_area_sf=2000)
@@ -72,12 +77,16 @@ class TestApply:
         assert any("no parking" in r.lower() for r in out["reasons"])  # explain
 
     def test_coastal_overlay_requires_cdp_but_is_eligible(self):
-        parcel = base_parcel(overlays={"coastal": True, "historic": False, "very_high_fire": False, "flood": False})
+        parcel = base_parcel(
+            overlays={"coastal": True, "historic": False, "very_high_fire": False, "flood": False}
+        )
         proposal = base_proposal()
         out = sb9.apply(parcel, proposal)
         assert out["eligible"] is True
         assert out["standards_overrides"].get("coastal_cdp_required") is True
-        assert any("coastal" in r.lower() and "cdp" in r.lower() for r in out["reasons"])  # CDP explained
+        assert any(
+            "coastal" in r.lower() and "cdp" in r.lower() for r in out["reasons"]
+        )  # CDP explained
 
     def test_standards_override_includes_min_setback(self):
         parcel = base_parcel()
@@ -92,4 +101,3 @@ class TestApply:
         assert out["eligible"] is True
         assert out["max_units_delta"] == 3
         assert any("lot split" in r.lower() for r in out["reasons"])  # explains path
-

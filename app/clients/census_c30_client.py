@@ -22,11 +22,7 @@ import pandas as pd
 import httpx
 from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
 
-from app.core.cache import (
-    generate_cache_key,
-    load_from_cache,
-    save_to_cache
-)
+from app.core.cache import generate_cache_key, load_from_cache, save_to_cache
 from app.utils.logging import get_logger
 
 logger = get_logger(__name__)
@@ -34,6 +30,7 @@ logger = get_logger(__name__)
 
 class CensusC30ClientError(Exception):
     """Base exception for Census C30 client errors."""
+
     pass
 
 
@@ -74,21 +71,18 @@ class CensusC30Client:
             "Census C30 client initialized",
             extra={
                 "cache_ttl_hours": cache_ttl_hours,
-                "warning": "Data for trend context only, not per-project costs"
-            }
+                "warning": "Data for trend context only, not per-project costs",
+            },
         )
 
     @retry(
         stop=stop_after_attempt(3),
         wait=wait_exponential(multiplier=1, min=2, max=10),
         retry=retry_if_exception_type((httpx.HTTPError, httpx.TimeoutException)),
-        reraise=True
+        reraise=True,
     )
     async def get_construction_spending(
-        self,
-        series_id: str,
-        start_year: int,
-        end_year: Optional[int] = None
+        self, series_id: str, start_year: int, end_year: Optional[int] = None
     ) -> pd.DataFrame:
         """
         Get construction spending time series data.
@@ -126,14 +120,13 @@ class CensusC30Client:
                 extra={
                     "series_id": series_id,
                     "cached_at": cached["cached_at"],
-                    "rows": len(cached["data"]["values"])
-                }
+                    "rows": len(cached["data"]["values"]),
+                },
             )
             # Reconstruct DataFrame from cached data
-            df = pd.DataFrame({
-                "period": cached["data"]["periods"],
-                "value": cached["data"]["values"]
-            })
+            df = pd.DataFrame(
+                {"period": cached["data"]["periods"], "value": cached["data"]["values"]}
+            )
             df["date"] = pd.to_datetime(df["period"], format="%Y%m")
             df.set_index("date", inplace=True)
             return df
@@ -144,8 +137,8 @@ class CensusC30Client:
                 "series_id": series_id,
                 "start_year": start_year,
                 "end_year": end_year,
-                "warning": "Data for trend context only"
-            }
+                "warning": "Data for trend context only",
+            },
         )
 
         try:
@@ -155,14 +148,11 @@ class CensusC30Client:
             params = {
                 "get": "cell_value,time_slot_id",
                 "for": "us:*",
-                "time": f"from {start_year} to {end_year}"
+                "time": f"from {start_year} to {end_year}",
             }
 
             async with httpx.AsyncClient(timeout=30.0) as client:
-                response = await client.get(
-                    self.BASE_URL,
-                    params=params
-                )
+                response = await client.get(self.BASE_URL, params=params)
                 response.raise_for_status()
                 data = response.json()
 
@@ -185,7 +175,7 @@ class CensusC30Client:
             # Save to cache
             cache_data = {
                 "periods": df.index.strftime("%Y%m").tolist(),
-                "values": df["value"].tolist()
+                "values": df["value"].tolist(),
             }
 
             save_to_cache(
@@ -197,8 +187,8 @@ class CensusC30Client:
                     "start_year": start_year,
                     "end_year": end_year,
                     "rows": len(df),
-                    "warning": "Data for trend context only, not per-project costs"
-                }
+                    "warning": "Data for trend context only, not per-project costs",
+                },
             )
 
             logger.info(
@@ -206,8 +196,8 @@ class CensusC30Client:
                 extra={
                     "series_id": series_id,
                     "rows": len(df),
-                    "date_range": f"{df.index[0]} to {df.index[-1]}"
-                }
+                    "date_range": f"{df.index[0]} to {df.index[-1]}",
+                },
             )
 
             return df
@@ -215,19 +205,12 @@ class CensusC30Client:
         except httpx.HTTPStatusError as e:
             logger.error(
                 f"HTTP error fetching Census C30 data: {e.response.status_code}",
-                extra={"series_id": series_id, "response": e.response.text}
+                extra={"series_id": series_id, "response": e.response.text},
             )
-            raise CensusC30ClientError(
-                f"Failed to fetch Census C30 data for {series_id}: {e}"
-            )
+            raise CensusC30ClientError(f"Failed to fetch Census C30 data for {series_id}: {e}")
         except Exception as e:
-            logger.error(
-                f"Failed to fetch Census C30 data: {e}",
-                extra={"series_id": series_id}
-            )
-            raise CensusC30ClientError(
-                f"Failed to fetch Census C30 data for {series_id}: {e}"
-            )
+            logger.error(f"Failed to fetch Census C30 data: {e}", extra={"series_id": series_id})
+            raise CensusC30ClientError(f"Failed to fetch Census C30 data for {series_id}: {e}")
 
     async def get_latest_spending(self, series_id: str) -> Optional[Dict[str, Any]]:
         """
@@ -246,9 +229,7 @@ class CensusC30Client:
         """
         current_year = datetime.now().year
         df = await self.get_construction_spending(
-            series_id,
-            start_year=current_year - 1,
-            end_year=current_year
+            series_id, start_year=current_year - 1, end_year=current_year
         )
 
         if df.empty:
@@ -262,7 +243,7 @@ class CensusC30Client:
             "value": float(latest_value),
             "period": latest_date.strftime("%Y-%m"),
             "as_of_date": latest_date.isoformat(),
-            "warning": "Data for trend context only, not per-project cost estimation"
+            "warning": "Data for trend context only, not per-project cost estimation",
         }
 
     @staticmethod

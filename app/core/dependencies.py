@@ -15,7 +15,6 @@ from app.services.ami_calculator import AMICalculator, get_ami_calculator
 from app.core.config import Settings, settings as app_settings
 from app.core.database import get_session
 
-
 # Cache service instances for reuse across requests
 _fred_client_instance = None
 _hud_client_instance = None
@@ -81,7 +80,7 @@ security = HTTPBearer(auto_error=False)
 
 async def get_current_user(
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
-    session: Session = Depends(get_session)
+    session: Session = Depends(get_session),
 ):
     """
     Get the current authenticated user from JWT token.
@@ -135,9 +134,7 @@ async def get_current_user(
     return user
 
 
-async def get_current_active_user(
-    current_user = Depends(get_current_user)
-):
+async def get_current_active_user(current_user=Depends(get_current_user)):
     """
     Get the current active user (convenience wrapper).
 
@@ -151,16 +148,12 @@ async def get_current_active_user(
         HTTPException: If user is inactive
     """
     if not current_user.is_active:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Inactive user account"
-        )
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Inactive user account")
     return current_user
 
 
 async def require_active_subscription(
-    current_user = Depends(get_current_user),
-    session: Session = Depends(get_session)
+    current_user=Depends(get_current_user), session: Session = Depends(get_session)
 ):
     """
     Require user to have an active subscription.
@@ -182,9 +175,11 @@ async def require_active_subscription(
         return current_user
 
     # Get user's subscription
-    statement = select(Subscription).where(
-        Subscription.user_id == current_user.id
-    ).order_by(Subscription.created_at.desc())
+    statement = (
+        select(Subscription)
+        .where(Subscription.user_id == current_user.id)
+        .order_by(Subscription.created_at.desc())
+    )
 
     subscription = session.exec(statement).first()
 
@@ -203,7 +198,10 @@ async def require_active_subscription(
 
         # Check if past due but within grace period
         if subscription.status == SubscriptionStatus.PAST_DUE:
-            if subscription.current_period_end and subscription.current_period_end > datetime.utcnow():
+            if (
+                subscription.current_period_end
+                and subscription.current_period_end > datetime.utcnow()
+            ):
                 return current_user
 
         raise HTTPException(
@@ -224,7 +222,7 @@ async def require_active_subscription(
 
 async def get_optional_user(
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
-    session: Session = Depends(get_session)
+    session: Session = Depends(get_session),
 ) -> Optional:
     """
     Get the current user if authenticated, None otherwise.
@@ -261,8 +259,7 @@ async def get_optional_user(
 
 
 async def require_auth_with_usage_limit(
-    current_user = Depends(get_current_user),
-    session: Session = Depends(get_session)
+    current_user=Depends(get_current_user), session: Session = Depends(get_session)
 ):
     """
     Require authentication and enforce usage limits.
@@ -292,7 +289,7 @@ async def require_auth_with_usage_limit(
     # Check if user has active subscription
     subscription_statement = select(Subscription).where(
         Subscription.user_id == current_user.id,
-        Subscription.status.in_([SubscriptionStatus.ACTIVE, SubscriptionStatus.TRIALING])
+        Subscription.status.in_([SubscriptionStatus.ACTIVE, SubscriptionStatus.TRIALING]),
     )
     subscription = session.exec(subscription_statement).first()
 
@@ -306,8 +303,8 @@ async def require_auth_with_usage_limit(
 
     usage_statement = select(func.count(APIUsage.id)).where(
         APIUsage.user_id == current_user.id,
-        APIUsage.endpoint.like('/api/v1/analyze%'),
-        APIUsage.timestamp >= month_start
+        APIUsage.endpoint.like("/api/v1/analyze%"),
+        APIUsage.timestamp >= month_start,
     )
     usage_count = session.exec(usage_statement).one()
 
@@ -321,10 +318,10 @@ async def require_auth_with_usage_limit(
                 "usage": {
                     "used": usage_count,
                     "limit": app_settings.FREE_TIER_MONTHLY_LIMIT,
-                    "resets_at": (month_start + relativedelta(months=1)).isoformat()
+                    "resets_at": (month_start + relativedelta(months=1)).isoformat(),
                 },
-                "upgrade_url": "/pricing"
-            }
+                "upgrade_url": "/pricing",
+            },
         )
 
     # Within free tier limit
@@ -332,9 +329,7 @@ async def require_auth_with_usage_limit(
 
 
 async def track_api_usage(
-    endpoint: str,
-    current_user = Depends(get_current_user),
-    session: Session = Depends(get_session)
+    endpoint: str, current_user=Depends(get_current_user), session: Session = Depends(get_session)
 ):
     """
     Track API usage for the current user.
@@ -346,10 +341,6 @@ async def track_api_usage(
     """
     from app.models.subscription import APIUsage
 
-    usage = APIUsage(
-        user_id=current_user.id,
-        endpoint=endpoint,
-        created_at=datetime.utcnow()
-    )
+    usage = APIUsage(user_id=current_user.id, endpoint=endpoint, created_at=datetime.utcnow())
     session.add(usage)
     session.commit()

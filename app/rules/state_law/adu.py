@@ -75,7 +75,7 @@ def analyze_adu(parcel: ParcelBase) -> List[DevelopmentScenario]:
 
     # Check for Coastal Zone (different process, still allowed)
     coastal_note = None
-    if getattr(parcel, 'in_coastal_zone', False):
+    if getattr(parcel, "in_coastal_zone", False):
         coastal_note = "⚠️ Coastal Zone: Coastal Development Permit (CDP) required but ADU allowed per state law"
 
     # Scenario 1: Detached ADU
@@ -110,7 +110,7 @@ def _is_residential_zoning(zoning_code: str) -> bool:
         return False
 
     zone = zoning_code.upper()
-    residential_indicators = ['R', 'RES', 'RESIDENTIAL', 'SINGLE', 'MULTI', 'FAMILY']
+    residential_indicators = ["R", "RES", "RESIDENTIAL", "SINGLE", "MULTI", "FAMILY"]
 
     return any(indicator in zone for indicator in residential_indicators)
 
@@ -125,7 +125,7 @@ def _calculate_max_adu_size(parcel: ParcelBase) -> int:
     - 3+ BR: 1,200 sq ft
     """
     # Use avg_bedrooms_per_unit if available, otherwise default to 2-BR
-    avg_bedrooms = getattr(parcel, 'avg_bedrooms_per_unit', None)
+    avg_bedrooms = getattr(parcel, "avg_bedrooms_per_unit", None)
 
     if avg_bedrooms is None:
         # Default to 2-BR size for unknown bedroom count
@@ -140,8 +140,7 @@ def _calculate_max_adu_size(parcel: ParcelBase) -> int:
 
 
 def _create_detached_adu_scenario(
-    parcel: ParcelBase,
-    coastal_note: Optional[str] = None
+    parcel: ParcelBase, coastal_note: Optional[str] = None
 ) -> Optional[DevelopmentScenario]:
     """
     Create detached ADU scenario.
@@ -166,11 +165,7 @@ def _create_detached_adu_scenario(
     max_stories = 2
 
     # Setbacks: 4 ft side/rear (§ 65852.2(d)(1))
-    setbacks = {
-        "side": 4.0,
-        "rear": 4.0,
-        "front": 10.0  # Front typically follows local standards
-    }
+    setbacks = {"side": 4.0, "rear": 4.0, "front": 10.0}  # Front typically follows local standards
 
     # Parking: ZERO required (AB 68/681/671)
     parking_spaces_required = 0
@@ -192,7 +187,7 @@ def _create_detached_adu_scenario(
         "Parking: ZERO spaces required (AB 68, AB 681, AB 671)",
         "No discretionary review - ministerial approval required",
         "Cannot be sold separately from primary residence",
-        "Short-term rentals subject to local regulations"
+        "Short-term rentals subject to local regulations",
     ]
 
     if coastal_note:
@@ -210,13 +205,12 @@ def _create_detached_adu_scenario(
         setbacks=setbacks,
         lot_coverage_pct=lot_coverage_pct,
         estimated_buildable_sqft=max_adu_size * 0.95,  # 95% efficiency
-        notes=notes
+        notes=notes,
     )
 
 
 def _create_attached_adu_scenario(
-    parcel: ParcelBase,
-    coastal_note: Optional[str] = None
+    parcel: ParcelBase, coastal_note: Optional[str] = None
 ) -> Optional[DevelopmentScenario]:
     """
     Create attached ADU scenario.
@@ -237,7 +231,7 @@ def _create_attached_adu_scenario(
     # Use greater of standard limit or primary dwelling size (up to 1,200 sq ft)
     max_adu_size = min(
         max(max_standard_size, parcel.existing_building_sqft),
-        1200  # Statutory cap for attached ADUs
+        1200,  # Statutory cap for attached ADUs
     )
 
     # Attached ADU uses existing structure, so less lot size constraint
@@ -249,11 +243,7 @@ def _create_attached_adu_scenario(
     max_stories = 2
 
     # Setbacks: 0 ft for conversions (§ 65852.2(d)(1)(B))
-    setbacks = {
-        "side": 0.0,  # Conversion of existing space
-        "rear": 0.0,
-        "front": 0.0
-    }
+    setbacks = {"side": 0.0, "rear": 0.0, "front": 0.0}  # Conversion of existing space
 
     # Parking: ZERO required
     parking_spaces_required = 0
@@ -271,7 +261,7 @@ def _create_attached_adu_scenario(
         "Parking: ZERO spaces required (AB 68, AB 681, AB 671)",
         "No discretionary review - ministerial approval required",
         "Attached to or within existing primary dwelling",
-        "Can be internal conversion or addition to existing structure"
+        "Can be internal conversion or addition to existing structure",
     ]
 
     if coastal_note:
@@ -289,13 +279,12 @@ def _create_attached_adu_scenario(
         setbacks=setbacks,
         lot_coverage_pct=lot_coverage_pct,
         estimated_buildable_sqft=max_adu_size * 0.95,
-        notes=notes
+        notes=notes,
     )
 
 
 def _create_jadu_scenario(
-    parcel: ParcelBase,
-    coastal_note: Optional[str] = None
+    parcel: ParcelBase, coastal_note: Optional[str] = None
 ) -> Optional[DevelopmentScenario]:
     """
     Create JADU (Junior ADU) scenario.
@@ -320,11 +309,7 @@ def _create_jadu_scenario(
     max_stories = 2
 
     # Setbacks: 0 ft (within existing structure)
-    setbacks = {
-        "side": 0.0,
-        "rear": 0.0,
-        "front": 0.0
-    }
+    setbacks = {"side": 0.0, "rear": 0.0, "front": 0.0}
 
     # Parking: ZERO required
     parking_spaces_required = 0
@@ -343,7 +328,7 @@ def _create_jadu_scenario(
         "Parking: ZERO spaces required",
         "Owner-occupancy required (either primary dwelling or JADU)",
         "Separate entrance from primary dwelling allowed",
-        "Bathroom can be shared with primary dwelling"
+        "Bathroom can be shared with primary dwelling",
     ]
 
     if coastal_note:
@@ -361,13 +346,12 @@ def _create_jadu_scenario(
         setbacks=setbacks,
         lot_coverage_pct=lot_coverage_pct,
         estimated_buildable_sqft=max_jadu_size * 0.95,
-        notes=notes
+        notes=notes,
     )
 
 
 def _create_combo_scenario(
-    parcel: ParcelBase,
-    coastal_note: Optional[str] = None
+    parcel: ParcelBase, coastal_note: Optional[str] = None
 ) -> Optional[DevelopmentScenario]:
     """
     Create combo ADU + JADU scenario.
@@ -396,11 +380,7 @@ def _create_combo_scenario(
     max_stories = 2
 
     # Setbacks: 4 ft for detached ADU, 0 ft for JADU (in existing)
-    setbacks = {
-        "side": 4.0,  # For detached ADU
-        "rear": 4.0,
-        "front": 10.0
-    }
+    setbacks = {"side": 4.0, "rear": 4.0, "front": 10.0}  # For detached ADU
 
     # Parking: ZERO required
     parking_spaces_required = 0
@@ -410,7 +390,7 @@ def _create_combo_scenario(
     if parcel.lot_size_sqft > 0:
         lot_coverage_pct = min(
             ((parcel.existing_building_sqft + estimated_footprint) / parcel.lot_size_sqft) * 100,
-            40.0
+            40.0,
         )
     else:
         lot_coverage_pct = 40.0  # Default if lot size is invalid
@@ -423,7 +403,7 @@ def _create_combo_scenario(
         "Parking: ZERO spaces required for both units",
         "JADU owner-occupancy requirement applies",
         "Both units ministerial approval - no discretionary review",
-        "Maximum allowed accessory dwelling units under state law"
+        "Maximum allowed accessory dwelling units under state law",
     ]
 
     if coastal_note:
@@ -441,7 +421,7 @@ def _create_combo_scenario(
         setbacks=setbacks,
         lot_coverage_pct=lot_coverage_pct,
         estimated_buildable_sqft=total_new_sqft * 0.95,
-        notes=notes
+        notes=notes,
     )
 
 
@@ -456,28 +436,22 @@ def get_adu_info() -> dict:
         "program_name": "Accessory Dwelling Units (ADU) and Junior ADUs (JADU)",
         "legal_basis": [
             "Gov. Code § 65852.2 - Accessory Dwelling Units",
-            "Gov. Code § 65852.22 - Junior Accessory Dwelling Units"
+            "Gov. Code § 65852.22 - Junior Accessory Dwelling Units",
         ],
         "key_bills": [
             "AB 68 (2019) - Parking prohibition, reduced setbacks",
             "AB 681 (2019) - Size standardization",
-            "AB 671 (2019) - Additional parking prohibitions"
+            "AB 671 (2019) - Additional parking prohibitions",
         ],
         "size_limits": {
             "adu_studio_1br": 850,
             "adu_2br": 1000,
             "adu_3plus_br": 1200,
-            "jadu_max": 500
+            "jadu_max": 500,
         },
         "parking_required": 0,
-        "setbacks": {
-            "new_construction": "4 ft side/rear",
-            "conversion": "0 ft"
-        },
-        "height_limits": {
-            "detached_1_story": 16,
-            "detached_2_story": 25
-        },
+        "setbacks": {"new_construction": "4 ft side/rear", "conversion": "0 ft"},
+        "height_limits": {"detached_1_story": 16, "detached_2_story": 25},
         "approval_type": "Ministerial (no discretionary review)",
-        "eligibility": "All residential parcels (state law preempts local restrictions)"
+        "eligibility": "All residential parcels (state law preempts local restrictions)",
     }

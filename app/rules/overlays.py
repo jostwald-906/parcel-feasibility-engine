@@ -8,11 +8,11 @@ Common overlays include:
 - Affordable housing overlay zones
 - Form-based code overlays
 """
+
 from app.models.analysis import DevelopmentScenario
 from app.models.parcel import ParcelBase
 from app.models.zoning import ZoningOverlay
 from typing import List, Optional
-
 
 # Define common overlay districts
 OVERLAY_DISTRICTS = {
@@ -21,36 +21,34 @@ OVERLAY_DISTRICTS = {
         description="Encourages higher-density development near transit",
         additional_height_ft=20.0,
         density_multiplier=1.5,
-        special_requirements="Mixed-use encouraged, ground-floor retail preferred"
+        special_requirements="Mixed-use encouraged, ground-floor retail preferred",
     ),
     "AHO": ZoningOverlay(
         name="Affordable Housing Overlay",
         description="Allows increased density for affordable housing projects",
         additional_height_ft=15.0,
         density_multiplier=1.3,
-        special_requirements="Minimum 20% affordable units required"
+        special_requirements="Minimum 20% affordable units required",
     ),
     "HP": ZoningOverlay(
         name="Historic Preservation Overlay",
         description="Protects historic structures and character",
         additional_height_ft=0.0,
         density_multiplier=1.0,
-        special_requirements="Design review required, must maintain historic character"
+        special_requirements="Design review required, must maintain historic character",
     ),
     "FBC": ZoningOverlay(
         name="Form-Based Code Overlay",
         description="Regulates building form rather than use",
         additional_height_ft=10.0,
         density_multiplier=1.2,
-        special_requirements="Must meet form standards for building placement and design"
-    )
+        special_requirements="Must meet form standards for building placement and design",
+    ),
 }
 
 
 def apply_overlay_modifications(
-    base_scenario: DevelopmentScenario,
-    parcel: ParcelBase,
-    overlay_codes: List[str]
+    base_scenario: DevelopmentScenario, parcel: ParcelBase, overlay_codes: List[str]
 ) -> DevelopmentScenario:
     """
     Apply overlay district modifications to base scenario.
@@ -74,9 +72,7 @@ def apply_overlay_modifications(
 
 
 def apply_single_overlay(
-    scenario: DevelopmentScenario,
-    parcel: ParcelBase,
-    overlay: ZoningOverlay
+    scenario: DevelopmentScenario, parcel: ParcelBase, overlay: ZoningOverlay
 ) -> DevelopmentScenario:
     """
     Apply a single overlay district to scenario.
@@ -118,10 +114,7 @@ def apply_single_overlay(
     return scenario
 
 
-def check_overlay_applicability(
-    parcel: ParcelBase,
-    overlay_code: str
-) -> bool:
+def check_overlay_applicability(parcel: ParcelBase, overlay_code: str) -> bool:
     """
     Check if an overlay district applies to a parcel.
 
@@ -161,8 +154,14 @@ def is_near_transit(parcel: ParcelBase) -> bool:
     """
     # Simplified check - same logic as AB2097
     major_transit_cities = [
-        "San Francisco", "Oakland", "Berkeley", "San Jose",
-        "Los Angeles", "Long Beach", "San Diego", "Sacramento"
+        "San Francisco",
+        "Oakland",
+        "Berkeley",
+        "San Jose",
+        "Los Angeles",
+        "Long Beach",
+        "San Diego",
+        "Sacramento",
     ]
 
     for city in major_transit_cities:
@@ -196,8 +195,7 @@ def list_all_overlays() -> List[ZoningOverlay]:
 
 
 def create_tod_scenario(
-    base_scenario: DevelopmentScenario,
-    parcel: ParcelBase
+    base_scenario: DevelopmentScenario, parcel: ParcelBase
 ) -> Optional[DevelopmentScenario]:
     """
     Create a TOD overlay scenario if applicable.
@@ -213,11 +211,7 @@ def create_tod_scenario(
         return None
 
     tod_overlay = OVERLAY_DISTRICTS["TOD"]
-    scenario = apply_single_overlay(
-        base_scenario.model_copy(deep=True),
-        parcel,
-        tod_overlay
-    )
+    scenario = apply_single_overlay(base_scenario.model_copy(deep=True), parcel, tod_overlay)
 
     scenario.scenario_name = "TOD Overlay"
     scenario.legal_basis += " + Transit-Oriented Development Overlay"

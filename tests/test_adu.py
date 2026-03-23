@@ -3,6 +3,7 @@ Tests for ADU/JADU (Accessory Dwelling Unit) Analysis.
 
 Tests Gov. Code § 65852.2 (ADU) and § 65852.22 (JADU) implementation.
 """
+
 import pytest
 from app.rules.state_law.adu import (
     analyze_adu,
@@ -12,7 +13,7 @@ from app.rules.state_law.adu import (
     _create_attached_adu_scenario,
     _create_jadu_scenario,
     _create_combo_scenario,
-    get_adu_info
+    get_adu_info,
 )
 from app.models.parcel import ParcelBase
 
@@ -30,21 +31,24 @@ class TestADUEligibility:
         scenarios = analyze_adu(commercial_parcel)
         assert len(scenarios) == 0
 
-    @pytest.mark.parametrize("zoning_code,expected_eligible", [
-        ("R1", True),
-        ("R2", True),
-        ("R3", True),
-        ("RS", True),
-        ("RES", True),
-        ("RESIDENTIAL", True),
-        ("SINGLE-FAMILY", True),
-        ("MULTI-FAMILY", True),
-        ("C1", False),
-        ("C2", False),
-        ("C-OFFICE", False),
-        ("M1", False),
-        ("M-LIGHT", False),
-    ])
+    @pytest.mark.parametrize(
+        "zoning_code,expected_eligible",
+        [
+            ("R1", True),
+            ("R2", True),
+            ("R3", True),
+            ("RS", True),
+            ("RES", True),
+            ("RESIDENTIAL", True),
+            ("SINGLE-FAMILY", True),
+            ("MULTI-FAMILY", True),
+            ("C1", False),
+            ("C2", False),
+            ("C-OFFICE", False),
+            ("M1", False),
+            ("M-LIGHT", False),
+        ],
+    )
     def test_zoning_code_eligibility(self, r1_parcel, zoning_code, expected_eligible):
         """Test various zoning codes for eligibility."""
         r1_parcel.zoning_code = zoning_code
@@ -63,8 +67,7 @@ class TestADUEligibility:
         assert len(scenarios) > 0
         # Check for coastal note in at least one scenario
         has_coastal_note = any(
-            any("Coastal" in note for note in scenario.notes)
-            for scenario in scenarios
+            any("Coastal" in note for note in scenario.notes) for scenario in scenarios
         )
         assert has_coastal_note
 
@@ -100,17 +103,20 @@ class TestADUSizeCalculations:
         max_size = _calculate_max_adu_size(r1_parcel)
         assert max_size == 1000
 
-    @pytest.mark.parametrize("bedrooms,expected_size", [
-        (0, 850),
-        (0.5, 850),
-        (1, 850),
-        (1.5, 1000),
-        (2, 1000),
-        (2.5, 1200),
-        (3, 1200),
-        (4, 1200),
-        (5, 1200),
-    ])
+    @pytest.mark.parametrize(
+        "bedrooms,expected_size",
+        [
+            (0, 850),
+            (0.5, 850),
+            (1, 850),
+            (1.5, 1000),
+            (2, 1000),
+            (2.5, 1200),
+            (3, 1200),
+            (4, 1200),
+            (5, 1200),
+        ],
+    )
     def test_size_calculation_parametrized(self, r1_parcel, bedrooms, expected_size):
         """Test size calculations for various bedroom counts."""
         r1_parcel.avg_bedrooms_per_unit = bedrooms
@@ -435,7 +441,9 @@ class TestADUInfo:
     def test_adu_info_ministerial(self):
         """Test ADU info confirms ministerial approval."""
         info = get_adu_info()
-        assert "Ministerial" in info["approval_type"] or "ministerial" in info["approval_type"].lower()
+        assert (
+            "Ministerial" in info["approval_type"] or "ministerial" in info["approval_type"].lower()
+        )
 
 
 class TestEdgeCases:

@@ -36,13 +36,13 @@ def is_in_bergamot_area(parcel: ParcelBase) -> bool:
     zoning = parcel.zoning_code.upper()
 
     # Check zoning code
-    if zoning.startswith('BTV') or zoning.startswith('MUC') or zoning.startswith('CAC'):
+    if zoning.startswith("BTV") or zoning.startswith("MUC") or zoning.startswith("CAC"):
         return True
 
     # Check overlay codes
-    if hasattr(parcel, 'overlay_codes') and parcel.overlay_codes:
+    if hasattr(parcel, "overlay_codes") and parcel.overlay_codes:
         for code in parcel.overlay_codes:
-            if 'BERGAMOT' in code.upper():
+            if "BERGAMOT" in code.upper():
                 return True
 
     return False
@@ -61,30 +61,29 @@ def get_bergamot_district(parcel: ParcelBase) -> Optional[str]:
     """
     zoning = parcel.zoning_code.upper()
 
-    if zoning.startswith('BTV'):
-        return 'BTV'
-    elif zoning.startswith('MUC'):
-        return 'MUC'
-    elif zoning.startswith('CAC'):
-        return 'CAC'
+    if zoning.startswith("BTV"):
+        return "BTV"
+    elif zoning.startswith("MUC"):
+        return "MUC"
+    elif zoning.startswith("CAC"):
+        return "CAC"
 
     # Check overlay codes as fallback
-    if hasattr(parcel, 'overlay_codes') and parcel.overlay_codes:
+    if hasattr(parcel, "overlay_codes") and parcel.overlay_codes:
         for code in parcel.overlay_codes:
             code_upper = code.upper()
-            if 'BTV' in code_upper:
-                return 'BTV'
-            elif 'MUC' in code_upper:
-                return 'MUC'
-            elif 'CAC' in code_upper:
-                return 'CAC'
+            if "BTV" in code_upper:
+                return "BTV"
+            elif "MUC" in code_upper:
+                return "MUC"
+            elif "CAC" in code_upper:
+                return "CAC"
 
     return None
 
 
 def create_bergamot_tier_1_scenario(
-    parcel: ParcelBase,
-    district: str
+    parcel: ParcelBase, district: str
 ) -> Optional[DevelopmentScenario]:
     """
     Create Tier 1 (base) Bergamot scenario - no community benefits required.
@@ -99,26 +98,26 @@ def create_bergamot_tier_1_scenario(
         DevelopmentScenario for Tier 1 development
     """
     # Select appropriate standards based on district
-    if district == 'BTV':
-        standards = BERGAMOT_BTV_STANDARDS.get('1')
-        district_name = 'Transit Village'
-    elif district == 'MUC':
-        standards = BERGAMOT_MUC_STANDARDS.get('1')
-        district_name = 'Mixed-Use Creative'
-    elif district == 'CAC':
+    if district == "BTV":
+        standards = BERGAMOT_BTV_STANDARDS.get("1")
+        district_name = "Transit Village"
+    elif district == "MUC":
+        standards = BERGAMOT_MUC_STANDARDS.get("1")
+        district_name = "Mixed-Use Creative"
+    elif district == "CAC":
         # For CAC, determine size category
         is_large_site = parcel.lot_size_sqft >= 100000
-        tier_key = '1_large' if is_large_site else '1_small'
+        tier_key = "1_large" if is_large_site else "1_small"
         standards = BERGAMOT_CAC_STANDARDS.get(tier_key)
-        district_name = 'Conservation Art Center'
+        district_name = "Conservation Art Center"
     else:
         return None
 
     if not standards:
         return None
 
-    far = standards['far']
-    height = standards['height']
+    far = standards["far"]
+    height = standards["height"]
 
     # Calculate max building sqft from FAR
     max_building_sqft = parcel.lot_size_sqft * far
@@ -131,21 +130,13 @@ def create_bergamot_tier_1_scenario(
     max_stories = int(height / 11)  # ~11 ft per story
 
     # District-specific setbacks
-    if district == 'CAC':
+    if district == "CAC":
         # CAC has more spacious character
-        setbacks = {
-            "front": 10,
-            "rear": 15,
-            "side": 10
-        }
+        setbacks = {"front": 10, "rear": 15, "side": 10}
         lot_coverage = 60.0  # More open space
     else:
         # BTV/MUC are more urban
-        setbacks = {
-            "front": 5,
-            "rear": 10,
-            "side": 5
-        }
+        setbacks = {"front": 5, "rear": 10, "side": 5}
         lot_coverage = 80.0
 
     # Standard parking for Tier 1
@@ -168,17 +159,23 @@ def create_bergamot_tier_1_scenario(
             "Community benefits NOT required at Tier 1",
             "Bergamot Area Plan emphasizes creative and arts uses",
             "Enhanced sustainability and pedestrian design expected",
-            "Ground-floor active uses encouraged"
-        ]
+            "Ground-floor active uses encouraged",
+        ],
     )
 
     # Add district-specific notes
-    if district == 'BTV':
-        scenario.notes.append("Transit Village: Pedestrian-oriented design with Expo Line integration")
-    elif district == 'MUC':
-        scenario.notes.append("Mixed-Use Creative: Arts, creative offices, and production space encouraged")
-    elif district == 'CAC':
-        scenario.notes.append("Conservation Art Center: Arts and cultural uses prioritized, museum-quality character")
+    if district == "BTV":
+        scenario.notes.append(
+            "Transit Village: Pedestrian-oriented design with Expo Line integration"
+        )
+    elif district == "MUC":
+        scenario.notes.append(
+            "Mixed-Use Creative: Arts, creative offices, and production space encouraged"
+        )
+    elif district == "CAC":
+        scenario.notes.append(
+            "Conservation Art Center: Arts and cultural uses prioritized, museum-quality character"
+        )
         if parcel.lot_size_sqft >= 100000:
             scenario.notes.append("Large site (≥100,000 sqft): City-owned property standards apply")
 
@@ -186,8 +183,7 @@ def create_bergamot_tier_1_scenario(
 
 
 def create_bergamot_tier_2_scenario(
-    parcel: ParcelBase,
-    district: str
+    parcel: ParcelBase, district: str
 ) -> Optional[DevelopmentScenario]:
     """
     Create Tier 2 Bergamot scenario - requires community benefits.
@@ -203,26 +199,26 @@ def create_bergamot_tier_2_scenario(
         DevelopmentScenario for Tier 2 development
     """
     # Select appropriate standards based on district
-    if district == 'BTV':
-        standards = BERGAMOT_BTV_STANDARDS.get('2')
-        district_name = 'Transit Village'
-    elif district == 'MUC':
-        standards = BERGAMOT_MUC_STANDARDS.get('2')
-        district_name = 'Mixed-Use Creative'
-    elif district == 'CAC':
+    if district == "BTV":
+        standards = BERGAMOT_BTV_STANDARDS.get("2")
+        district_name = "Transit Village"
+    elif district == "MUC":
+        standards = BERGAMOT_MUC_STANDARDS.get("2")
+        district_name = "Mixed-Use Creative"
+    elif district == "CAC":
         # For CAC, determine size category
         is_large_site = parcel.lot_size_sqft >= 100000
-        tier_key = '2_large' if is_large_site else '2_small'
+        tier_key = "2_large" if is_large_site else "2_small"
         standards = BERGAMOT_CAC_STANDARDS.get(tier_key)
-        district_name = 'Conservation Art Center'
+        district_name = "Conservation Art Center"
     else:
         return None
 
     if not standards:
         return None
 
-    far = standards['far']
-    height = standards['height']
+    far = standards["far"]
+    height = standards["height"]
 
     # Calculate max building sqft from FAR
     max_building_sqft = parcel.lot_size_sqft * far
@@ -235,19 +231,11 @@ def create_bergamot_tier_2_scenario(
     max_stories = int(height / 11)
 
     # District-specific setbacks
-    if district == 'CAC':
-        setbacks = {
-            "front": 10,
-            "rear": 15,
-            "side": 10
-        }
+    if district == "CAC":
+        setbacks = {"front": 10, "rear": 15, "side": 10}
         lot_coverage = 60.0
     else:
-        setbacks = {
-            "front": 5,
-            "rear": 10,
-            "side": 5
-        }
+        setbacks = {"front": 5, "rear": 10, "side": 5}
         lot_coverage = 80.0
 
     # Reduced parking for Tier 2
@@ -271,19 +259,27 @@ def create_bergamot_tier_2_scenario(
             "Typical: 15-20% affordable housing OR public art/cultural space",
             "Enhanced sustainability features expected (LEED Silver+)",
             "Bergamot Area Plan emphasizes creative and arts uses",
-            "Community Development Director approval required"
-        ]
+            "Community Development Director approval required",
+        ],
     )
 
     # Add district-specific notes
-    if district == 'BTV':
-        scenario.notes.append("Transit Village: Enhanced pedestrian connectivity and transit access")
-    elif district == 'MUC':
-        scenario.notes.append("Mixed-Use Creative: Workspace for artists, makers, and creative industries")
-    elif district == 'CAC':
-        scenario.notes.append("Conservation Art Center: Cultural programming and public art integration")
+    if district == "BTV":
+        scenario.notes.append(
+            "Transit Village: Enhanced pedestrian connectivity and transit access"
+        )
+    elif district == "MUC":
+        scenario.notes.append(
+            "Mixed-Use Creative: Workspace for artists, makers, and creative industries"
+        )
+    elif district == "CAC":
+        scenario.notes.append(
+            "Conservation Art Center: Cultural programming and public art integration"
+        )
         if parcel.lot_size_sqft >= 100000:
-            scenario.notes.append("Large site: Limited FAR increase, focus on height for special cultural facilities")
+            scenario.notes.append(
+                "Large site: Limited FAR increase, focus on height for special cultural facilities"
+            )
         else:
             scenario.notes.append("Small site: Enhanced FAR to support arts/cultural uses")
 
@@ -291,8 +287,7 @@ def create_bergamot_tier_2_scenario(
 
 
 def create_bergamot_tier_3_scenario(
-    parcel: ParcelBase,
-    district: str
+    parcel: ParcelBase, district: str
 ) -> Optional[DevelopmentScenario]:
     """
     Create Tier 3 (maximum) Bergamot scenario - requires substantial community benefits.
@@ -308,26 +303,26 @@ def create_bergamot_tier_3_scenario(
         DevelopmentScenario for Tier 3 development
     """
     # Select appropriate standards based on district
-    if district == 'BTV':
-        standards = BERGAMOT_BTV_STANDARDS.get('3')
-        district_name = 'Transit Village'
-    elif district == 'MUC':
-        standards = BERGAMOT_MUC_STANDARDS.get('3')
-        district_name = 'Mixed-Use Creative'
-    elif district == 'CAC':
+    if district == "BTV":
+        standards = BERGAMOT_BTV_STANDARDS.get("3")
+        district_name = "Transit Village"
+    elif district == "MUC":
+        standards = BERGAMOT_MUC_STANDARDS.get("3")
+        district_name = "Mixed-Use Creative"
+    elif district == "CAC":
         # For CAC, determine size category
         is_large_site = parcel.lot_size_sqft >= 100000
-        tier_key = '3_large' if is_large_site else '3_small'
+        tier_key = "3_large" if is_large_site else "3_small"
         standards = BERGAMOT_CAC_STANDARDS.get(tier_key)
-        district_name = 'Conservation Art Center'
+        district_name = "Conservation Art Center"
     else:
         return None
 
     if not standards:
         return None
 
-    far = standards['far']
-    height = standards['height']
+    far = standards["far"]
+    height = standards["height"]
 
     # Calculate max building sqft from FAR
     max_building_sqft = parcel.lot_size_sqft * far
@@ -340,19 +335,11 @@ def create_bergamot_tier_3_scenario(
     max_stories = int(height / 11)
 
     # District-specific setbacks
-    if district == 'CAC':
-        setbacks = {
-            "front": 10,
-            "rear": 15,
-            "side": 10
-        }
+    if district == "CAC":
+        setbacks = {"front": 10, "rear": 15, "side": 10}
         lot_coverage = 60.0
     else:
-        setbacks = {
-            "front": 5,
-            "rear": 10,
-            "side": 5
-        }
+        setbacks = {"front": 5, "rear": 10, "side": 5}
         lot_coverage = 80.0
 
     # Minimal parking for Tier 3
@@ -377,29 +364,41 @@ def create_bergamot_tier_3_scenario(
             "Development Agreement required",
             "LEED Gold or higher expected",
             "Bergamot Area Plan goals: arts, creative uses, sustainability",
-            "Planning Commission approval required"
-        ]
+            "Planning Commission approval required",
+        ],
     )
 
     # Add district-specific notes
-    if district == 'BTV':
-        scenario.notes.append("Transit Village: Maximum integration with Expo Line and pedestrian network")
+    if district == "BTV":
+        scenario.notes.append(
+            "Transit Village: Maximum integration with Expo Line and pedestrian network"
+        )
         scenario.notes.append("Buildings >90 ft have additional design standards")
-    elif district == 'MUC':
-        scenario.notes.append("Mixed-Use Creative: Significant creative workspace and arts programming")
+    elif district == "MUC":
+        scenario.notes.append(
+            "Mixed-Use Creative: Significant creative workspace and arts programming"
+        )
         scenario.notes.append("Buildings >90 ft have additional design standards")
-    elif district == 'CAC':
+    elif district == "CAC":
         if parcel.lot_size_sqft >= 100000:
-            scenario.notes.append("Large site: Maximum height for cultural/civic facilities, limited FAR")
+            scenario.notes.append(
+                "Large site: Maximum height for cultural/civic facilities, limited FAR"
+            )
             scenario.notes.append("City-owned property: Cultural and arts programming prioritized")
         else:
-            scenario.notes.append("Small site: Exceptional FAR (2.5) and height (86 ft) for arts uses")
+            scenario.notes.append(
+                "Small site: Exceptional FAR (2.5) and height (86 ft) for arts uses"
+            )
             scenario.notes.append("Must demonstrate significant cultural/arts benefit to community")
-        scenario.notes.append("Conservation Art Center: Premium cultural destination character required")
+        scenario.notes.append(
+            "Conservation Art Center: Premium cultural destination character required"
+        )
 
     # Special provisions
     if height > 90:
-        scenario.notes.append("⚠️ Height exceeds 90 ft: Additional design review and massing requirements apply")
+        scenario.notes.append(
+            "⚠️ Height exceeds 90 ft: Additional design review and massing requirements apply"
+        )
 
     scenario.notes.append("Maximum podium height: 35 feet")
     scenario.notes.append("Expo Light Rail integration and connectivity required")
@@ -465,9 +464,10 @@ def get_current_bergamot_tier(parcel: ParcelBase) -> Optional[int]:
         return None
 
     # Check if parcel has explicit tier designation
-    if hasattr(parcel, 'development_tier') and parcel.development_tier:
+    if hasattr(parcel, "development_tier") and parcel.development_tier:
         import re
-        tier_match = re.search(r'\d+', str(parcel.development_tier))
+
+        tier_match = re.search(r"\d+", str(parcel.development_tier))
         if tier_match:
             return int(tier_match.group())
 

@@ -26,6 +26,7 @@ logger = get_logger(__name__)
 
 class CCCIClientError(Exception):
     """Base exception for CCCI client errors."""
+
     pass
 
 
@@ -60,8 +61,8 @@ class CCCIClient:
             "CCCI client initialized",
             extra={
                 "data_dir": str(self.data_dir),
-                "note": "CCCI is LA+SF ENR-BCI average, not official API"
-            }
+                "note": "CCCI is LA+SF ENR-BCI average, not official API",
+            },
         )
 
     def _find_latest_ccci_file(self) -> Optional[Path]:
@@ -75,19 +76,13 @@ class CCCIClient:
         csv_files = list(self.data_dir.glob("ccci_*.csv"))
 
         if not csv_files:
-            logger.warning(
-                "No CCCI data files found",
-                extra={"data_dir": str(self.data_dir)}
-            )
+            logger.warning("No CCCI data files found", extra={"data_dir": str(self.data_dir)})
             return None
 
         # Sort by modification time, most recent first
         latest_file = max(csv_files, key=lambda p: p.stat().st_mtime)
 
-        logger.debug(
-            "Found latest CCCI file",
-            extra={"file": str(latest_file)}
-        )
+        logger.debug("Found latest CCCI file", extra={"file": str(latest_file)})
 
         return latest_file
 
@@ -140,7 +135,7 @@ class CCCIClient:
                 "as_of_date": latest_row.get("date", latest_row.get("as_of_date")),
                 "source": latest_row.get("source", "file"),
                 "file_path": str(ccci_file),
-                "note": "CCCI is LA+SF ENR-BCI average, not official government index"
+                "note": "CCCI is LA+SF ENR-BCI average, not official government index",
             }
 
             logger.info(
@@ -148,17 +143,14 @@ class CCCIClient:
                 extra={
                     "index": result["index"],
                     "year": result["year"],
-                    "source": result["source"]
-                }
+                    "source": result["source"],
+                },
             )
 
             return result
 
         except Exception as e:
-            logger.error(
-                f"Failed to load CCCI data: {e}",
-                extra={"file": str(ccci_file)}
-            )
+            logger.error(f"Failed to load CCCI data: {e}", extra={"file": str(ccci_file)})
             raise CCCIClientError(f"Failed to load CCCI data from {ccci_file}: {e}")
 
     def load_ccci_history(self) -> Optional[List[Dict[str, Any]]]:
@@ -191,34 +183,21 @@ class CCCIClient:
                         "quarter": row.get("quarter"),
                         "month": row.get("month"),
                         "as_of_date": row.get("date", row.get("as_of_date")),
-                        "source": row.get("source", "file")
+                        "source": row.get("source", "file"),
                     }
                     history.append(data_point)
 
             logger.info(
-                "Loaded CCCI history",
-                extra={
-                    "records": len(history),
-                    "file": str(ccci_file)
-                }
+                "Loaded CCCI history", extra={"records": len(history), "file": str(ccci_file)}
             )
 
             return history
 
         except Exception as e:
-            logger.error(
-                f"Failed to load CCCI history: {e}",
-                extra={"file": str(ccci_file)}
-            )
-            raise CCCIClientError(
-                f"Failed to load CCCI history from {ccci_file}: {e}"
-            )
+            logger.error(f"Failed to load CCCI history: {e}", extra={"file": str(ccci_file)})
+            raise CCCIClientError(f"Failed to load CCCI history from {ccci_file}: {e}")
 
-    def calculate_inflation_factor(
-        self,
-        base_year: int,
-        target_year: int
-    ) -> Optional[float]:
+    def calculate_inflation_factor(self, base_year: int, target_year: int) -> Optional[float]:
         """
         Calculate inflation factor between two years using CCCI.
 
@@ -249,9 +228,7 @@ class CCCIClient:
                 target_index = record["index"]
 
         if base_index is None or target_index is None:
-            raise CCCIClientError(
-                f"CCCI data not available for years {base_year} to {target_year}"
-            )
+            raise CCCIClientError(f"CCCI data not available for years {base_year} to {target_year}")
 
         inflation_factor = target_index / base_index
 
@@ -262,8 +239,8 @@ class CCCIClient:
                 "target_year": target_year,
                 "base_index": base_index,
                 "target_index": target_index,
-                "inflation_factor": inflation_factor
-            }
+                "inflation_factor": inflation_factor,
+            },
         )
 
         return inflation_factor
@@ -281,18 +258,16 @@ class CCCIClient:
             return {
                 "available": False,
                 "data_dir": str(self.data_dir),
-                "note": "CCCI is LA+SF ENR-BCI average, not official government index"
+                "note": "CCCI is LA+SF ENR-BCI average, not official government index",
             }
 
         return {
             "available": True,
             "file_path": str(ccci_file),
             "data_dir": str(self.data_dir),
-            "last_modified": datetime.fromtimestamp(
-                ccci_file.stat().st_mtime
-            ).isoformat(),
+            "last_modified": datetime.fromtimestamp(ccci_file.stat().st_mtime).isoformat(),
             "source_type": "file",
-            "note": "CCCI is LA+SF ENR-BCI average, not official government index"
+            "note": "CCCI is LA+SF ENR-BCI average, not official government index",
         }
 
 

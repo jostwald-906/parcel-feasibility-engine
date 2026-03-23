@@ -1,10 +1,15 @@
 """
 Analysis API endpoints.
 """
+
 from fastapi import APIRouter, HTTPException, Depends, Request
 from fastapi.responses import Response
 from typing import List
-from app.models.analysis import AnalysisRequest, AnalysisResponse, DevelopmentScenario  # RentControlData, RentControlUnit - DISABLED
+from app.models.analysis import (
+    AnalysisRequest,
+    AnalysisResponse,
+    DevelopmentScenario,
+)  # RentControlData, RentControlUnit - DISABLED
 from app.models.parcel import Parcel
 from app.models.user import User
 from app.rules.base_zoning import analyze_base_zoning
@@ -21,10 +26,19 @@ from app.core.config import settings
 from app.core.rate_limit import limiter, RATE_LIMITS
 from app.core.dependencies import require_active_subscription, require_auth_with_usage_limit
 from app.services.rent_control_api import get_mar_summary
-from app.services.cnel_analyzer import classify_cnel, format_cnel_for_display, check_santa_monica_compliance
+from app.services.cnel_analyzer import (
+    classify_cnel,
+    format_cnel_for_display,
+    check_santa_monica_compliance,
+)
 from app.services.community_benefits import get_available_benefits, format_benefits_for_display
 from app.rules.proposed_validation import validate_proposed_vs_allowed, format_warnings_for_response
-from app.services.ami_calculator import get_ami_calculator, AffordableRent, AffordableSalesPrice, AMILookup
+from app.services.ami_calculator import (
+    get_ami_calculator,
+    AffordableRent,
+    AffordableSalesPrice,
+    AMILookup,
+)
 from datetime import datetime
 import re
 
@@ -52,13 +66,19 @@ def add_existing_units_context(scenario: DevelopmentScenario, parcel: Parcel) ->
         if net_new_units > 0:
             scenario.notes.insert(1, f"Net new units under this scenario: {net_new_units}")
         elif net_new_units == 0:
-            scenario.notes.insert(1, f"Net new units under this scenario: 0 (existing exceeds or equals zoning capacity)")
+            scenario.notes.insert(
+                1,
+                f"Net new units under this scenario: 0 (existing exceeds or equals zoning capacity)",
+            )
         else:
             scenario.notes.insert(1, f"Net new units under this scenario: 0")
 
     # Add nonconforming warning if existing exceeds capacity
     if existing_units > max_units:
-        scenario.notes.insert(2, f"⚠️ Legal nonconforming: Existing {existing_units} units exceed current zoning capacity ({max_units} units). Replacement development would likely reduce unit count unless other programs apply.")
+        scenario.notes.insert(
+            2,
+            f"⚠️ Legal nonconforming: Existing {existing_units} units exceed current zoning capacity ({max_units} units). Replacement development would likely reduce unit count unless other programs apply.",
+        )
 
 
 @router.post("/analyze", response_model=AnalysisResponse)
@@ -66,7 +86,7 @@ def add_existing_units_context(scenario: DevelopmentScenario, parcel: Parcel) ->
 async def analyze_parcel(
     request: Request,
     analysis_request: AnalysisRequest,
-    current_user: User = Depends(require_auth_with_usage_limit)
+    current_user: User = Depends(require_auth_with_usage_limit),
 ) -> AnalysisResponse:
     """
     Analyze a parcel for development feasibility.
@@ -109,8 +129,8 @@ async def analyze_parcel(
                 details={
                     "zoning_code": parcel.zoning_code,
                     "max_units": base_scenario.max_units,
-                    "max_height": base_scenario.max_height_ft
-                }
+                    "max_height": base_scenario.max_height_ft,
+                },
             )
 
         # 2. Check SB9 eligibility
@@ -125,11 +145,12 @@ async def analyze_parcel(
                         rule_name="SB9",
                         eligible=True,
                         reason="Parcel eligible for SB9 provisions",
-                        criteria={"scenarios_generated": len(sb9_scenarios)}
+                        criteria={"scenarios_generated": len(sb9_scenarios)},
                     )
             else:
                 # SB9 not eligible - determine reason
                 from app.rules.state_law.sb9 import is_sb9_eligible
+
                 zoning = parcel.zoning_code.upper()
                 if not ("R1" in zoning or "RS" in zoning or "SINGLE" in zoning):
                     ineligibility_reason = f"SB9 only applies to single-family (R1) zones. This parcel is zoned {parcel.zoning_code}."
@@ -141,9 +162,7 @@ async def analyze_parcel(
                 warnings.append(f"SB9 Not Applicable: {ineligibility_reason}")
                 if decision_logger:
                     decision_logger.log_eligibility_check(
-                        rule_name="SB9",
-                        eligible=False,
-                        reason=ineligibility_reason
+                        rule_name="SB9", eligible=False, reason=ineligibility_reason
                     )
 
         # 3. Check SB35 eligibility
@@ -157,17 +176,22 @@ async def analyze_parcel(
                     decision_logger.log_eligibility_check(
                         rule_name="SB35",
                         eligible=True,
-                        reason="Parcel eligible for SB35 streamlining"
+                        reason="Parcel eligible for SB35 streamlining",
                     )
             else:
                 # SB35 not eligible - get detailed reasons
                 from app.rules.state_law.sb35 import can_apply_sb35
+
                 eligibility = can_apply_sb35(parcel)
 
-                if not eligibility['eligible']:
+                if not eligibility["eligible"]:
                     # Extract key reasons
-                    reason_summary = eligibility['reasons'][0] if eligibility['reasons'] else "Does not meet SB35 requirements"
-                    exclusions = eligibility.get('exclusions', [])
+                    reason_summary = (
+                        eligibility["reasons"][0]
+                        if eligibility["reasons"]
+                        else "Does not meet SB35 requirements"
+                    )
+                    exclusions = eligibility.get("exclusions", [])
 
                     if exclusions:
                         ineligibility_reason = f"SB35 Not Applicable: {', '.join(exclusions[:2])}"
@@ -180,7 +204,7 @@ async def analyze_parcel(
                             rule_name="SB35",
                             eligible=False,
                             reason=ineligibility_reason,
-                            criteria=eligibility
+                            criteria=eligibility,
                         )
 
         # 4. Check AB2011 eligibility (office conversion)
@@ -194,15 +218,20 @@ async def analyze_parcel(
                     decision_logger.log_eligibility_check(
                         rule_name="AB2011",
                         eligible=True,
-                        reason="Parcel eligible for AB2011 conversion"
+                        reason="Parcel eligible for AB2011 conversion",
                     )
             else:
                 # AB2011 not eligible - get detailed reasons
                 from app.rules.state_law.ab2011 import can_apply_ab2011
+
                 eligibility = can_apply_ab2011(parcel)
 
-                if not eligibility['eligible']:
-                    reason_summary = eligibility['reasons'][0] if eligibility['reasons'] else "Does not meet AB2011 requirements"
+                if not eligibility["eligible"]:
+                    reason_summary = (
+                        eligibility["reasons"][0]
+                        if eligibility["reasons"]
+                        else "Does not meet AB2011 requirements"
+                    )
                     ineligibility_reason = f"AB2011 Not Applicable: {reason_summary}"
                     warnings.append(ineligibility_reason)
                     if decision_logger:
@@ -210,7 +239,7 @@ async def analyze_parcel(
                             rule_name="AB2011",
                             eligible=False,
                             reason=ineligibility_reason,
-                            criteria=eligibility
+                            criteria=eligibility,
                         )
 
         # 4a. Check Bergamot Area Plan
@@ -225,7 +254,7 @@ async def analyze_parcel(
                         rule_name="Bergamot Area Plan",
                         eligible=True,
                         reason=f"Parcel eligible for Bergamot development standards",
-                        criteria={"scenarios_generated": len(bergamot_scenarios)}
+                        criteria={"scenarios_generated": len(bergamot_scenarios)},
                     )
 
         # 4b. Check Downtown Community Plan
@@ -234,21 +263,25 @@ async def analyze_parcel(
             if dcp_scenarios:
                 scenarios.extend(dcp_scenarios)
                 applicable_laws.append("Downtown Community Plan (SMMC Chapter 9.10)")
-                potential_incentives.append("Downtown tiered development standards with community benefits")
+                potential_incentives.append(
+                    "Downtown tiered development standards with community benefits"
+                )
                 if decision_logger:
                     decision_logger.log_eligibility_check(
                         rule_name="Downtown Community Plan",
                         eligible=True,
                         reason=f"Parcel eligible for DCP development standards",
-                        criteria={"scenarios_generated": len(dcp_scenarios)}
+                        criteria={"scenarios_generated": len(dcp_scenarios)},
                     )
 
         # 5. Apply density bonus
-        if analysis_request.include_density_bonus and analysis_request.target_affordability_pct and settings.ENABLE_DENSITY_BONUS:
+        if (
+            analysis_request.include_density_bonus
+            and analysis_request.target_affordability_pct
+            and settings.ENABLE_DENSITY_BONUS
+        ):
             density_bonus_scenario = apply_density_bonus(
-                base_scenario,
-                parcel,
-                affordability_pct=analysis_request.target_affordability_pct
+                base_scenario, parcel, affordability_pct=analysis_request.target_affordability_pct
             )
             if density_bonus_scenario:
                 scenarios.append(density_bonus_scenario)
@@ -261,8 +294,9 @@ async def analyze_parcel(
                         reason=f"Applied {analysis_request.target_affordability_pct}% affordable housing density bonus",
                         details={
                             "affordability_pct": analysis_request.target_affordability_pct,
-                            "bonus_units": density_bonus_scenario.max_units - base_scenario.max_units
-                        }
+                            "bonus_units": density_bonus_scenario.max_units
+                            - base_scenario.max_units,
+                        },
                     )
 
         # 6. Apply AB2097 parking reductions to all scenarios
@@ -273,7 +307,7 @@ async def analyze_parcel(
                     decision_logger.log_decision(
                         rule_name="AB2097",
                         decision="checked",
-                        reason=f"AB2097 parking reduction checked for {scenario.scenario_name}"
+                        reason=f"AB2097 parking reduction checked for {scenario.scenario_name}",
                     )
 
             # Apply to base scenario as well
@@ -286,63 +320,72 @@ async def analyze_parcel(
 
         # 8. Analyze CNEL (noise) exposure if data available
         cnel_analysis = None
-        if hasattr(parcel, 'cnel_db') and parcel.cnel_db:
+        if hasattr(parcel, "cnel_db") and parcel.cnel_db:
             try:
                 cnel_result = classify_cnel(parcel.cnel_db)
                 cnel_compliance = check_santa_monica_compliance(cnel_result)
                 cnel_analysis = {
                     **format_cnel_for_display(cnel_result),
-                    "santa_monica_compliance": cnel_compliance
+                    "santa_monica_compliance": cnel_compliance,
                 }
 
                 # Add warning if noise level is problematic
                 if not cnel_result.residential_suitable:
-                    warnings.append(f"Noise Level Concern: {cnel_result.cnel_db} dB CNEL - {cnel_result.category.value.replace('_', ' ').title()}")
+                    warnings.append(
+                        f"Noise Level Concern: {cnel_result.cnel_db} dB CNEL - {cnel_result.category.value.replace('_', ' ').title()}"
+                    )
 
                 if decision_logger:
                     decision_logger.log_decision(
                         rule_name="CNEL Analysis",
                         decision="analyzed",
                         reason=f"Noise level: {cnel_result.cnel_db} dB CNEL - {cnel_result.category.value}",
-                        details={"residential_suitable": cnel_result.residential_suitable}
+                        details={"residential_suitable": cnel_result.residential_suitable},
                     )
             except Exception as e:
                 logger.warning(f"CNEL analysis failed: {str(e)}")
 
         # 9. Analyze community benefits opportunities if parcel has tier/overlay data
         benefits_analysis = None
-        if hasattr(parcel, 'development_tier') and parcel.development_tier:
+        if hasattr(parcel, "development_tier") and parcel.development_tier:
             try:
                 # Extract tier number from string (e.g., "Tier 2" -> 2)
-                tier_match = re.search(r'\d+', str(parcel.development_tier))
+                tier_match = re.search(r"\d+", str(parcel.development_tier))
                 base_tier = int(tier_match.group()) if tier_match else 1
 
                 # Check if in downtown (based on zoning or overlay codes)
                 in_downtown = False
-                if hasattr(parcel, 'overlay_codes') and parcel.overlay_codes:
-                    in_downtown = any('DCP' in code or 'DOWNTOWN' in code.upper() for code in parcel.overlay_codes)
+                if hasattr(parcel, "overlay_codes") and parcel.overlay_codes:
+                    in_downtown = any(
+                        "DCP" in code or "DOWNTOWN" in code.upper() for code in parcel.overlay_codes
+                    )
 
                 # Check if near transit
-                near_transit = getattr(parcel, 'near_transit', False)
+                near_transit = getattr(parcel, "near_transit", False)
 
                 benefits_result = get_available_benefits(
                     lot_size_sqft=parcel.lot_size_sqft,
                     base_tier=base_tier,
                     near_transit=near_transit,
-                    in_downtown=in_downtown
+                    in_downtown=in_downtown,
                 )
                 benefits_analysis = format_benefits_for_display(benefits_result)
 
                 # Add incentive notes
                 if base_tier < 3:
-                    potential_incentives.append(f"Community benefits can unlock Tier {base_tier + 1} development standards")
+                    potential_incentives.append(
+                        f"Community benefits can unlock Tier {base_tier + 1} development standards"
+                    )
 
                 if decision_logger:
                     decision_logger.log_decision(
                         rule_name="Community Benefits",
                         decision="analyzed",
                         reason=f"Identified {len(benefits_result.available_benefits)} available community benefits",
-                        details={"base_tier": base_tier, "recommended": benefits_result.recommended_benefits}
+                        details={
+                            "base_tier": base_tier,
+                            "recommended": benefits_result.recommended_benefits,
+                        },
                     )
             except Exception as e:
                 logger.warning(f"Community benefits analysis failed: {str(e)}")
@@ -361,50 +404,57 @@ async def analyze_parcel(
             warnings.append("Small lot size may limit development options")
 
         if parcel.existing_units > 0:
-            warnings.append(f"Existing {parcel.existing_units} unit(s) may need to be demolished or incorporated")
+            warnings.append(
+                f"Existing {parcel.existing_units} unit(s) may need to be demolished or incorporated"
+            )
 
         # 8. Query rent control data if address is available
         rent_control_data = None
 
         # Check for manual override first
-        if hasattr(parcel, 'rent_control_status') and parcel.rent_control_status:
+        if hasattr(parcel, "rent_control_status") and parcel.rent_control_status:
             status_lower = parcel.rent_control_status.lower()
-            if status_lower == 'yes':
+            if status_lower == "yes":
                 rent_control_data = {
-                    'is_rent_controlled': True,
-                    'total_units': 0,
-                    'avg_mar': None,
-                    'units': [],
-                    'status': 'manual_override',
-                    'error_message': None
+                    "is_rent_controlled": True,
+                    "total_units": 0,
+                    "avg_mar": None,
+                    "units": [],
+                    "status": "manual_override",
+                    "error_message": None,
                 }
-                warnings.append("Rent control status: MANUAL OVERRIDE - Property marked as rent-controlled. Verify with Santa Monica Rent Control Board.")
-            elif status_lower == 'no':
+                warnings.append(
+                    "Rent control status: MANUAL OVERRIDE - Property marked as rent-controlled. Verify with Santa Monica Rent Control Board."
+                )
+            elif status_lower == "no":
                 rent_control_data = {
-                    'is_rent_controlled': False,
-                    'total_units': 0,
-                    'avg_mar': None,
-                    'units': [],
-                    'status': 'manual_override',
-                    'error_message': None
+                    "is_rent_controlled": False,
+                    "total_units": 0,
+                    "avg_mar": None,
+                    "units": [],
+                    "status": "manual_override",
+                    "error_message": None,
                 }
-            elif status_lower == 'unknown':
+            elif status_lower == "unknown":
                 rent_control_data = {
-                    'is_rent_controlled': None,
-                    'total_units': 0,
-                    'avg_mar': None,
-                    'units': [],
-                    'status': 'manual_override_unknown',
-                    'error_message': None
+                    "is_rent_controlled": None,
+                    "total_units": 0,
+                    "avg_mar": None,
+                    "units": [],
+                    "status": "manual_override_unknown",
+                    "error_message": None,
                 }
-                warnings.append("Rent control status: UNKNOWN - Manual verification required with Santa Monica Rent Control Board.")
+                warnings.append(
+                    "Rent control status: UNKNOWN - Manual verification required with Santa Monica Rent Control Board."
+                )
 
         # If no manual override, attempt API lookup
         if rent_control_data is None and parcel.address:
             try:
                 # Parse address to extract street number and street name
                 import re
-                address_match = re.match(r'^(\d+)\s+(.+)$', parcel.address.strip())
+
+                address_match = re.match(r"^(\d+)\s+(.+)$", parcel.address.strip())
 
                 if address_match:
                     street_number = address_match.group(1)
@@ -416,24 +466,26 @@ async def analyze_parcel(
                     rent_control_data = get_mar_summary(street_number, street_name, use_cache=True)
 
                     if rent_control_data:
-                        status = rent_control_data.get('status', 'unknown')
+                        status = rent_control_data.get("status", "unknown")
 
-                        if status == 'success':
-                            if rent_control_data['is_rent_controlled']:
+                        if status == "success":
+                            if rent_control_data["is_rent_controlled"]:
                                 warnings.append(
                                     f"Rent Control: Property has {rent_control_data['total_units']} "
                                     f"rent-controlled unit(s). May affect AB2011 and SB35 eligibility."
                                 )
-                        elif status == 'error':
-                            error_msg = rent_control_data.get('error_message', 'Unknown error')
+                        elif status == "error":
+                            error_msg = rent_control_data.get("error_message", "Unknown error")
                             logger.warning(f"Rent control lookup failed: {error_msg}")
                             warnings.append(
                                 "Rent Control: Lookup failed. Status unknown - manual verification required "
                                 "with Santa Monica Rent Control Board (https://www.smgov.net/rentcontrol)."
                             )
-                        elif status == 'not_found':
+                        elif status == "not_found":
                             # Property not in rent control database
-                            logger.info(f"Property {parcel.address} not found in rent control database")
+                            logger.info(
+                                f"Property {parcel.address} not found in rent control database"
+                            )
                     else:
                         logger.warning("Rent control lookup returned None")
                         warnings.append(
@@ -468,21 +520,21 @@ async def analyze_parcel(
                     "apn": parcel.apn,
                     "zoning_code": parcel.zoning_code,
                     "lot_size_sqft": parcel.lot_size_sqft,
-                }
+                },
             }
-            logger.info(f"Analysis completed for parcel {parcel.apn} with {len(scenarios)} alternative scenarios")
+            logger.info(
+                f"Analysis completed for parcel {parcel.apn} with {len(scenarios)} alternative scenarios"
+            )
 
         # Ensure rent_control_data has valid boolean for is_rent_controlled
-        if rent_control_data and rent_control_data.get('is_rent_controlled') is None:
-            rent_control_data['is_rent_controlled'] = False
+        if rent_control_data and rent_control_data.get("is_rent_controlled") is None:
+            rent_control_data["is_rent_controlled"] = False
 
         # Validate proposed project against recommended scenario (if provided)
         proposed_validation = None
         if analysis_request.proposed_project:
             validation_warnings = validate_proposed_vs_allowed(
-                analysis_request.proposed_project,
-                recommended_scenario,
-                parcel.lot_size_sqft
+                analysis_request.proposed_project, recommended_scenario, parcel.lot_size_sqft
             )
             proposed_validation = format_warnings_for_response(validation_warnings)
 
@@ -501,7 +553,7 @@ async def analyze_parcel(
             cnel_analysis=cnel_analysis,
             community_benefits=benefits_analysis,
             proposed_validation=proposed_validation,
-            debug=debug_info
+            debug=debug_info,
         )
 
         # Track API usage for free tier enforcement
@@ -514,7 +566,7 @@ async def analyze_parcel(
                 endpoint=request.url.path,
                 method="POST",
                 status_code=200,
-                parcel_apn=parcel.apn
+                parcel_apn=parcel.apn,
             )
             session.add(usage)
             session.commit()
@@ -531,7 +583,7 @@ async def analyze_parcel(
 async def quick_analysis(
     request: Request,
     analysis_request: AnalysisRequest,
-    current_user: User = Depends(require_active_subscription)
+    current_user: User = Depends(require_active_subscription),
 ) -> dict:
     """
     Quick analysis returning only key metrics.
@@ -547,12 +599,12 @@ async def quick_analysis(
             "parcel_apn": full_analysis.parcel_apn,
             "max_units_base": full_analysis.base_scenario.max_units,
             "max_units_optimized": max(
-                [s.max_units for s in full_analysis.alternative_scenarios] +
-                [full_analysis.base_scenario.max_units]
+                [s.max_units for s in full_analysis.alternative_scenarios]
+                + [full_analysis.base_scenario.max_units]
             ),
             "recommended_scenario": full_analysis.recommended_scenario,
             "applicable_laws": full_analysis.applicable_laws,
-            "key_opportunities": full_analysis.potential_incentives[:3]
+            "key_opportunities": full_analysis.potential_incentives[:3],
         }
 
     except Exception as e:
@@ -564,7 +616,7 @@ async def quick_analysis(
 async def comprehensive_analysis(
     request: Request,
     analysis_request: AnalysisRequest,
-    current_user: User = Depends(require_active_subscription)
+    current_user: User = Depends(require_active_subscription),
 ) -> dict:
     """
     Comprehensive analysis integrating all special plan areas and state law programs.
@@ -586,25 +638,39 @@ async def comprehensive_analysis(
         # Use comprehensive analysis service
         result = generate_comprehensive_scenarios(
             parcel,
-            include_sb35=analysis_request.include_sb35 if hasattr(analysis_request, 'include_sb35') else True,
-            include_ab2011=analysis_request.include_ab2011 if hasattr(analysis_request, 'include_ab2011') else True,
-            include_density_bonus=analysis_request.include_density_bonus if hasattr(analysis_request, 'include_density_bonus') else True,
-            target_affordability_pct=analysis_request.target_affordability_pct if hasattr(analysis_request, 'target_affordability_pct') else 15.0
+            include_sb35=(
+                analysis_request.include_sb35 if hasattr(analysis_request, "include_sb35") else True
+            ),
+            include_ab2011=(
+                analysis_request.include_ab2011
+                if hasattr(analysis_request, "include_ab2011")
+                else True
+            ),
+            include_density_bonus=(
+                analysis_request.include_density_bonus
+                if hasattr(analysis_request, "include_density_bonus")
+                else True
+            ),
+            target_affordability_pct=(
+                analysis_request.target_affordability_pct
+                if hasattr(analysis_request, "target_affordability_pct")
+                else 15.0
+            ),
         )
 
         # Apply AB2097 parking reductions to all scenarios
         if settings.ENABLE_AB2097:
-            for scenario in result['scenarios']:
+            for scenario in result["scenarios"]:
                 apply_ab2097_parking_reduction(scenario, parcel)
 
         # Add existing units context
-        for scenario in result['scenarios']:
+        for scenario in result["scenarios"]:
             add_existing_units_context(scenario, parcel)
 
         # Find recommended scenario (highest unit count)
         recommended_scenario = None
         max_units = 0
-        for scenario in result['scenarios']:
+        for scenario in result["scenarios"]:
             if scenario.max_units > max_units:
                 max_units = scenario.max_units
                 recommended_scenario = scenario
@@ -613,11 +679,11 @@ async def comprehensive_analysis(
         return {
             "parcel_apn": parcel.apn,
             "analysis_date": datetime.now(),
-            "analysis_type": result['analysis_type'],
-            "in_special_plan_area": result['in_bergamot'] or result['in_dcp'],
+            "analysis_type": result["analysis_type"],
+            "in_special_plan_area": result["in_bergamot"] or result["in_dcp"],
             "special_plan": {
-                "bergamot": result['in_bergamot'],
-                "downtown_community_plan": result['in_dcp']
+                "bergamot": result["in_bergamot"],
+                "downtown_community_plan": result["in_dcp"],
             },
             "scenarios": [
                 {
@@ -629,18 +695,23 @@ async def comprehensive_analysis(
                     "max_stories": s.max_stories,
                     "parking_required": s.parking_spaces_required,
                     "affordable_units_required": s.affordable_units_required,
-                    "notes": s.notes
+                    "notes": s.notes,
                 }
-                for s in result['scenarios']
+                for s in result["scenarios"]
             ],
-            "recommended_scenario": recommended_scenario.scenario_name if recommended_scenario else None,
-            "applicable_programs": result['applicable_programs'],
-            "warnings": result['warnings'],
+            "recommended_scenario": (
+                recommended_scenario.scenario_name if recommended_scenario else None
+            ),
+            "applicable_programs": result["applicable_programs"],
+            "warnings": result["warnings"],
             "program_interactions": {
-                "has_density_bonus_variants": any('Density Bonus' in s.scenario_name for s in result['scenarios']),
-                "state_law_may_preempt": any('SB35' in s.scenario_name for s in result['scenarios']) and (result['in_bergamot'] or result['in_dcp']),
-                "can_stack_programs": result['in_dcp'] or result['in_bergamot']
-            }
+                "has_density_bonus_variants": any(
+                    "Density Bonus" in s.scenario_name for s in result["scenarios"]
+                ),
+                "state_law_may_preempt": any("SB35" in s.scenario_name for s in result["scenarios"])
+                and (result["in_bergamot"] or result["in_dcp"]),
+                "can_stack_programs": result["in_dcp"] or result["in_bergamot"],
+            },
         }
 
     except Exception as e:
@@ -650,10 +721,7 @@ async def comprehensive_analysis(
 
 @router.get("/ami/rent", response_model=AffordableRent)
 def get_affordable_rent(
-    county: str,
-    ami_pct: float,
-    bedrooms: int,
-    utility_allowance: float = 150.0
+    county: str, ami_pct: float, bedrooms: int, utility_allowance: float = 150.0
 ) -> AffordableRent:
     """
     Get maximum affordable rent for given parameters.
@@ -702,7 +770,7 @@ def get_affordable_sales_price(
     down_payment_pct: float = 10.0,
     property_tax_rate_pct: float = 1.25,
     insurance_rate_pct: float = 0.5,
-    hoa_monthly: float = 0.0
+    hoa_monthly: float = 0.0,
 ) -> AffordableSalesPrice:
     """
     Get maximum affordable sales price.
@@ -752,7 +820,7 @@ def get_affordable_sales_price(
             down_payment_pct=down_payment_pct,
             property_tax_rate_pct=property_tax_rate_pct,
             insurance_rate_pct=insurance_rate_pct,
-            hoa_monthly=hoa_monthly
+            hoa_monthly=hoa_monthly,
         )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -762,11 +830,7 @@ def get_affordable_sales_price(
 
 
 @router.get("/ami/income-limit", response_model=AMILookup)
-def get_income_limit(
-    county: str,
-    ami_pct: float,
-    household_size: int
-) -> AMILookup:
+def get_income_limit(county: str, ami_pct: float, household_size: int) -> AMILookup:
     """
     Get income limit for given county, AMI percentage, and household size.
 
@@ -850,15 +914,12 @@ def get_available_ami_percentages() -> dict:
             60: "Low Income",
             80: "Low Income",
             100: "Median Income",
-            120: "Moderate Income"
+            120: "Moderate Income",
         }
 
         return {
             "ami_percentages": [
-                {
-                    "value": pct,
-                    "label": f"{int(pct)}% AMI ({labels.get(pct, 'Income Category')})"
-                }
+                {"value": pct, "label": f"{int(pct)}% AMI ({labels.get(pct, 'Income Category')})"}
                 for pct in percentages
             ]
         }
@@ -872,7 +933,7 @@ def get_available_ami_percentages() -> dict:
 async def export_feasibility_report(
     request: Request,
     analysis: AnalysisResponse,
-    current_user: User = Depends(require_active_subscription)
+    current_user: User = Depends(require_active_subscription),
 ) -> Response:
     """
     Generate PDF report for parcel feasibility analysis.
@@ -915,9 +976,9 @@ async def export_feasibility_report(
 
         # Try to extract lot size from base_scenario notes
         for note in analysis.base_scenario.notes:
-            match = re.search(r'([\d,]+)\s*sq\s*ft', note, re.IGNORECASE)
+            match = re.search(r"([\d,]+)\s*sq\s*ft", note, re.IGNORECASE)
             if match:
-                lot_size_sqft = float(match.group(1).replace(',', ''))
+                lot_size_sqft = float(match.group(1).replace(",", ""))
                 break
 
         # If not found in notes, calculate from base_scenario FAR
@@ -931,26 +992,26 @@ async def export_feasibility_report(
             # Look for address patterns in notes
             if "address" in note.lower():
                 # Try to extract address
-                addr_match = re.search(r'address[:\s]+(.+?)(?:[,\.]|$)', note, re.IGNORECASE)
+                addr_match = re.search(r"address[:\s]+(.+?)(?:[,\.]|$)", note, re.IGNORECASE)
                 if addr_match:
                     address = addr_match.group(1).strip()
                     break
 
         # Extract zoning code from base_scenario legal_basis
-        zoning_code = ''
+        zoning_code = ""
         if analysis.base_scenario.legal_basis:
             # Try to extract zoning from "Santa Monica Municipal Code - R2" format
-            if '-' in analysis.base_scenario.legal_basis:
-                zoning_code = analysis.base_scenario.legal_basis.split('-')[-1].strip()
+            if "-" in analysis.base_scenario.legal_basis:
+                zoning_code = analysis.base_scenario.legal_basis.split("-")[-1].strip()
 
         # Create ParcelBase object with best available data
         # Note: PDF generator will extract additional data from base_scenario if needed
         parcel = ParcelBase(
             apn=analysis.parcel_apn,
             address=address,
-            city='Santa Monica',
-            county='Los Angeles',
-            zip_code='90401',
+            city="Santa Monica",
+            county="Los Angeles",
+            zip_code="90401",
             lot_size_sqft=lot_size_sqft,
             zoning_code=zoning_code,
         )

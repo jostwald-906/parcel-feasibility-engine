@@ -11,6 +11,7 @@ Tests cover:
 - Property tests (costs increase with inputs)
 - Error handling
 """
+
 import pytest
 from app.services.cost_estimator import (
     estimate_construction_cost,
@@ -21,12 +22,11 @@ from app.services.cost_estimator import (
     get_construction_financing_rate,
 )
 from app.models.financial import ConstructionInputs, EconomicAssumptions
-from app.services.fred_client import FredClient, FredObservation
+from app.clients.fred_client import FREDClient as FredClient, FredObservation
 from app.core.config import settings
 from datetime import date as date_type
 from unittest.mock import Mock, patch
 import pytest_asyncio
-
 
 # =============================================================================
 # Fixtures
@@ -240,7 +240,9 @@ class TestFullCostEstimation:
         )
         assert estimate.total_cost == pytest.approx(expected_total, rel=0.01)
 
-    async def test_cost_per_unit_calculation(self, basic_inputs, default_assumptions, mock_fred_client):
+    async def test_cost_per_unit_calculation(
+        self, basic_inputs, default_assumptions, mock_fred_client
+    ):
         """Test cost per unit is correctly calculated."""
         estimate = await estimate_construction_cost(
             basic_inputs, default_assumptions, mock_fred_client
@@ -249,7 +251,9 @@ class TestFullCostEstimation:
         expected_per_unit = estimate.total_cost / basic_inputs.num_units
         assert estimate.cost_per_unit == pytest.approx(expected_per_unit, rel=0.01)
 
-    async def test_cost_per_sf_calculation(self, basic_inputs, default_assumptions, mock_fred_client):
+    async def test_cost_per_sf_calculation(
+        self, basic_inputs, default_assumptions, mock_fred_client
+    ):
         """Test cost per buildable SF is correctly calculated."""
         estimate = await estimate_construction_cost(
             basic_inputs, default_assumptions, mock_fred_client
@@ -258,7 +262,9 @@ class TestFullCostEstimation:
         expected_per_sf = estimate.total_cost / basic_inputs.buildable_sqft
         assert estimate.cost_per_buildable_sf == pytest.approx(expected_per_sf, rel=0.01)
 
-    async def test_hard_costs_include_all_factors(self, basic_inputs, default_assumptions, mock_fred_client):
+    async def test_hard_costs_include_all_factors(
+        self, basic_inputs, default_assumptions, mock_fred_client
+    ):
         """Test hard costs include all escalation and multiplier factors."""
         estimate = await estimate_construction_cost(
             basic_inputs, default_assumptions, mock_fred_client
@@ -299,7 +305,9 @@ class TestFullCostEstimation:
         )
         assert soft.total_soft_cost == pytest.approx(expected_total, rel=0.01)
 
-    async def test_permits_fees_calculation(self, basic_inputs, default_assumptions, mock_fred_client):
+    async def test_permits_fees_calculation(
+        self, basic_inputs, default_assumptions, mock_fred_client
+    ):
         """Test permit fees are per-unit based."""
         estimate = await estimate_construction_cost(
             basic_inputs, default_assumptions, mock_fred_client
@@ -308,7 +316,9 @@ class TestFullCostEstimation:
         expected_permits = basic_inputs.permit_fees_per_unit * basic_inputs.num_units
         assert estimate.soft_costs.permits_fees == pytest.approx(expected_permits, rel=0.01)
 
-    async def test_contingency_calculation(self, basic_inputs, default_assumptions, mock_fred_client):
+    async def test_contingency_calculation(
+        self, basic_inputs, default_assumptions, mock_fred_client
+    ):
         """Test contingency is calculated as % of hard + soft."""
         estimate = await estimate_construction_cost(
             basic_inputs, default_assumptions, mock_fred_client
@@ -330,7 +340,9 @@ class TestFullCostEstimation:
 class TestSourceNotes:
     """Tests for source notes transparency."""
 
-    async def test_source_notes_completeness(self, basic_inputs, default_assumptions, mock_fred_client):
+    async def test_source_notes_completeness(
+        self, basic_inputs, default_assumptions, mock_fred_client
+    ):
         """Test all required source notes are present."""
         estimate = await estimate_construction_cost(
             basic_inputs, default_assumptions, mock_fred_client
@@ -352,7 +364,9 @@ class TestSourceNotes:
             assert key in notes, f"Missing source note: {key}"
             assert notes[key], f"Empty source note: {key}"
 
-    async def test_ppi_note_includes_fred_data(self, basic_inputs, default_assumptions, mock_fred_client):
+    async def test_ppi_note_includes_fred_data(
+        self, basic_inputs, default_assumptions, mock_fred_client
+    ):
         """Test PPI note includes FRED series and date."""
         estimate = await estimate_construction_cost(
             basic_inputs, default_assumptions, mock_fred_client
@@ -366,14 +380,14 @@ class TestSourceNotes:
     async def test_wage_note_when_enabled(self, basic_inputs, mock_fred_client):
         """Test wage escalation note when wage adjustment enabled."""
         assumptions = EconomicAssumptions(use_wage_adjustment=True)
-        estimate = await estimate_construction_cost(
-            basic_inputs, assumptions, mock_fred_client
-        )
+        estimate = await estimate_construction_cost(basic_inputs, assumptions, mock_fred_client)
 
         wage_note = estimate.source_notes["wage_eci_series"]
         assert "ECICONWAG" in wage_note
 
-    async def test_wage_note_when_disabled(self, basic_inputs, default_assumptions, mock_fred_client):
+    async def test_wage_note_when_disabled(
+        self, basic_inputs, default_assumptions, mock_fred_client
+    ):
         """Test wage note when wage adjustment disabled."""
         estimate = await estimate_construction_cost(
             basic_inputs, default_assumptions, mock_fred_client
@@ -392,7 +406,9 @@ class TestSourceNotes:
 class TestParametricVariations:
     """Tests for parametric cost variations."""
 
-    async def test_concrete_costs_more_than_wood(self, basic_inputs, default_assumptions, mock_fred_client):
+    async def test_concrete_costs_more_than_wood(
+        self, basic_inputs, default_assumptions, mock_fred_client
+    ):
         """Concrete construction should cost more than wood frame."""
         # Wood frame estimate
         wood_inputs = basic_inputs.model_copy()
@@ -451,9 +467,7 @@ class TestParametricVariations:
         """Enabling wage adjustment should increase cost."""
         # Without wage adjustment
         no_wage = EconomicAssumptions(use_wage_adjustment=False)
-        no_wage_estimate = await estimate_construction_cost(
-            basic_inputs, no_wage, mock_fred_client
-        )
+        no_wage_estimate = await estimate_construction_cost(basic_inputs, no_wage, mock_fred_client)
 
         # With wage adjustment
         with_wage = EconomicAssumptions(use_wage_adjustment=True)
@@ -481,7 +495,10 @@ class TestParametricVariations:
             long_inputs, default_assumptions, mock_fred_client
         )
 
-        assert long_estimate.soft_costs.construction_financing > short_estimate.soft_costs.construction_financing
+        assert (
+            long_estimate.soft_costs.construction_financing
+            > short_estimate.soft_costs.construction_financing
+        )
 
 
 # =============================================================================
@@ -496,20 +513,18 @@ class TestCustomAssumptions:
     async def test_custom_architecture_pct(self, basic_inputs, mock_fred_client):
         """Test custom architecture percentage is applied."""
         assumptions = EconomicAssumptions(architecture_pct=0.15)  # 15% instead of default 10%
-        estimate = await estimate_construction_cost(
-            basic_inputs, assumptions, mock_fred_client
-        )
+        estimate = await estimate_construction_cost(basic_inputs, assumptions, mock_fred_client)
 
         # Calculate expected architecture cost
         expected_arch = estimate.hard_costs.total_hard_cost * 0.15
-        assert estimate.soft_costs.architecture_engineering == pytest.approx(expected_arch, rel=0.01)
+        assert estimate.soft_costs.architecture_engineering == pytest.approx(
+            expected_arch, rel=0.01
+        )
 
     async def test_custom_contingency_pct(self, basic_inputs, mock_fred_client):
         """Test custom contingency percentage is applied."""
         assumptions = EconomicAssumptions(contingency_pct=0.20)  # 20% instead of default 12%
-        estimate = await estimate_construction_cost(
-            basic_inputs, assumptions, mock_fred_client
-        )
+        estimate = await estimate_construction_cost(basic_inputs, assumptions, mock_fred_client)
 
         subtotal = estimate.hard_costs.total_hard_cost + estimate.soft_costs.total_soft_cost
         expected_contingency = subtotal * 0.20
@@ -533,9 +548,7 @@ class TestErrorHandling:
         error_client.get_latest_observation.side_effect = Exception("API Error")
 
         # Should not raise, should use fallback values
-        estimate = await estimate_construction_cost(
-            basic_inputs, default_assumptions, error_client
-        )
+        estimate = await estimate_construction_cost(basic_inputs, default_assumptions, error_client)
 
         assert estimate.total_cost > 0
         assert "unavailable" in estimate.source_notes["materials_ppi_series"].lower()
@@ -558,9 +571,7 @@ class TestErrorHandling:
 class TestCostProperties:
     """Property-based tests for cost estimation."""
 
-    async def test_cost_proportional_to_square_footage(
-        self, default_assumptions, mock_fred_client
-    ):
+    async def test_cost_proportional_to_square_footage(self, default_assumptions, mock_fred_client):
         """Total cost should be roughly proportional to square footage."""
         inputs_5k = ConstructionInputs(
             buildable_sqft=5000,

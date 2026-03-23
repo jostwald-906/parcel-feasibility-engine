@@ -9,7 +9,6 @@ Last updated: 2025-01-06
 
 from typing import Dict, List
 
-
 # Complete list of Santa Monica zoning codes with descriptions
 SANTA_MONICA_ZONING_CODES: Dict[str, str] = {
     # Residential Zones
@@ -23,7 +22,6 @@ SANTA_MONICA_ZONING_CODES: Dict[str, str] = {
     "OP3": "Ocean Park Medium Density Residential",
     "OP4": "Ocean Park High Density Residential",
     "OPD": "Ocean Park Duplex",
-
     # Commercial & Mixed-Use Zones
     "NC": "Neighborhood Commercial",
     "GC": "General Commercial",
@@ -34,16 +32,13 @@ SANTA_MONICA_ZONING_CODES: Dict[str, str] = {
     "LT": "Lincoln Transition",
     "WT": "Wilshire Transition",
     "OT": "Ocean Transition",
-
     # Downtown Community Plan
     "TA": "Transit Adjacent",
     "NV": "Neighborhood Village",
-
     # Bergamot Area Plan
     "BTV": "Bergamot Transit Village",
     "MUC": "Mixed Use Creative",
     "CAC": "Conservation: Art Center",
-
     # Special Districts
     "OF": "Oceanfront",
     "BC": "Bayside Conservation",
@@ -144,10 +139,7 @@ def get_all_zoning_codes_for_dropdown() -> List[Dict[str, str]]:
         List of dicts with 'value' (code) and 'label' (code + description)
     """
     return [
-        {
-            "value": code,
-            "label": f"{code} - {description}"
-        }
+        {"value": code, "label": f"{code} - {description}"}
         for code, description in sorted(SANTA_MONICA_ZONING_CODES.items())
     ]
 
@@ -162,10 +154,7 @@ def get_categorized_zoning_codes() -> Dict[str, List[Dict[str, str]]]:
     result = {}
     for category, codes in ZONING_CATEGORIES.items():
         result[category] = [
-            {
-                "value": code,
-                "label": f"{code} - {SANTA_MONICA_ZONING_CODES[code]}"
-            }
+            {"value": code, "label": f"{code} - {SANTA_MONICA_ZONING_CODES[code]}"}
             for code in codes
         ]
     return result

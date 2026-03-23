@@ -1,6 +1,7 @@
 """
 Stripe payment processing service.
 """
+
 import stripe
 from typing import Optional, Dict, Any
 from datetime import datetime
@@ -19,7 +20,9 @@ class StripeService:
     """Service for handling Stripe payment operations."""
 
     @staticmethod
-    def create_customer(email: str, name: Optional[str] = None, metadata: Optional[Dict[str, Any]] = None) -> stripe.Customer:
+    def create_customer(
+        email: str, name: Optional[str] = None, metadata: Optional[Dict[str, Any]] = None
+    ) -> stripe.Customer:
         """
         Create a Stripe customer.
 
@@ -36,9 +39,7 @@ class StripeService:
         """
         try:
             customer = stripe.Customer.create(
-                email=email,
-                name=name or email,
-                metadata=metadata or {}
+                email=email, name=name or email, metadata=metadata or {}
             )
 
             logger.info(f"Created Stripe customer: {customer.id}", extra={"email": email})
@@ -55,7 +56,7 @@ class StripeService:
         price_id: str,
         success_url: str,
         cancel_url: str,
-        metadata: Optional[Dict[str, Any]] = None
+        metadata: Optional[Dict[str, Any]] = None,
     ) -> stripe.checkout.Session:
         """
         Create a Stripe Checkout session for subscription.
@@ -92,13 +93,15 @@ class StripeService:
 
             logger.info(
                 f"Created checkout session: {session.id}",
-                extra={"customer_id": customer_id, "price_id": price_id}
+                extra={"customer_id": customer_id, "price_id": price_id},
             )
 
             return session
 
         except stripe.error.StripeError as e:
-            logger.error(f"Failed to create checkout session: {e}", extra={"customer_id": customer_id})
+            logger.error(
+                f"Failed to create checkout session: {e}", extra={"customer_id": customer_id}
+            )
             raise
 
     @staticmethod
@@ -123,14 +126,15 @@ class StripeService:
             )
 
             logger.info(
-                f"Created portal session: {portal_session.id}",
-                extra={"customer_id": customer_id}
+                f"Created portal session: {portal_session.id}", extra={"customer_id": customer_id}
             )
 
             return portal_session
 
         except stripe.error.StripeError as e:
-            logger.error(f"Failed to create portal session: {e}", extra={"customer_id": customer_id})
+            logger.error(
+                f"Failed to create portal session: {e}", extra={"customer_id": customer_id}
+            )
             raise
 
     @staticmethod
@@ -152,11 +156,15 @@ class StripeService:
             return subscription
 
         except stripe.error.StripeError as e:
-            logger.error(f"Failed to retrieve subscription: {e}", extra={"subscription_id": subscription_id})
+            logger.error(
+                f"Failed to retrieve subscription: {e}", extra={"subscription_id": subscription_id}
+            )
             raise
 
     @staticmethod
-    def cancel_subscription(subscription_id: str, at_period_end: bool = True) -> stripe.Subscription:
+    def cancel_subscription(
+        subscription_id: str, at_period_end: bool = True
+    ) -> stripe.Subscription:
         """
         Cancel a Stripe subscription.
 
@@ -173,21 +181,22 @@ class StripeService:
         try:
             if at_period_end:
                 subscription = stripe.Subscription.modify(
-                    subscription_id,
-                    cancel_at_period_end=True
+                    subscription_id, cancel_at_period_end=True
                 )
             else:
                 subscription = stripe.Subscription.delete(subscription_id)
 
             logger.info(
                 f"Cancelled subscription: {subscription_id}",
-                extra={"subscription_id": subscription_id, "at_period_end": at_period_end}
+                extra={"subscription_id": subscription_id, "at_period_end": at_period_end},
             )
 
             return subscription
 
         except stripe.error.StripeError as e:
-            logger.error(f"Failed to cancel subscription: {e}", extra={"subscription_id": subscription_id})
+            logger.error(
+                f"Failed to cancel subscription: {e}", extra={"subscription_id": subscription_id}
+            )
             raise
 
     @staticmethod
@@ -210,9 +219,7 @@ class StripeService:
 
         try:
             event = stripe.Webhook.construct_event(
-                payload,
-                sig_header,
-                settings.STRIPE_WEBHOOK_SECRET
+                payload, sig_header, settings.STRIPE_WEBHOOK_SECRET
             )
 
             logger.info(f"Received webhook event: {event.type}", extra={"event_id": event.id})

@@ -53,10 +53,7 @@ def generate_cache_key(*args: Any) -> str:
 
 
 def save_to_cache(
-    service_name: str,
-    cache_key: str,
-    data: Any,
-    metadata: Optional[dict] = None
+    service_name: str, cache_key: str, data: Any, metadata: Optional[dict] = None
 ) -> None:
     """
     Save data to cache with metadata.
@@ -70,35 +67,22 @@ def save_to_cache(
     cache_dir = get_cache_dir(service_name)
     cache_file = cache_dir / f"{cache_key}.json"
 
-    cache_obj = {
-        "cached_at": datetime.now().isoformat(),
-        "metadata": metadata or {},
-        "data": data
-    }
+    cache_obj = {"cached_at": datetime.now().isoformat(), "metadata": metadata or {}, "data": data}
 
     try:
         with open(cache_file, "w") as f:
             json.dump(cache_obj, f, indent=2, default=str)
         logger.debug(
             f"Saved to cache",
-            extra={
-                "service": service_name,
-                "cache_key": cache_key,
-                "file": str(cache_file)
-            }
+            extra={"service": service_name, "cache_key": cache_key, "file": str(cache_file)},
         )
     except Exception as e:
         logger.warning(
-            f"Failed to save to cache: {e}",
-            extra={"service": service_name, "cache_key": cache_key}
+            f"Failed to save to cache: {e}", extra={"service": service_name, "cache_key": cache_key}
         )
 
 
-def load_from_cache(
-    service_name: str,
-    cache_key: str,
-    ttl_hours: int = 24
-) -> Optional[dict]:
+def load_from_cache(service_name: str, cache_key: str, ttl_hours: int = 24) -> Optional[dict]:
     """
     Load data from cache if it exists and is not expired.
 
@@ -116,8 +100,7 @@ def load_from_cache(
 
     if not cache_file.exists():
         logger.debug(
-            f"Cache miss - file not found",
-            extra={"service": service_name, "cache_key": cache_key}
+            f"Cache miss - file not found", extra={"service": service_name, "cache_key": cache_key}
         )
         return None
 
@@ -136,8 +119,8 @@ def load_from_cache(
                     "service": service_name,
                     "cache_key": cache_key,
                     "cached_at": cache_obj["cached_at"],
-                    "ttl_hours": ttl_hours
-                }
+                    "ttl_hours": ttl_hours,
+                },
             )
             return None
 
@@ -146,15 +129,15 @@ def load_from_cache(
             extra={
                 "service": service_name,
                 "cache_key": cache_key,
-                "cached_at": cache_obj["cached_at"]
-            }
+                "cached_at": cache_obj["cached_at"],
+            },
         )
         return cache_obj
 
     except Exception as e:
         logger.warning(
             f"Failed to load from cache: {e}",
-            extra={"service": service_name, "cache_key": cache_key}
+            extra={"service": service_name, "cache_key": cache_key},
         )
         return None
 
@@ -186,19 +169,19 @@ def cleanup_expired_cache(service_name: str, ttl_hours: int = 24) -> int:
                 removed_count += 1
                 logger.debug(
                     f"Removed expired cache file",
-                    extra={"service": service_name, "file": str(cache_file)}
+                    extra={"service": service_name, "file": str(cache_file)},
                 )
 
         except Exception as e:
             logger.warning(
                 f"Failed to check/remove cache file {cache_file}: {e}",
-                extra={"service": service_name}
+                extra={"service": service_name},
             )
 
     if removed_count > 0:
         logger.info(
             f"Cleaned up expired cache files",
-            extra={"service": service_name, "count": removed_count}
+            extra={"service": service_name, "count": removed_count},
         )
 
     return removed_count
@@ -223,13 +206,9 @@ def clear_cache(service_name: str) -> int:
             removed_count += 1
         except Exception as e:
             logger.warning(
-                f"Failed to remove cache file {cache_file}: {e}",
-                extra={"service": service_name}
+                f"Failed to remove cache file {cache_file}: {e}", extra={"service": service_name}
             )
 
-    logger.info(
-        f"Cleared cache",
-        extra={"service": service_name, "count": removed_count}
-    )
+    logger.info(f"Cleared cache", extra={"service": service_name, "count": removed_count})
 
     return removed_count

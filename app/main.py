@@ -15,7 +15,16 @@ import logging
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 
-from app.api import analyze, rules, metadata, autocomplete, economic_feasibility, auth, payments, admin
+from app.api import (
+    analyze,
+    rules,
+    metadata,
+    autocomplete,
+    economic_feasibility,
+    auth,
+    payments,
+    admin,
+)
 from app.core.config import settings
 from app.core.rate_limit import limiter
 from app.core.database import create_db_and_tables
@@ -46,10 +55,13 @@ if settings.SENTRY_ENABLED and settings.SENTRY_DSN:
         # Only send events in production (filter out dev/staging/test environments)
         before_send=lambda event, hint: event if settings.ENVIRONMENT == "production" else None,
     )
-    logger.info("Sentry error monitoring initialized", extra={
-        "environment": settings.SENTRY_ENVIRONMENT or settings.ENVIRONMENT,
-        "traces_sample_rate": settings.SENTRY_TRACES_SAMPLE_RATE
-    })
+    logger.info(
+        "Sentry error monitoring initialized",
+        extra={
+            "environment": settings.SENTRY_ENVIRONMENT or settings.ENVIRONMENT,
+            "traces_sample_rate": settings.SENTRY_TRACES_SAMPLE_RATE,
+        },
+    )
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -60,6 +72,7 @@ app = FastAPI(
     openapi_url="/openapi.json",
 )
 
+
 # Create database tables on startup
 @app.on_event("startup")
 def on_startup():
@@ -68,8 +81,10 @@ def on_startup():
     create_db_and_tables()
     logger.info("Database tables created successfully")
 
+
 # Add rate limiter to app
 app.state.limiter = limiter
+
 
 # Add custom rate limit exception handler
 @app.exception_handler(RateLimitExceeded)
@@ -86,7 +101,7 @@ async def custom_rate_limit_handler(request: Request, exc: RateLimitExceeded):
             "ip": request.client.host if request.client else "unknown",
             "path": request.url.path,
             "limit": exc.detail,
-        }
+        },
     )
 
     return JSONResponse(
@@ -95,12 +110,11 @@ async def custom_rate_limit_handler(request: Request, exc: RateLimitExceeded):
             "error": "rate_limit_exceeded",
             "message": f"Too many requests. Limit: {exc.detail}",
             "retry_after_seconds": 60,
-            "documentation": f"{settings.API_V1_STR}/docs"
+            "documentation": f"{settings.API_V1_STR}/docs",
         },
-        headers={
-            "Retry-After": "60"
-        }
+        headers={"Retry-After": "60"},
     )
+
 
 # Custom CORS origin checker that supports wildcard patterns
 def is_allowed_origin(origin: str) -> bool:
@@ -113,18 +127,19 @@ def is_allowed_origin(origin: str) -> bool:
 
     # Check wildcard patterns
     for allowed_origin in settings.BACKEND_CORS_ORIGINS:
-        if '*' in allowed_origin:
+        if "*" in allowed_origin:
             # Convert wildcard pattern to regex
-            pattern = allowed_origin.replace('.', r'\.').replace('*', '.*')
-            if re.match(f'^{pattern}$', origin):
+            pattern = allowed_origin.replace(".", r"\.").replace("*", ".*")
+            if re.match(f"^{pattern}$", origin):
                 return True
 
     return False
 
+
 # CORS middleware with custom origin validation
 app.add_middleware(
     CORSMiddleware,
-    allow_origin_regex=r'https://.*\.vercel\.app',
+    allow_origin_regex=r"https://.*\.vercel\.app",
     allow_origins=settings.BACKEND_CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
@@ -145,7 +160,7 @@ async def log_requests(request: Request, call_next):
             "method": request.method,
             "path": request.url.path,
             "client_host": request.client.host if request.client else None,
-        }
+        },
     )
 
     # Process request
@@ -162,7 +177,7 @@ async def log_requests(request: Request, call_next):
             "path": request.url.path,
             "status_code": response.status_code,
             "duration_ms": round(duration * 1000, 2),
-        }
+        },
     )
 
     return response
@@ -179,7 +194,7 @@ app.include_router(autocomplete.router)
 app.include_router(
     economic_feasibility.router,
     prefix=f"{settings.API_V1_STR}/economic-feasibility",
-    tags=["Economic Feasibility"]
+    tags=["Economic Feasibility"],
 )
 
 # Rent control endpoint - TEMPORARILY DISABLED due to cloudscraper timeout issues
@@ -234,10 +249,14 @@ async def health_check():
         "services": {
             "gis_services_configured": bool(settings.SANTA_MONICA_PARCEL_SERVICE_URL),
             "narrative_generation": settings.ENABLE_NARRATIVE_GENERATION,
-            "database": settings.DATABASE_URL.split("@")[-1] if "@" in settings.DATABASE_URL else "configured",
+            "database": (
+                settings.DATABASE_URL.split("@")[-1]
+                if "@" in settings.DATABASE_URL
+                else "configured"
+            ),
             "error_monitoring": settings.SENTRY_ENABLED,
             "rate_limiting": settings.RATE_LIMIT_ENABLED,
-        }
+        },
     }
 
 

@@ -40,9 +40,7 @@ class TimelineStep(BaseModel):
 class EntitlementTimeline(BaseModel):
     """Complete entitlement timeline estimate."""
 
-    pathway_type: str = Field(
-        ..., description="Ministerial, Administrative, or Discretionary"
-    )
+    pathway_type: str = Field(..., description="Ministerial, Administrative, or Discretionary")
     total_days_min: int = Field(..., ge=0, description="Minimum total days")
     total_days_max: int = Field(..., ge=0, description="Maximum total days")
     steps: List[TimelineStep] = Field(..., description="Timeline steps in order")
@@ -172,9 +170,7 @@ def _sb9_timeline() -> EntitlementTimeline:
             days_min=21,
             days_max=35,
             description="Staff reviews for objective standards compliance",
-            required_submittals=[
-                "Any requested corrections or clarifications"
-            ],
+            required_submittals=["Any requested corrections or clarifications"],
         ),
         TimelineStep(
             step_name="Approval & Permit Issuance",

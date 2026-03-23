@@ -47,8 +47,7 @@ class TextFormatter(logging.Formatter):
 
     def __init__(self):
         super().__init__(
-            fmt="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-            datefmt="%Y-%m-%d %H:%M:%S"
+            fmt="%(asctime)s - %(name)s - %(levelname)s - %(message)s", datefmt="%Y-%m-%d %H:%M:%S"
         )
 
 
@@ -120,11 +119,7 @@ class DecisionLogger:
         self.decisions: list[Dict[str, Any]] = []
 
     def log_decision(
-        self,
-        rule_name: str,
-        decision: str,
-        reason: str,
-        details: Optional[Dict[str, Any]] = None
+        self, rule_name: str, decision: str, reason: str, details: Optional[Dict[str, Any]] = None
     ) -> None:
         """
         Log a rule decision.
@@ -156,15 +151,11 @@ class DecisionLogger:
                 "decision": decision,
                 "reason": reason,
                 "details": details,
-            }
+            },
         )
 
     def log_eligibility_check(
-        self,
-        rule_name: str,
-        eligible: bool,
-        reason: str,
-        criteria: Optional[Dict[str, Any]] = None
+        self, rule_name: str, eligible: bool, reason: str, criteria: Optional[Dict[str, Any]] = None
     ) -> None:
         """
         Log an eligibility check result.
@@ -179,15 +170,11 @@ class DecisionLogger:
             rule_name=rule_name,
             decision="eligible" if eligible else "ineligible",
             reason=reason,
-            details={"criteria": criteria} if criteria else None
+            details={"criteria": criteria} if criteria else None,
         )
 
     def log_standard_application(
-        self,
-        rule_name: str,
-        standard_name: str,
-        value: Any,
-        calculation: Optional[str] = None
+        self, rule_name: str, standard_name: str, value: Any, calculation: Optional[str] = None
     ) -> None:
         """
         Log application of a development standard.
@@ -206,7 +193,7 @@ class DecisionLogger:
                 "standard": standard_name,
                 "value": value,
                 "calculation": calculation,
-            }
+            },
         )
 
     def get_decisions(self) -> list[Dict[str, Any]]:

@@ -14,7 +14,6 @@ from pydantic import BaseModel, Field
 from typing import Optional, List, Dict, Any
 from datetime import datetime, date
 
-
 # ============================================================================
 # Economic Assumptions and Inputs
 # ============================================================================
@@ -33,124 +32,82 @@ class EconomicAssumptions(BaseModel):
         0.12,
         ge=0,
         le=1.0,
-        description="Annual discount rate for NPV calculation (e.g., 0.12 for 12%)"
+        description="Annual discount rate for NPV calculation (e.g., 0.12 for 12%)",
     )
     hurdle_rate: float = Field(
-        0.15,
-        ge=0,
-        le=1.0,
-        description="Minimum acceptable IRR (e.g., 0.15 for 15%)"
+        0.15, ge=0, le=1.0, description="Minimum acceptable IRR (e.g., 0.15 for 15%)"
     )
 
     # Construction costs
     base_cost_per_sf: float = Field(
-        400.0,
-        gt=0,
-        description="Base construction cost per square foot (2025 baseline)"
+        400.0, gt=0, description="Base construction cost per square foot (2025 baseline)"
     )
     quality_factor: float = Field(
         1.0,
         ge=0.5,
         le=2.0,
-        description="Quality multiplier (0.5=low, 1.0=standard, 1.5=high, 2.0=luxury)"
+        description="Quality multiplier (0.5=low, 1.0=standard, 1.5=high, 2.0=luxury)",
     )
     soft_cost_pct: float = Field(
         0.20,
         ge=0,
         le=0.50,
-        description="Soft costs as % of hard costs (architecture, engineering, legal)"
+        description="Soft costs as % of hard costs (architecture, engineering, legal)",
     )
     contingency_pct: float = Field(
-        0.10,
-        ge=0,
-        le=0.30,
-        description="Construction contingency as % of total costs"
+        0.10, ge=0, le=0.30, description="Construction contingency as % of total costs"
     )
 
     # Revenue assumptions
     avg_rent_per_sf_month: float = Field(
-        3.50,
-        gt=0,
-        description="Average market rent per SF per month"
+        3.50, gt=0, description="Average market rent per SF per month"
     )
     vacancy_rate: float = Field(
-        0.05,
-        ge=0,
-        le=0.30,
-        description="Stabilized vacancy rate (e.g., 0.05 for 5%)"
+        0.05, ge=0, le=0.30, description="Stabilized vacancy rate (e.g., 0.05 for 5%)"
     )
     rent_growth_rate: float = Field(
-        0.03,
-        ge=-0.10,
-        le=0.20,
-        description="Annual rent growth rate (e.g., 0.03 for 3%)"
+        0.03, ge=-0.10, le=0.20, description="Annual rent growth rate (e.g., 0.03 for 3%)"
     )
 
     # Operating expenses
     opex_per_unit_annual: float = Field(
         8000.0,
         ge=0,
-        description="Operating expenses per unit per year (property mgmt, utilities, maintenance)"
+        description="Operating expenses per unit per year (property mgmt, utilities, maintenance)",
     )
     property_tax_rate: float = Field(
         0.0125,
         ge=0,
         le=0.05,
-        description="Property tax rate as % of assessed value (CA Prop 13: ~1.25%)"
+        description="Property tax rate as % of assessed value (CA Prop 13: ~1.25%)",
     )
     insurance_rate: float = Field(
-        0.005,
-        ge=0,
-        le=0.03,
-        description="Insurance as % of property value"
+        0.005, ge=0, le=0.03, description="Insurance as % of property value"
     )
 
     # Exit assumptions
     exit_cap_rate: float = Field(
-        0.05,
-        gt=0,
-        le=0.15,
-        description="Exit cap rate for property sale (e.g., 0.05 for 5%)"
+        0.05, gt=0, le=0.15, description="Exit cap rate for property sale (e.g., 0.05 for 5%)"
     )
     holding_period_years: int = Field(
-        10,
-        ge=1,
-        le=30,
-        description="Holding period before sale (years)"
+        10, ge=1, le=30, description="Holding period before sale (years)"
     )
 
     # Development timeline
     predevelopment_months: int = Field(
-        6,
-        ge=0,
-        le=36,
-        description="Predevelopment phase duration (months)"
+        6, ge=0, le=36, description="Predevelopment phase duration (months)"
     )
     construction_months: int = Field(
-        18,
-        ge=6,
-        le=60,
-        description="Construction phase duration (months)"
+        18, ge=6, le=60, description="Construction phase duration (months)"
     )
-    lease_up_months: int = Field(
-        6,
-        ge=0,
-        le=24,
-        description="Lease-up phase duration (months)"
-    )
+    lease_up_months: int = Field(6, ge=0, le=24, description="Lease-up phase duration (months)")
 
     # Financing (optional for future enhancement)
     loan_to_cost: Optional[float] = Field(
-        None,
-        ge=0,
-        le=1.0,
-        description="Loan-to-cost ratio (e.g., 0.70 for 70% LTC)"
+        None, ge=0, le=1.0, description="Loan-to-cost ratio (e.g., 0.70 for 70% LTC)"
     )
     interest_rate: Optional[float] = Field(
-        None,
-        ge=0,
-        le=0.20,
-        description="Construction loan interest rate"
+        None, ge=0, le=0.20, description="Construction loan interest rate"
     )
 
 
@@ -169,10 +126,7 @@ class SensitivityVariable(BaseModel):
     variable_name: str = Field(..., description="Parameter name (e.g., 'cost_per_sf')")
     label: str = Field(..., description="Display label (e.g., 'Construction Cost per SF')")
     delta_pct: float = Field(
-        0.15,
-        gt=0,
-        le=1.0,
-        description="Percentage change to test (e.g., 0.15 for ±15%)"
+        0.15, gt=0, le=1.0, description="Percentage change to test (e.g., 0.15 for ±15%)"
     )
 
 
@@ -180,49 +134,29 @@ class MonteCarloConfig(BaseModel):
     """Configuration for Monte Carlo simulation."""
 
     iterations: int = Field(
-        10000,
-        ge=100,
-        le=100000,
-        description="Number of Monte Carlo iterations"
+        10000, ge=100, le=100000, description="Number of Monte Carlo iterations"
     )
-    seed: int = Field(
-        42,
-        description="Random seed for reproducibility"
-    )
+    seed: int = Field(42, description="Random seed for reproducibility")
     cost_per_sf_std: float = Field(
-        25.0,
-        ge=0,
-        description="Standard deviation for cost per SF (normal distribution)"
+        25.0, ge=0, description="Standard deviation for cost per SF (normal distribution)"
     )
     rent_growth_std: float = Field(
-        0.015,
-        ge=0,
-        description="Standard deviation for rent growth rate (normal distribution)"
+        0.015, ge=0, description="Standard deviation for rent growth rate (normal distribution)"
     )
     cap_rate_min: float = Field(
-        0.04,
-        gt=0,
-        description="Minimum exit cap rate (triangular distribution)"
+        0.04, gt=0, description="Minimum exit cap rate (triangular distribution)"
     )
     cap_rate_mode: float = Field(
-        0.05,
-        gt=0,
-        description="Most likely exit cap rate (triangular distribution)"
+        0.05, gt=0, description="Most likely exit cap rate (triangular distribution)"
     )
     cap_rate_max: float = Field(
-        0.07,
-        gt=0,
-        description="Maximum exit cap rate (triangular distribution)"
+        0.07, gt=0, description="Maximum exit cap rate (triangular distribution)"
     )
     construction_delay_mean: float = Field(
-        0.0,
-        ge=0,
-        description="Mean construction delay in months"
+        0.0, ge=0, description="Mean construction delay in months"
     )
     construction_delay_std: float = Field(
-        3.0,
-        ge=0,
-        description="Standard deviation of construction delay (months)"
+        3.0, ge=0, description="Standard deviation of construction delay (months)"
     )
 
 
@@ -245,8 +179,7 @@ class ConstructionCostBreakdown(BaseModel):
 
     # Source notes
     source_notes: Dict[str, Any] = Field(
-        default_factory=dict,
-        description="Data sources and calculation methodology"
+        default_factory=dict, description="Data sources and calculation methodology"
     )
 
 
@@ -265,8 +198,7 @@ class ConstructionCostEstimate(BaseModel):
     target_completion_date: Optional[date] = Field(None, description="Target project completion")
 
     source_notes: Dict[str, Any] = Field(
-        default_factory=dict,
-        description="Data sources for cost estimation"
+        default_factory=dict, description="Data sources for cost estimation"
     )
 
 
@@ -279,7 +211,9 @@ class RevenueProjection(BaseModel):
     """Revenue and NOI projection."""
 
     # Rent projections
-    gross_scheduled_income: float = Field(..., description="Gross scheduled rental income (100% occupied)")
+    gross_scheduled_income: float = Field(
+        ..., description="Gross scheduled rental income (100% occupied)"
+    )
     vacancy_loss: float = Field(..., description="Estimated vacancy and collection loss")
     effective_gross_income: float = Field(..., description="EGI = GSI - vacancy")
 
@@ -297,15 +231,13 @@ class RevenueProjection(BaseModel):
 
     # Affordability mix impact
     affordable_rent_discount: Optional[float] = Field(
-        None,
-        description="Revenue reduction due to affordable units"
+        None, description="Revenue reduction due to affordable units"
     )
     market_rate_units: int = Field(..., description="Number of market-rate units")
     affordable_units: int = Field(0, description="Number of affordable units")
 
     source_notes: Dict[str, Any] = Field(
-        default_factory=dict,
-        description="Data sources for revenue assumptions"
+        default_factory=dict, description="Data sources for revenue assumptions"
     )
 
 
@@ -334,7 +266,9 @@ class FinancialMetrics(BaseModel):
 
     # Other metrics
     payback_period_years: float = Field(..., description="Payback period in years")
-    profitability_index: float = Field(..., description="Profitability Index (PV/Initial Investment)")
+    profitability_index: float = Field(
+        ..., description="Profitability Index (PV/Initial Investment)"
+    )
 
     # Investment summary
     initial_investment: float = Field(..., description="Total initial capital required")
@@ -374,12 +308,7 @@ class MonteCarloStatistics(BaseModel):
     iterations: int = Field(..., description="Number of iterations run")
 
     # Probability metrics
-    probability_positive_npv: float = Field(
-        ...,
-        ge=0,
-        le=1.0,
-        description="Probability of NPV > 0"
-    )
+    probability_positive_npv: float = Field(..., ge=0, le=1.0, description="Probability of NPV > 0")
 
     # Central tendency
     mean_npv: float = Field(..., description="Mean NPV")
@@ -402,14 +331,12 @@ class SensitivityAnalysis(BaseModel):
 
     # Tornado analysis (one-way sensitivity)
     tornado_results: List[TornadoVariable] = Field(
-        default_factory=list,
-        description="Tornado chart data (sorted by impact)"
+        default_factory=list, description="Tornado chart data (sorted by impact)"
     )
 
     # Monte Carlo simulation (multi-way sensitivity)
     monte_carlo: Optional[MonteCarloStatistics] = Field(
-        None,
-        description="Monte Carlo simulation results"
+        None, description="Monte Carlo simulation results"
     )
 
 
@@ -425,43 +352,33 @@ class FeasibilityRequest(BaseModel):
     num_units: int = Field(..., gt=0, description="Number of residential units")
     avg_unit_size_sf: float = Field(..., gt=0, description="Average unit size (SF)")
     affordable_pct: float = Field(
-        0.0,
-        ge=0,
-        le=1.0,
-        description="Percentage of affordable units (e.g., 0.15 for 15%)"
+        0.0, ge=0, le=1.0, description="Percentage of affordable units (e.g., 0.15 for 15%)"
     )
 
     # Economic assumptions
     assumptions: EconomicAssumptions = Field(
         default_factory=EconomicAssumptions,
-        description="Economic assumptions (uses defaults if not provided)"
+        description="Economic assumptions (uses defaults if not provided)",
     )
 
     # Optional parcel-specific data
     parcel_apn: Optional[str] = Field(None, description="Assessor's Parcel Number")
     parcel_county: Optional[str] = Field(None, description="County for AMI lookups")
     existing_improvements_value: Optional[float] = Field(
-        None,
-        description="Value of existing improvements (if any)"
+        None, description="Value of existing improvements (if any)"
     )
 
     # Analysis options
-    run_tornado_sensitivity: bool = Field(
-        True,
-        description="Include tornado sensitivity analysis"
-    )
+    run_tornado_sensitivity: bool = Field(True, description="Include tornado sensitivity analysis")
     tornado_variables: Optional[List[SensitivityVariable]] = Field(
-        None,
-        description="Variables to test (uses defaults if not provided)"
+        None, description="Variables to test (uses defaults if not provided)"
     )
 
     run_monte_carlo: bool = Field(
-        False,
-        description="Include Monte Carlo simulation (adds ~2 seconds)"
+        False, description="Include Monte Carlo simulation (adds ~2 seconds)"
     )
     monte_carlo_config: Optional[MonteCarloConfig] = Field(
-        None,
-        description="Monte Carlo configuration (uses defaults if not provided)"
+        None, description="Monte Carlo configuration (uses defaults if not provided)"
     )
 
 
@@ -483,37 +400,27 @@ class FeasibilityAnalysis(BaseModel):
 
     # Sensitivity analysis
     sensitivity_analysis: Optional[SensitivityAnalysis] = Field(
-        None,
-        description="Sensitivity analysis results (if requested)"
+        None, description="Sensitivity analysis results (if requested)"
     )
 
     # Decision recommendation
     recommendation: str = Field(
-        ...,
-        description="Investment recommendation (PROCEED / MARGINAL / DO NOT PROCEED)"
+        ..., description="Investment recommendation (PROCEED / MARGINAL / DO NOT PROCEED)"
     )
     recommendation_rationale: List[str] = Field(
-        ...,
-        description="Bullet points explaining recommendation"
+        ..., description="Bullet points explaining recommendation"
     )
 
     # Audit trail
     source_notes: Dict[str, Any] = Field(
-        default_factory=dict,
-        description="Complete audit trail of data sources and methodology"
+        default_factory=dict, description="Complete audit trail of data sources and methodology"
     )
 
     # Metadata
-    analysis_date: datetime = Field(
-        default_factory=datetime.now,
-        description="Analysis timestamp"
-    )
+    analysis_date: datetime = Field(default_factory=datetime.now, description="Analysis timestamp")
 
     class Config:
-        json_encoders = {
-            datetime: lambda v: v.isoformat(),
-            date: lambda v: v.isoformat()
-        }
+        json_encoders = {datetime: lambda v: v.isoformat(), date: lambda v: v.isoformat()}
 
 
 # ============================================================================
