@@ -19,7 +19,7 @@ if (SENTRY_DSN) {
     tracesSampleRate: 0.1, // 10% of transactions for performance monitoring
 
     integrations: [
-      Sentry.httpIntegration({ tracing: true }),
+      Sentry.httpIntegration(),
     ],
 
     // Only send events in production

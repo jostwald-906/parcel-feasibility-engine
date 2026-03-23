@@ -12,7 +12,7 @@ Outputs (apply):
 
 import pytest
 
-from app.rules import sb9
+from app.rules.state_law import sb9
 
 
 def base_parcel(**overrides):

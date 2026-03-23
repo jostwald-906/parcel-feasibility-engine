@@ -111,6 +111,16 @@ BERGAMOT_CAC_STANDARDS = {
 DCP_TIER_FAR_MULTIPLIER = {"1": 1.0, "2": 1.25, "3": 1.5}
 DCP_TIER_HEIGHT_BONUS = {"1": 0, "2": 10, "3": 20}  # Additional feet per tier
 
+# Bergamot Area Plan Constants
+# CITE: SMMC § 9.10 Bergamot Area Plan
+BERGAMOT_FAR = {"default": 2.0, "tier1": 1.5, "tier2": 2.0, "tier3": 2.5}
+BERGAMOT_HEIGHT = {"default": 65.0, "tier1": 50.0, "tier2": 65.0, "tier3": 84.0}
+
+# Affordable Housing Overlay (AHO) Bonuses
+# CITE: SMMC § 9.17 Affordable Housing Overlay
+AHO_FAR_BONUS = 0.5  # Additional FAR above base
+AHO_HEIGHT_BONUS = 15.0  # Additional height above base (ft)
+
 # Moderate Income Housing Overlay (MHO) Bonuses
 # CITE: SMMC § 9.17
 MHO_DENSITY_BONUS = 0.5  # Up to 50% density increase

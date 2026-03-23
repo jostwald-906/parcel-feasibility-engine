@@ -31,7 +31,7 @@ export default withSentryConfig(nextConfig, {
   },
 
   // Hide Sentry build output unless there's an error
-  hideSourceMaps: true,
+  sourcemaps: { disable: true },
 
   // Disable Sentry CLI telemetry
   telemetry: false,
