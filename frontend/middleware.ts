@@ -15,9 +15,14 @@ const authRoutes = ['/auth/login', '/auth/register'];
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Check if user has access token
+  // Check if user has access token OR refresh token.
+  // Accepting either avoids race conditions where the access_token cookie
+  // (15-min expiry) isn't visible to a prefetch request that fired immediately
+  // after login. The refresh_token (7-day) is far less prone to that race,
+  // and the client will silently refresh the access_token via AuthProvider.
   const accessToken = request.cookies.get('access_token');
-  const isAuthenticated = !!accessToken;
+  const refreshToken = request.cookies.get('refresh_token');
+  const isAuthenticated = !!accessToken || !!refreshToken;
 
   // Check if route is public (doesn't require authentication)
   const isPublicRoute = publicRoutes.some((route) =>
